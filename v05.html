@@ -2,8 +2,9 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ViralPick v0.5.4 Prototype</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111318">
+<title>ViralPick v0.5.5 Prototype</title>
 <style>
 :root{
   --bg:#f5f6f8;--panel:#fff;--ink:#15171b;--muted:#727985;--line:#e6e8ec;
@@ -115,14 +116,178 @@ button,input,select,textarea{font:inherit}
 .scheduleForm{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end}.scheduleForm input,.scheduleForm select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}.scheduleForm label{font-size:9px;color:#7c8490;font-weight:900;display:grid;gap:5px}
 .limitNotice{border:1px solid #ffd8a8;background:#fff9db;color:#8a5d00;border-radius:13px;padding:12px;font-size:10px;line-height:1.55}
 .toast{position:fixed;right:22px;bottom:22px;background:#111318;color:#fff;padding:12px 15px;border-radius:12px;font-size:11px;opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s;z-index:20}.toast.show{opacity:1;transform:none}
-@media(max-width:1100px){.app{grid-template-columns:1fr}.side{height:auto;position:relative}.sideFoot{position:static;margin-top:14px}.nav{display:flex;overflow:auto}.nav button{min-width:max-content}.main{padding:18px}.grid4,.grid5,.products,.twocol,.threadPreview,.settingGrid,.recoGrid,.postModeGrid,.performanceHero,.analyticsGrid,.analyticsSplit{grid-template-columns:1fr}.coverGrid{grid-template-columns:repeat(2,1fr)}.recommendItem{grid-template-columns:1fr}.perfMetrics{grid-template-columns:repeat(2,1fr)}.analyticsFilters{grid-template-columns:1fr}.detailStats{grid-template-columns:repeat(2,1fr)}.imageGrid3{grid-template-columns:1fr}.scoreGrid{grid-template-columns:repeat(2,1fr)}.scheduleForm{grid-template-columns:1fr}}
+
+/* v0.5.5 responsive navigation and workspace */
+html{scroll-padding-top:82px}
+html,body{width:100%;max-width:100%;overflow-x:clip}
+button,select,input,.copyTab,.cardThumb,.blogTitle,.modeCard,.product{touch-action:manipulation}
+button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:focus-visible,.copyTab:focus-visible,.modeCard:focus-visible{outline:3px solid #4263eb;outline-offset:3px}
+.app{grid-template-columns:250px minmax(0,1fr)}
+.main{min-width:0;max-width:1500px}
+.view,.panel,.pad,.twocol>*,.analyticsSplit>*,.settingGrid>*,.carousel>*{min-width:0}
+.product h3,.detail h3,.recProd b,.reason,.recReason,.top h1,.blogPreview,.copybox,.aiNote{overflow-wrap:anywhere}
+.nav button{min-height:43px}
+.mobileTop,.mobileBackdrop,.mobileBottom,.mobileClose{display:none}
+@media(min-width:1181px){
+  .products{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .grid5{grid-template-columns:repeat(5,minmax(0,1fr))}
+}
+@media(min-width:931px) and (max-width:1320px){
+  .app{grid-template-columns:215px minmax(0,1fr)}
+  .main{padding:20px}
+  .products{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid5{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .grid4,.analyticsGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .top h1{font-size:26px}
+  .recommendItem{grid-template-columns:1fr 1.1fr}
+  .analyticsFilters{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .analyticsFilters label:nth-child(4){grid-column:span 2}
+  .analyticsSplit,.settingGrid{grid-template-columns:1fr}
+  .side{padding:20px 12px}.sideFoot{left:12px;right:12px}
+}
+@media(max-width:930px){
+  :root{--shadow:0 5px 16px rgba(16,18,22,.04)}
+  body{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+  .app{display:block;min-height:calc(100vh - 66px)}
+  .main{padding:19px 18px 26px;max-width:900px;margin:auto}
+  .mobileTop{position:sticky;top:0;z-index:90;height:62px;padding:0 14px;padding-top:env(safe-area-inset-top,0px);box-sizing:content-box;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.97);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+  .mobileMenuButton{display:grid;place-items:center;background:#111318;color:#fff;border:0;border-radius:12px;width:44px;height:44px;flex:0 0 44px;font-size:21px;cursor:pointer}
+  .mobileTopBrand{font-size:19px;letter-spacing:-.65px;font-weight:950;line-height:1.1}
+  .mobileTopSub{font-size:10px;color:#818995;display:block;font-weight:750;margin-top:4px}
+  .mobileTop .topJump{margin-left:auto;font-size:11px;font-weight:900;padding:10px 12px;min-height:42px}
+  .mobileBackdrop{display:block;position:fixed;inset:0;background:rgba(10,15,22,.55);z-index:110;opacity:0;visibility:hidden;transition:opacity .22s,visibility .22s}
+  .side{position:fixed;top:0;bottom:0;left:0;width:min(84vw,328px);max-width:328px;height:100dvh;z-index:120;padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px));overflow:auto;overscroll-behavior:contain;transform:translateX(-105%);visibility:hidden;transition:transform .24s ease,visibility .24s}
+  .sideHeader{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .mobileClose{display:grid;place-items:center;width:42px;height:42px;border:1px solid #454951;color:#fff;background:#252932;border-radius:12px;font-size:21px;cursor:pointer}
+  .nav{display:grid;gap:4px;margin-top:14px}
+  .nav button{min-height:48px;margin:0;font-size:13px;border-radius:12px}
+  .sideFoot{position:static;margin-top:26px}
+  body.mobile-menu-open .side{transform:translateX(0);visibility:visible}
+  body.mobile-menu-open .mobileBackdrop{visibility:visible;opacity:1}
+  body.mobile-menu-open{overflow:hidden}
+  .mobileBottom{position:fixed;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:start;bottom:0;left:0;right:0;height:calc(69px + env(safe-area-inset-bottom,0px));padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));background:#fff;border-top:1px solid #e1e5e9;box-shadow:0 -6px 24px rgba(15,18,22,.07);z-index:95}
+  .mobileBottom button{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:54px;background:transparent;border:0;border-radius:11px;color:#87909c;font-size:10px;font-weight:850;cursor:pointer}
+  .mobileBottom button.active{background:#edf1f7;color:#111318}
+  .mobileBottom .quickIcon{font-size:20px;line-height:1.2}
+  .grid4,.grid5{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .products{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .twocol,.analyticsSplit,.settingGrid,.threadPreview{grid-template-columns:minmax(0,1fr)}
+  .analyticsGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .analyticsFilters{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .analyticsFilters label:nth-child(4){grid-column:auto}
+  .analyticsFilters>.btn{grid-column:span 2}
+  .performanceHero{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .recoGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .postModeGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .recommendItem{grid-template-columns:1fr 1fr}
+  .recommendItem>.btn{align-self:stretch}
+  .scheduleForm{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .scheduleForm>.btn{align-self:end}
+  .scoreGrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .top h1{font-size:27px}
+  .top{gap:12px;flex-wrap:wrap}
+  .panelHead{flex-wrap:wrap}
+  .toast{z-index:150}
+}
+@media(max-width:650px){
+  .main{padding:16px 13px 24px}
+  .top{display:grid;gap:12px;margin-bottom:16px}
+  .top h1{font-size:23px;line-height:1.25;letter-spacing:-.75px}
+  .top p{font-size:12px}
+  .top>.btnrow{width:100%}
+  .top>.btnrow .btn{flex:1 1 auto}
+  .panel{margin-top:12px;border-radius:15px}
+  .panelHead{padding:13px 14px;gap:8px}
+  .panelHead h2{font-size:14px}
+  .pad{padding:13px}
+  .btn{min-height:44px;padding:10px 12px;font-size:12px}
+  .products{grid-template-columns:minmax(0,1fr);gap:10px}
+  .product{padding:14px}
+  .product h3{font-size:15px}
+  .grid4,.grid5,.analyticsGrid,.performanceHero{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .metric,.analyticsMetric,.perfBox{padding:13px;min-width:0}
+  .metric .v,.analyticsMetric .av,.perfBox .pv{font-size:21px;overflow-wrap:anywhere}
+  .scoreGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .detail{align-items:flex-start;gap:12px}
+  .detail h3{font-size:18px}
+  .heroImg{width:82px;height:82px;border-radius:12px;flex-basis:82px;font-size:9px}
+  .copyTabs{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 3px 12px;overscroll-behavior-inline:contain}
+  .copyTab{flex:0 0 min(72vw,260px);scroll-snap-align:start;min-height:76px}
+  .imageGrid3,.coverGrid{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-inline:contain;padding:5px 5px 15px;gap:12px}
+  .imageGrid3>.visual{flex:0 0 min(70vw,245px);scroll-snap-align:start}
+  .coverGrid>.visual{flex:0 0 min(65vw,230px);scroll-snap-align:start}
+  .visual .copy{font-size:clamp(17px,5.4vw,23px)}
+  .threadPreview{grid-template-columns:minmax(0,1fr)}
+  .postText{font-size:13px;line-height:1.6}
+  .carousel{display:flex;flex-direction:column;gap:10px}
+  .carousel>div{min-width:0}
+  .thumbRail{order:2;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+  .cardThumb{padding:6px;border-radius:9px;font-size:9px;line-height:1.2;min-width:0;overflow-wrap:anywhere}
+  .instaCard{max-width:min(100%,450px);border-radius:17px}
+  .instaCard .content{padding:clamp(18px,5vw,31px)}
+  .instaCard h3{font-size:clamp(23px,7vw,34px);line-height:1.15}
+  .instaCard p{font-size:clamp(11px,3.3vw,14px)}
+  .instaCard .cta{font-size:12px;padding:11px}
+  .instaCard .productBox{border-radius:14px;font-size:12px}
+  .analyticsFilters{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .analyticsFilters input,.analyticsFilters select,.field select,.field input,.scheduleForm input,.scheduleForm select{min-height:44px;font-size:16px}
+  .analyticsFilters>.btn{grid-column:span 2}
+  .analyticsSplit,.settingGrid,.recoGrid,.postModeGrid,.recommendItem{grid-template-columns:minmax(0,1fr)}
+  .perfMetrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .recommendItem{gap:11px;padding:13px}
+  .opportunity{text-align:left}
+  .opportunity b{display:inline;font-size:20px;margin-left:8px}
+  .opportunity .oppbar{margin-top:7px}
+  .blogPreview{padding:17px 13px}
+  .blogPreview h1{font-size:22px}
+  .blogPreview h2{font-size:17px}
+  .blogPreview p{font-size:13px}
+  .blogHero,.blogImage{padding:12px;font-size:11px}
+  .proscons{grid-template-columns:minmax(0,1fr)}
+  .settingRow{grid-template-columns:minmax(0,1fr) auto;gap:8px}
+  .settingRow small{max-width:220px}
+  .scheduleForm{grid-template-columns:minmax(0,1fr)}
+  .scheduleForm>.btn{width:100%}
+  .analysisDetail{grid-template-columns:75px minmax(0,1fr);gap:9px}
+  .detailStats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .analyticsTable,.queueTable{border:0}
+  .analyticsTable thead,.queueTable thead{display:none}
+  .analyticsTable tbody,.queueTable tbody{display:grid;gap:10px}
+  .analyticsTable tr,.queueTable tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 12px;border:1px solid var(--line);border-radius:13px;background:#fff;padding:12px}
+  .analyticsTable td,.queueTable td{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;min-width:0;white-space:normal;padding:4px 0;border:0;font-size:11px;overflow-wrap:anywhere}
+  .analyticsTable td::before,.queueTable td::before{content:attr(data-label);font-size:9px;font-weight:850;color:#929aa5;margin-bottom:4px}
+  .analyticsTable td:nth-child(3){grid-column:span 2;font-size:12px}
+  .analyticsTable td:last-child{align-items:flex-start}
+  .queueTable td:nth-child(4){grid-column:span 2}
+  .queueTable td:last-child{grid-column:span 2}
+  .queueTable td:last-child .btn{width:100%}
+  .toast{right:12px;left:12px;bottom:calc(82px + env(safe-area-inset-bottom,0px));text-align:center;max-width:none}
+}
+@media(max-width:365px){
+  .main{padding:13px 10px 24px}
+  .mobileTopBrand{font-size:17px}
+  .mobileTop .topJump{font-size:10px;padding:8px}
+  .scoreGrid,.analyticsGrid,.grid5,.grid4{gap:6px}
+  .panelHead,.pad{padding:11px}
+  .mobileBottom button{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){
+  .side,.mobileBackdrop,.toast{transition:none}
+}
+
 </style>
 </head>
 <body>
+<header class="mobileTop" aria-label="모바일 상단 메뉴">
+ <button class="mobileMenuButton" id="mobileOpenButton" type="button" onclick="openMobileMenu()" aria-label="전체 메뉴 열기" aria-controls="siteSidebar" aria-expanded="false">☰</button>
+ <div><div class="mobileTopBrand">ViralPick</div><span class="mobileTopSub" id="mobileCurrentView">대시보드</span></div>
+ <button class="btn topJump" onclick="show('discover')" type="button">상품 찾기 ↗</button>
+</header>
+<div class="mobileBackdrop" id="mobileBackdrop" onclick="closeMobileMenu()" aria-hidden="true"></div>
 <div class="app">
-<aside class="side">
-  <div class="brand">ViralPick</div>
-  <div class="ver">v0.5.4 · Threads + Instagram + Blog + Scheduler</div>
+<aside class="side" id="siteSidebar" aria-label="전체 메뉴">
+  <div class="sideHeader"><div class="brand">ViralPick</div><button type="button" class="mobileClose" onclick="closeMobileMenu()" aria-label="전체 메뉴 닫기">✕</button></div>
+  <div class="ver">v0.5.5 · Threads + Instagram + Blog + Scheduler</div>
   <nav class="nav">
     <button data-view="dashboard" class="active">🏠 대시보드</button>
     <button data-view="discover">🔥 상품 발굴</button>
@@ -134,7 +299,7 @@ button,input,select,textarea{font:inherit}
     <button data-view="scheduler">📅 자동게시 설정</button>
     <button data-view="publish">🔗 게시 준비</button>
   </nav>
-  <div class="sideFoot"><b>v0.5.4 Prototype</b>토스 API 승인 전 샘플 데이터로 실제 제작 흐름을 점검하는 버전입니다. v0.4 검수 페이지는 그대로 유지됩니다.</div>
+  <div class="sideFoot"><b>v0.5.5 Prototype</b>토스 API 승인 전 샘플 데이터로 실제 제작 흐름을 점검하는 버전입니다. v0.4 검수 페이지는 그대로 유지됩니다.</div>
 </aside>
 
 <main class="main">
@@ -345,6 +510,13 @@ button,input,select,textarea{font:inherit}
 </section>
 </main>
 </div>
+<nav class="mobileBottom" aria-label="모바일 빠른 메뉴">
+  <button type="button" data-quick-view="discover" onclick="show('discover')"><span class="quickIcon">🔥</span><span>상품 발굴</span></button>
+  <button type="button" data-quick-view="threads" onclick="show('threads')"><span class="quickIcon">💬</span><span>Threads</span></button>
+  <button type="button" data-quick-view="instagram" onclick="show('instagram')"><span class="quickIcon">▦</span><span>Instagram</span></button>
+  <button type="button" data-quick-view="analytics" onclick="show('analytics')"><span class="quickIcon">📊</span><span>성과 분석</span></button>
+  <button type="button" id="quickMoreButton" onclick="openMobileMenu()" aria-label="전체 메뉴 열기"><span class="quickIcon">☰</span><span>전체 메뉴</span></button>
+</nav>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -742,7 +914,35 @@ function addSchedule(){
 function removeSchedule(i){scheduleQueue.splice(i,1);renderQueue();toast('예약을 삭제했습니다')}
 
 function generateSNS(){renderThreads();renderInstagram();toast('Threads + Instagram 패키지를 생성했습니다');show('threads')}
-function show(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===id));if(id==='scheduler')renderPostingSettings();if(id==='analytics')renderAnalytics();history.replaceState(null,'',`?view=${id}`)}
+
+const viewLabels={dashboard:'대시보드',discover:'상품 발굴',lab:'상품 분석',threads:'Threads 제작',instagram:'Instagram 카드',analytics:'게시 성과 분석',blog:'Blog 제작',scheduler:'자동게시 설정',publish:'게시 준비'};
+let mobileMenuOpener=null;
+function openMobileMenu(){
+  mobileMenuOpener=document.activeElement;
+  document.body.classList.add('mobile-menu-open');
+  const opener=$('#mobileOpenButton');if(opener)opener.setAttribute('aria-expanded','true');
+  const close=$('.mobileClose');if(close)close.focus();
+}
+function closeMobileMenu(){
+  if(!document.body.classList.contains('mobile-menu-open'))return;
+  document.body.classList.remove('mobile-menu-open');
+  const opener=$('#mobileOpenButton');if(opener)opener.setAttribute('aria-expanded','false');
+  if(mobileMenuOpener && typeof mobileMenuOpener.focus==='function')mobileMenuOpener.focus();
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMobileMenu()});
+window.addEventListener('resize',()=>{if(window.innerWidth>930)closeMobileMenu()});
+function show(id){
+ if(!document.getElementById(id))return;
+ $('.view').forEach(v=>v.classList.toggle('active',v.id===id));
+ $('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
+ $('.mobileBottom [data-quick-view]').forEach(b=>{const active=b.dataset.quickView===id;b.classList.toggle('active',active);if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
+ const current=$('#mobileCurrentView');if(current)current.textContent=viewLabels[id]||'ViralPick';
+ closeMobileMenu();
+ window.scrollTo({top:0,behavior:'instant'});
+ if(id==='scheduler')renderPostingSettings();
+ if(id==='analytics')renderAnalytics();
+ history.replaceState(null,'',`?view=${id}`);
+}
 $$('.nav button').forEach(b=>b.onclick=()=>show(b.dataset.view));
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
 loadPostingSettings();renderProductLists();renderLab();renderThreads();renderInstagram();renderAnalytics();renderBlogRecommendations();renderPostingSettings();$('#pubProduct').textContent=selected.name;
