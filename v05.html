@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111318">
-<title>ViralPick v0.5.6 Prototype</title>
+<title>ViralPick v0.5.7 Prototype</title>
 <style>
 :root{
   --bg:#f5f6f8;--panel:#fff;--ink:#15171b;--muted:#727985;--line:#e6e8ec;
@@ -117,7 +117,7 @@ button,input,select,textarea{font:inherit}
 .limitNotice{border:1px solid #ffd8a8;background:#fff9db;color:#8a5d00;border-radius:13px;padding:12px;font-size:10px;line-height:1.55}
 .toast{position:fixed;right:22px;bottom:22px;background:#111318;color:#fff;padding:12px 15px;border-radius:12px;font-size:11px;opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s;z-index:20}.toast.show{opacity:1;transform:none}
 
-/* v0.5.6 responsive navigation and workspace */
+/* v0.5.7 responsive navigation and workspace */
 html{scroll-padding-top:82px}
 html,body{width:100%;max-width:100%;overflow-x:clip}
 button,select,input,.copyTab,.cardThumb,.blogTitle,.modeCard,.product{touch-action:manipulation}
@@ -276,7 +276,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 }
 
 
-/* Content review and booking — v0.5.6 */
+/* Content review and booking — v0.5.7 */
 .threadFinalEditor,.instaFinalEditor{width:100%;display:block;resize:vertical;font-family:inherit;font-size:13px;line-height:1.7;outline-offset:3px;border:1px solid var(--line);border-radius:13px;background:#fff;padding:14px;color:var(--ink)}
 .threadFinalEditor{min-height:310px;white-space:pre-wrap;margin:13px 0}.instaFinalEditor{min-height:310px;white-space:pre-wrap}
 .finalActions .pad{display:flex;align-items:center;justify-content:space-between;gap:14px}
@@ -318,6 +318,58 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
  .queueTable td:nth-child(5){grid-column:span 2}
  .queueTable td:last-child{grid-column:span 2}
 }
+
+/* Responsive PC hook-image preview: fixed geometry, never overlapping type and image */
+.threadPreview{grid-template-columns:minmax(0,1fr) minmax(0,1.12fr);gap:clamp(12px,1.3vw,22px)}
+.threadPreview>div{min-width:0}
+.hookImagePanel{container-type:inline-size;container-name:hookpanel}
+.hookImagePanel .imageGrid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(7px,1cqi,12px);min-width:0}
+.hookImagePanel .visual{
+  min-width:0;width:100%;aspect-ratio:4/5;
+  display:flex;flex-direction:column;gap:clamp(5px,1.1cqi,10px);
+  padding:clamp(7px,1.6cqi,13px);justify-content:space-between;
+  border-radius:clamp(12px,2cqi,18px);
+}
+.hookImagePanel .visual .ghost{
+  position:static;inset:auto;flex:1 1 auto;min-height:28%;height:auto;
+  display:flex;align-items:center;justify-content:center;
+  font-size:clamp(8px,1.65cqi,11px);line-height:1.3;
+  padding:clamp(5px,1.2cqi,9px);border-radius:12px;
+  overflow-wrap:anywhere;word-break:keep-all;
+  backdrop-filter:none;
+}
+.hookImagePanel .visual .copy{
+  position:static;inset:auto;flex:0 0 auto;
+  width:100%;font-size:clamp(11px,2.45cqi,19px);
+  line-height:1.23;letter-spacing:-.045em;
+  overflow-wrap:anywhere;word-break:keep-all;
+}
+.hookImagePanel .visual .sub{
+  font-size:clamp(8px,1.6cqi,11px);line-height:1.25;
+  overflow-wrap:anywhere;word-break:keep-all;margin-top:clamp(4px,.9cqi,8px)
+}
+.hookSwipeHint{display:none;font-size:11px;color:#707986;text-align:center;margin:0 14px 13px}
+@container hookpanel (max-width:530px){
+ .hookImagePanel .imageGrid3{
+   display:flex;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;
+   scrollbar-width:thin;gap:12px;padding-bottom:16px;
+ }
+ .hookImagePanel .imageGrid3 .visual{
+   flex:0 0 clamp(184px,47%,242px);width:auto;min-width:184px;
+   scroll-snap-align:start;aspect-ratio:4/5;
+ }
+ .hookImagePanel .visual .ghost{font-size:10px}
+ .hookImagePanel .visual .copy{font-size:clamp(13px,3.3cqi,17px)}
+ .hookImagePanel .visual .sub{font-size:10px}
+ .hookImagePanel .hookSwipeHint{display:block}
+}
+@media (max-width:930px){
+ .threadPreview{grid-template-columns:minmax(0,1fr)}
+}
+.reserveChecklist{display:grid;gap:8px}
+.reserveChecklist>strong{font-size:12px;color:#252932}
+.reserveChecklist .reserveApproval{margin:0}
+
 </style>
 </head>
 <body>
@@ -330,19 +382,19 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 <div class="app">
 <aside class="side" id="siteSidebar" aria-label="전체 메뉴">
   <div class="sideHeader"><div class="brand">ViralPick</div><button type="button" class="mobileClose" onclick="closeMobileMenu()" aria-label="전체 메뉴 닫기">✕</button></div>
-  <div class="ver">v0.5.6 · Threads + Instagram + Blog + Scheduler</div>
+  <div class="ver">v0.5.7 · Threads + Instagram + Blog + Scheduler</div>
   <nav class="nav">
     <button data-view="dashboard" class="active">🏠 대시보드</button>
     <button data-view="discover">🔥 상품 발굴</button>
     <button data-view="lab">🧠 상품 분석</button>
     <button data-view="threads">💬 Threads 제작</button>
-    <button data-view="instagram">▦ Instagram 카드</button>
+    <button data-view="instagram">▦ Instagram 제작</button>
     <button data-view="analytics">📊 게시 성과 분석</button>
     <button data-view="blog">📝 Blog 제작</button>
     <button data-view="scheduler">📅 자동게시 설정</button>
-    <button data-view="publish">🔗 게시 준비</button>
+    
   </nav>
-  <div class="sideFoot"><b>v0.5.6 Prototype</b>토스 API 승인 전 샘플 데이터로 실제 제작 흐름을 점검하는 버전입니다. v0.4 검수 페이지는 그대로 유지됩니다.</div>
+  <div class="sideFoot"><b>v0.5.7 Prototype</b>토스 API 승인 전 샘플 데이터로 실제 제작 흐름을 점검하는 버전입니다. v0.4 검수 페이지는 그대로 유지됩니다.</div>
 </aside>
 
 <main class="main">
@@ -390,7 +442,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
   <div class="panel"><div class="panelHead"><h2>본문 3안</h2><span class="badge" id="threadTypeBadge">-</span></div><div class="pad"><div class="copyTabs" id="threadTabs"></div></div></div>
   <div class="threadPreview">
     <div>
-      <div class="panel"><div class="panelHead"><h2>후킹 이미지 3안</h2><span class="badge green">4:5</span></div><div class="pad imageGrid3" id="threadImages"></div></div>
+      <div class="panel hookImagePanel"><div class="panelHead"><h2>후킹 이미지 3안</h2><span class="badge green">4:5</span></div><div class="pad imageGrid3" id="threadImages"></div><p class="hookSwipeHint">← 좌우로 넘겨 3가지 이미지를 비교하세요 →</p></div>
     </div>
     <div>
       <div class="panel"><div class="panelHead"><h2>Threads 최종 미리보기</h2><span class="badge">선택 이미지 + 본문</span></div><div class="pad"><div class="postCard"><div class="postHead"><div class="avatar">VP</div><div><div class="handle">viralpick</div><div class="ago">방금 전</div></div></div><textarea class="postText threadFinalEditor" id="threadFinalText" oninput="onThreadFinalEdit()" aria-label="Threads 최종 게시글 편집" spellcheck="true"></textarea><div id="threadFinalImage"></div><div class="postActions">♡ 좋아요　◯ 답글　↗ 공유</div></div></div></div>
@@ -515,7 +567,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 
   <div class="twocol">
     <div class="panel"><div class="panelHead"><h2>게시 전 자동 안전검사</h2><span class="badge green">권장 ON</span></div><div class="pad">
-      <div class="toggleLine"><div class="toggleText"><b>게시 직전 가격 재확인</b><span>예약 당시 가격과 달라지면 자동 수정 또는 중지</span></div><label class="switch"><input id="checkPrice" type="checkbox" checked onchange="syncPostingSettings()"><i></i></label></div>
+      <div class="toggleLine"><div class="toggleText"><b>게시 직전 가격 재확인</b><span>서버 API 연결 시 예약 당시 가격 변동 감지 및 보류</span></div><label class="switch"><input id="checkPrice" type="checkbox" checked onchange="syncPostingSettings()"><i></i></label></div>
       <div class="toggleLine"><div class="toggleText"><b>품절·판매중지 자동 중지</b><span>상품 판매 상태가 유효하지 않으면 게시 보류</span></div><label class="switch"><input id="checkStock" type="checkbox" checked onchange="syncPostingSettings()"><i></i></label></div>
       <div class="toggleLine"><div class="toggleText"><b>제휴 고지 자동 검사</b><span>필수 고지 문구가 빠지면 게시하지 않음</span></div><label class="switch"><input id="checkDisclosure" type="checkbox" checked onchange="syncPostingSettings()"><i></i></label></div>
       <div class="toggleLine"><div class="toggleText"><b>최근 문구·이미지 중복 검사</b><span>유사 후킹·동일 템플릿 반복을 감지</span></div><label class="switch"><input id="checkDuplicate" type="checkbox" checked onchange="syncPostingSettings()"><i></i></label></div>
@@ -541,20 +593,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
   </div></div>
 </section>
 
-<section id="publish" class="view">
-  <div class="top"><div><span class="badge green">게시 준비</span><h1>최종 패키지 확인</h1><p>같은 상품을 플랫폼별 문법에 맞게 다르게 포장하고, 게시 전 최신 상품 정보와 제휴 고지를 확인합니다.</p></div><button class="btn primary" onclick="toast('프로토타입에서는 실제 게시를 하지 않습니다')">게시 준비 완료</button></div>
-  <div class="grid5">
-    <div class="metric"><div class="k">선택 상품</div><div class="v" style="font-size:18px" id="pubProduct">-</div><div class="s">현재 작업 상품</div></div>
-    <div class="metric"><div class="k">Threads</div><div class="v">2장</div><div class="s">후킹+상품 이미지</div></div>
-    <div class="metric"><div class="k">Instagram</div><div class="v">5장</div><div class="s">캐러셀 카드</div></div>
-    <div class="metric"><div class="k">Blog</div><div class="v">1편</div><div class="s">검색형 장문 + 이미지</div></div>
-    <div class="metric"><div class="k">상태</div><div class="v" style="font-size:18px">검수 대기</div><div class="s">직접 확인 후 게시</div></div>
-  </div>
-  <div class="panel"><div class="panelHead"><h2>게시 전 체크리스트</h2></div><div class="pad">
-    <div class="statusline"><span class="status">✓ 최신 가격 확인</span><span class="status">✓ 옵션 확인</span><span class="status">✓ 표현 검수</span><span class="status">✓ 제휴 고지</span><span class="status">✓ 링크 확인</span></div>
-    <div class="aiNote" style="margin-top:14px">토스 API 승인 후에는 게시 직전 상품 상세 API로 가격·품절 상태를 다시 확인하고, 쉐어링크를 발급한 뒤 플랫폼별 최종 콘텐츠에 연결합니다.</div>
-  </div></div>
-</section>
+
 </main>
 </div>
 <nav class="mobileBottom" aria-label="모바일 빠른 메뉴">
@@ -571,7 +610,12 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
     <div class="reservationSummary"><span class="badge" id="reservePlatform">플랫폼</span><b id="reserveProduct">상품</b><p id="reserveSelection">현재 선택한 콘텐츠</p></div>
     <label class="reserveLabel">최종 게시글 내용<textarea id="reserveText" rows="5" readonly aria-label="예약할 게시글 내용"></textarea></label>
     <div class="reserveFields"><label class="reserveLabel">예약 날짜<input type="date" id="reserveDate" required></label><label class="reserveLabel">예약 시간<input type="time" id="reserveTime" required></label></div>
-    <label class="reserveApproval"><input type="checkbox" id="reserveApproved" onchange="updateReservationButton()"><span>본문·이미지/카드·제휴 고지를 최종 검수했고, 이 내용으로 예약하는 데 동의합니다.</span></label>
+    <div class="reserveChecklist" aria-label="게시 전 최종 검수">
+    <strong>게시 전 최종 검수</strong>
+    <label class="reserveApproval"><input type="checkbox" id="reserveApproved" onchange="updateReservationButton()"><span>본문·후킹 이미지 또는 카드 5장 내용과 제휴 고지를 검수했습니다.</span></label>
+    <label class="reserveApproval"><input type="checkbox" id="reserveProductCheck" onchange="updateReservationButton()"><span>실제 판매 페이지에서 최신 가격·옵션·품절 여부를 직접 확인했습니다.</span></label>
+    <label class="reserveApproval"><input type="checkbox" id="reserveLinkCheck" onchange="updateReservationButton()"><span>게시에 사용할 제휴 링크와 고지 문구를 직접 확인했습니다.</span></label>
+  </div>
     <div class="reserveWarning" id="reserveWarning" aria-live="polite">※ 현재는 실제 SNS 게시가 아닌 브라우저에 저장되는 모의 예약입니다.</div>
   </div>
   <div class="reservationFooter"><button type="button" class="btn" onclick="closeReservation()">취소</button><button type="button" class="btn primary" id="confirmReserveBtn" onclick="confirmReservation()" disabled>예약 큐에 등록</button></div>
@@ -610,7 +654,7 @@ function productCard(p){
  </div>`
 }
 function renderProductLists(){ $('#dashProducts').innerHTML=products.map(productCard).join(''); $('#discoverProducts').innerHTML=products.map(productCard).join(''); }
-function selectProduct(id){ selected=products.find(p=>p.id===id)||products[0]; renderProductLists(); renderLab(); renderThreads(); renderInstagram(); $('#pubProduct').textContent=selected.name; show('lab'); }
+function selectProduct(id){ selected=products.find(p=>p.id===id)||products[0]; renderProductLists(); renderLab(); renderThreads(); renderInstagram(); show('lab'); }
 function renderLab(){ const p=selected; $('#labType').textContent=p.type; $('#labName').textContent=p.name; $('#labPrice').textContent=fmt(p.price); $('#labReason').textContent=p.reason; $('#viralScore').textContent=p.viral; $('#threadScore').textContent=p.thread; $('#instaScore').textContent=p.insta; $('#adScore').textContent=p.ad+'%'; $('#analysisText').innerHTML=`<b>추천 유형: ${p.type}</b><br><br>문제 상황: ${p.problem}<br>신기/해결 포인트: ${p.novel}<br>주요 타깃: ${p.audience}<br>추천 시각: ${p.visual}`; }
 function threadHooks(p){ const sets=[
  [`아니 이런 게 있는 줄 나만 몰랐음?ㅋㅋ`,`가구 조립할 때 이런 거 은근 필요하더라`,`별거 아닌데 이런 게 진짜 편한 듯`],
@@ -1056,7 +1100,9 @@ function openReservation(platform){
  $('#reserveDate').value=when.slice(0,10);
  $('#reserveTime').value=when.slice(11,16);
  $('#reserveApproved').checked=false;
- $('#reserveWarning').textContent='※ 현재는 실제 SNS 자동게시가 아닌 브라우저에 저장되는 모의 예약입니다. 상품 가격·품절 여부는 실제 API와 연결되지 않았습니다.';
+ $('#reserveProductCheck').checked=false;
+ $('#reserveLinkCheck').checked=false;
+ $('#reserveWarning').textContent='※ 실제 자동게시가 아닌 브라우저 저장용 모의 예약입니다. 최신 가격·재고·제휴 링크는 실제 API와 연결되지 않아 직접 확인해야 합니다.';
  $('#reserveWarning').classList.remove('error');
  updateReservationButton();
  $('#reservationOverlay').hidden=false;
@@ -1064,7 +1110,7 @@ function openReservation(platform){
  $('#reserveDate').focus();
 }
 function updateReservationButton(){
- $('#confirmReserveBtn').disabled=!($('#reserveApproved').checked&&pendingReservation);
+ $('#confirmReserveBtn').disabled=!(pendingReservation&&$('#reserveApproved').checked&&$('#reserveProductCheck').checked&&$('#reserveLinkCheck').checked);
 }
 function closeReservation(){
  const modal=$('#reservationOverlay');if(!modal||modal.hidden)return;
@@ -1077,7 +1123,7 @@ function showReserveError(msg){
 }
 function confirmReservation(){
  if(!pendingReservation)return;
- if(!$('#reserveApproved').checked){showReserveError('최종 검수 확인에 동의해 주세요.');return}
+ if(!$('#reserveApproved').checked||!$('#reserveProductCheck').checked||!$('#reserveLinkCheck').checked){showReserveError('본문·상품정보·제휴 링크 검수 항목을 모두 확인해 주세요.');return}
  const date=$('#reserveDate').value,time=$('#reserveTime').value;
  const r=pendingReservation;
  if(!r.snapshot.text.trim()){showReserveError('본문 또는 캡션이 비어 있습니다.');return}
@@ -1104,7 +1150,7 @@ function confirmReservation(){
 
 function generateSNS(){renderThreads();renderInstagram();toast('Threads + Instagram 패키지를 생성했습니다');show('threads')}
 
-const viewLabels={dashboard:'대시보드',discover:'상품 발굴',lab:'상품 분석',threads:'Threads 제작',instagram:'Instagram 카드',analytics:'게시 성과 분석',blog:'Blog 제작',scheduler:'자동게시 설정',publish:'게시 준비'};
+const viewLabels={dashboard:'대시보드',discover:'상품 발굴',lab:'상품 분석',threads:'Threads 제작',instagram:'Instagram 제작',analytics:'게시 성과 분석',blog:'Blog 제작',scheduler:'자동게시 설정'};
 let mobileMenuOpener=null;
 function openMobileMenu(){
   mobileMenuOpener=document.activeElement;
@@ -1134,8 +1180,8 @@ function show(id){
 }
 $$('.nav button').forEach(b=>b.onclick=()=>show(b.dataset.view));
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
-loadPostingSettings();setDefaultScheduleFields();renderProductLists();renderLab();renderThreads();renderInstagram();renderAnalytics();renderBlogRecommendations();renderPostingSettings();$('#pubProduct').textContent=selected.name;
-const q=new URLSearchParams(location.search).get('view');if(['dashboard','discover','lab','threads','instagram','analytics','blog','scheduler','publish'].includes(q))show(q);
+loadPostingSettings();setDefaultScheduleFields();renderProductLists();renderLab();renderThreads();renderInstagram();renderAnalytics();renderBlogRecommendations();renderPostingSettings();
+const q=new URLSearchParams(location.search).get('view');if(['dashboard','discover','lab','threads','instagram','analytics','blog','scheduler'].includes(q))show(q);
 </script>
 </body>
 </html>
