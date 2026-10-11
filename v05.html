@@ -478,7 +478,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 </section>
 
 <section id="instagram" class="view">
-  <div class="top"><div><span class="badge orange">Instagram Carousel</span><h1>5장 카드형 콘텐츠 만들기</h1><p>첫 장은 후킹, 2장은 문제, 3장은 상품, 4장은 장점, 5장은 CTA로 구성합니다.</p></div><div class="btnrow"><button class="btn" onclick="cycleCover()">표지 4안 재생성</button><button class="btn green" onclick="downloadInstagramZIP()">카드 5장 ZIP 저장</button><button class="btn primary" onclick="openReservation('Instagram')">📅 최종 검수 후 예약</button></div></div>
+  <div class="top"><div><span class="badge orange">Instagram Carousel</span><h1>5장 카드형 콘텐츠 만들기</h1><p>첫 장은 후킹, 2장은 문제, 3장은 상품, 4장은 장점, 5장은 CTA로 구성합니다.</p></div><div class="btnrow"><button class="btn" onclick="cycleCover()">표지 4안 재생성</button><button class="btn green" id="igZipBtn" onclick="downloadInstagramZIP()">카드 5장 ZIP 저장</button><button class="btn primary" onclick="openReservation('Instagram')">📅 최종 검수 후 예약</button></div></div>
   <div class="panel"><div class="panelHead"><h2>첫 장 표지 4안</h2><span class="badge green">1080 × 1350</span></div><div class="pad">
   <div class="copySettings"><label>표지·캡션 문구 스타일 <select id="instagramDiversity" onchange="changeInstagramDiversity(this.value)"><option value="stable">담백형</option><option value="balanced" selected>균형형</option><option value="creative">실험형</option></select></label><span class="copyHint">상품별 문제·발견·정보·구매판단 방향을 선택하세요</span></div>
   <div class="coverGrid" id="coverGrid"></div><div class="similarityNotice" id="instaDupStatus" aria-live="polite"></div>
@@ -879,6 +879,175 @@ ${lines[instagramDiversity]}
 
 ※ 이 게시물은 토스쇼핑 쉐어링크 활동의 일환으로, 구매 발생 시 일정 수수료를 제공받을 수 있습니다.`;
 }
+
+/* No external image API: fully local, downloadable 1080x1350 graphics */
+function designPalette(variant){
+ const choices=[
+  {light:'#e8f0f6',mid:'#d8e5f0',ink:'#17324a',accent:'#246a96'},
+  {light:'#f4eadd',mid:'#e6d3ba',ink:'#56371b',accent:'#ba7640'},
+  {light:'#e6efe9',mid:'#cfe5d7',ink:'#1b4a36',accent:'#378761'},
+  {light:'#fff0c6',mid:'#fae19c',ink:'#4a3c20',accent:'#9a752a'}
+ ];
+ return choices[variant%choices.length];
+}
+function roundedFill(ctx,x,y,w,h,r,color){
+ ctx.fillStyle=color;ctx.beginPath();
+ if(typeof ctx.roundRect==='function')ctx.roundRect(x,y,w,h,r);
+ else{ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);}
+ ctx.closePath();ctx.fill();
+}
+function canvasWrap(ctx,text,maxWidth,maxRows=8){
+ const blocks=String(text||'').replace(/<br\s*\/?\s*>/gi,'\n').split('\n');
+ const lines=[];
+ for(const block of blocks){
+  let line='';
+  for(const char of block){
+   if(ctx.measureText(line+char).width>maxWidth && line){
+    lines.push(line.trim());line=char;
+    if(lines.length>=maxRows)return lines;
+   }else line+=char;
+  }
+  if(line.trim())lines.push(line.trim());
+  if(lines.length>=maxRows)return lines.slice(0,maxRows);
+ }
+ return lines;
+}
+function canvasParagraph(ctx,text,x,y,maxWidth,size,lineHeight,maxRows=6,color='#152330',weight=800){
+ ctx.font=weight+' '+size+'px "Noto Sans KR","Malgun Gothic",sans-serif';
+ ctx.textAlign='left';ctx.textBaseline='top';ctx.fillStyle=color;
+ const lines=canvasWrap(ctx,text,maxWidth,maxRows);
+ lines.forEach((t,i)=>ctx.fillText(t,x,y+i*lineHeight));
+ return y+lines.length*lineHeight;
+}
+function drawProductGlyph(ctx,productId,cx,cy,scale,palette){
+ ctx.save();ctx.translate(cx,cy);ctx.scale(scale,scale);
+ if(productId===1){
+  roundedFill(ctx,-240,-45,480,90,24,palette.accent);
+  for(let i=-3;i<=3;i++){ctx.fillStyle='#fff';ctx.fillRect(i*57-5,-33,10,18)}
+  roundedFill(ctx,-60,-34,120,68,12,'#fff');
+  ctx.fillStyle=palette.accent;ctx.font='900 42px sans-serif';ctx.textAlign='center';ctx.fillText('0.0°',0,15);
+  ctx.strokeStyle='#f06258';ctx.lineWidth=9;ctx.beginPath();ctx.moveTo(-280,90);ctx.lineTo(280,90);ctx.stroke();
+ }else if(productId===2){
+  ctx.rotate(-.35);
+  roundedFill(ctx,-95,-190,190,310,46,palette.accent);
+  roundedFill(ctx,-57,-156,114,96,14,'#fff');
+  roundedFill(ctx,-51,70,102,140,20,'#264457');
+  roundedFill(ctx,-220,-182,125,75,25,palette.ink);
+  ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='900 48px sans-serif';ctx.fillText('↗',0,-82);
+ }else{
+  for(const [x,y,r] of [[-100,-110,52],[-33,-160,44],[47,-145,44],[118,-95,52]]){
+   ctx.fillStyle=palette.accent;ctx.beginPath();ctx.ellipse(x,y,r,r*1.07,0,0,Math.PI*2);ctx.fill();
+  }
+  ctx.fillStyle=palette.accent;ctx.beginPath();ctx.moveTo(-170,78);ctx.bezierCurveTo(-168,-25,-70,-60,0,-23);ctx.bezierCurveTo(90,-79,177,-10,170,79);ctx.bezierCurveTo(159,204,-150,200,-170,78);ctx.fill();
+ }
+ ctx.restore();
+}
+function buildContentCanvas(platform,slide=0,variant=0){
+ const p=selected,pal=designPalette(variant);
+ const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1350;
+ const ctx=canvas.getContext('2d');if(!ctx)throw new Error('캔버스 렌더링을 지원하지 않습니다.');
+ const grad=ctx.createLinearGradient(0,0,1080,1350);
+ grad.addColorStop(0,pal.light);grad.addColorStop(1,pal.mid);ctx.fillStyle=grad;ctx.fillRect(0,0,1080,1350);
+ ctx.globalAlpha=.08;ctx.fillStyle=pal.accent;
+ ctx.beginPath();ctx.ellipse(860,300,410,410,0,0,Math.PI*2);ctx.fill();
+ ctx.beginPath();ctx.ellipse(120,1190,330,330,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
+ roundedFill(ctx,63,60,954,1230,45,'rgba(255,255,255,.56)');
+ const x=112,max=856;
+ const platformLabel=platform==='Threads'?'THREADS • HOOK IMAGE':'INSTAGRAM • '+String(slide+1).padStart(2,'0')+'/05';
+ canvasParagraph(ctx,platformLabel,x,115,max,30,38,2,pal.accent,900);
+ ctx.fillStyle=pal.accent;ctx.fillRect(x,167,120,8);
+ if(platform==='Threads'){
+  const hook=threadHooks(p)[threadCopyIndex];
+  canvasParagraph(ctx,'문제 해결 · 생활 속 발견',x,214,max,36,49,2,pal.ink,700);
+  const y=canvasParagraph(ctx,hook,x,295,max,73,92,5,pal.ink,900);
+  roundedFill(ctx,112,Math.max(720,y+48),856,330,35,'rgba(255,255,255,.60)');
+  drawProductGlyph(ctx,p.id,540,Math.max(885,y+205),.50,pal);
+  canvasParagraph(ctx,p.name,x,1120,max,40,50,2,pal.accent,900);
+ }else if(slide===0){
+  const hook=coverHooks(p)[coverIndex].replace(/<br>/g,' ');
+  canvasParagraph(ctx,'생활에서 발견한 작은 변화',x,210,max,38,52,2,pal.ink,700);
+  canvasParagraph(ctx,hook,x,310,max,76,94,6,pal.ink,900);
+  roundedFill(ctx,125,890,830,200,30,'rgba(255,255,255,.54)');
+  drawProductGlyph(ctx,p.id,800,985,.29,pal);
+  canvasParagraph(ctx,p.name,x,1105,max,42,54,2,pal.accent,900);
+ }else if(slide===1){
+  canvasParagraph(ctx,'02  문제 상황',x,228,max,44,60,2,pal.accent,900);
+  canvasParagraph(ctx,getHookProfile(p).pain,x,330,max,68,88,6,pal.ink,900);
+  roundedFill(ctx,x,800,856,250,27,'rgba(255,255,255,.66)');
+  canvasParagraph(ctx,'이 불편을 어떻게 줄일 수 있을까요?',x+42,860,770,39,53,3,pal.ink,800);
+ }else if(slide===2){
+  canvasParagraph(ctx,'03  제품 살펴보기',x,215,max,44,58,2,pal.accent,900);
+  canvasParagraph(ctx,p.name,x,315,max,66,85,4,pal.ink,900);
+  roundedFill(ctx,x,660,856,360,34,'rgba(255,255,255,.75)');
+  drawProductGlyph(ctx,p.id,540,825,.59,pal);
+  canvasParagraph(ctx,'제품 일러스트 시안 · 실물 사진 미연결',x,1070,max,30,42,2,pal.accent,700);
+ }else if(slide===3){
+  canvasParagraph(ctx,'04  확인할 기능',x,215,max,44,58,2,pal.accent,900);
+  canvasParagraph(ctx,p.novel,x,330,max,62,81,7,pal.ink,900);
+  roundedFill(ctx,x,830,856,180,30,'rgba(255,255,255,.75)');
+  canvasParagraph(ctx,'옵션·사양·상품 리뷰는 구매 전 확인하세요',x+30,881,790,33,48,3,pal.ink,700);
+ }else{
+  canvasParagraph(ctx,'05  구매 판단 체크',x,220,max,44,58,2,pal.accent,900);
+  canvasParagraph(ctx,'내게 정말 필요한 제품일까?',x,330,max,68,88,5,pal.ink,900);
+  roundedFill(ctx,x,655,856,345,34,'rgba(255,255,255,.7)');
+  canvasParagraph(ctx,'✓ 사용 빈도와 용도 확인\n✓ 실제 옵션·리뷰 확인\n✓ 최신 가격·재고 확인',x+36,720,785,36,84,6,pal.ink,800);
+  canvasParagraph(ctx,'예시 가격: '+fmt(p.price),x,1060,max,40,52,2,pal.accent,900);
+ }
+ ctx.fillStyle=pal.ink;ctx.fillRect(x,1190,max,2);
+ canvasParagraph(ctx,'ViralPick  ·  텍스트 그래픽 시안  ·  AI/실물 사진 미포함',x,1215,max,24,35,2,pal.ink,600);
+ return canvas;
+}
+async function pngBlob(canvas){
+ return new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('PNG 생성 실패')),'image/png'));
+}
+function downloadFile(blob,name){
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),15000);
+}
+function safeFileName(value){return String(value).replace(/[^\w가-힣-]/g,'_').slice(0,45)}
+async function downloadThreadPNG(){
+ try{
+ const canvas=buildContentCanvas('Threads',0,threadImageIndex);
+ const blob=await pngBlob(canvas);
+ downloadFile(blob,'ViralPick_Threads_'+safeFileName(selected.name)+'_'+(threadCopyIndex+1)+'.png');
+ toast('1080×1350 Threads 그래픽 PNG를 저장했습니다.');
+ }catch(e){toast('PNG 출력 실패: '+e.message)}
+}
+function crc32(bytes){
+ let crc=-1;
+ for(const b of bytes){crc^=b;for(let k=0;k<8;k++)crc=(crc>>>1)^(-(crc&1)&0xedb88320)}
+ return (crc^(-1))>>>0;
+}
+function littleBytes(num,length){return Array.from({length},(_,i)=>(num>>>(8*i))&255)}
+function makeZipEntries(entries){
+ const encoder=new TextEncoder(),files=[],central=[];
+ let offset=0;
+ for(const file of entries){
+  const name=encoder.encode(file.name),bytes=file.bytes,crc=crc32(bytes),flags=0x0800;
+  const local=new Uint8Array([80,75,3,4,20,0,...littleBytes(flags,2),0,0,0,0,0,0,...littleBytes(crc,4),...littleBytes(bytes.length,4),...littleBytes(bytes.length,4),...littleBytes(name.length,2),0,0]);
+  const locBlob=new Blob([local,name,bytes]);files.push(locBlob);
+  const center=new Uint8Array([80,75,1,2,20,0,20,0,...littleBytes(flags,2),0,0,0,0,0,0,...littleBytes(crc,4),...littleBytes(bytes.length,4),...littleBytes(bytes.length,4),...littleBytes(name.length,2),0,0,0,0,0,0,0,0,0,0,0,0,...littleBytes(offset,4)]);
+  central.push(new Blob([center,name]));offset+=local.length+name.length+bytes.length;
+ }
+ const centralLength=central.reduce((total,b)=>total+b.size,0);
+ const end=new Uint8Array([80,75,5,6,0,0,0,0,...littleBytes(entries.length,2),...littleBytes(entries.length,2),...littleBytes(centralLength,4),...littleBytes(offset,4),0,0]);
+ return new Blob([...files,...central,end],{type:'application/zip'});
+}
+async function downloadInstagramZIP(){
+ const btn=$('#igZipBtn');if(btn){btn.disabled=true;btn.textContent='카드 ZIP 생성 중…'}
+ try{
+  const files=[];
+  for(let i=0;i<5;i++){
+   const blob=await pngBlob(buildContentCanvas('Instagram',i,coverIndex));
+   files.push({name:'Instagram_'+String(i+1).padStart(2,'0')+'.png',bytes:new Uint8Array(await blob.arrayBuffer())});
+  }
+  downloadFile(makeZipEntries(files),'ViralPick_Instagram_'+safeFileName(selected.name)+'_5cards.zip');
+  toast('Instagram 카드 5장(1080×1350) ZIP 저장 완료');
+ }catch(e){toast('ZIP 출력 실패: '+e.message)}
+ finally{if(btn){btn.disabled=false;btn.textContent='카드 5장 ZIP 저장'}}
+}
+
 function cycleCover(){coverSeed++;coverIndex=0;instaCardIndex=0;renderInstagram();toast('Instagram 표지 4안을 새로 만들었습니다')}
 async function copyCaption(){try{await navigator.clipboard.writeText(getCurrentInstagramCaption());toast('Instagram 캡션을 복사했습니다')}catch(e){toast('브라우저 복사 권한을 확인해주세요')}}
 
