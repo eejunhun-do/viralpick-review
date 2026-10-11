@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111318">
-<title>ViralPick v0.5.7 Prototype</title>
+<title>ViralPick v0.6.0 Prototype</title>
 <style>
 :root{
   --bg:#f5f6f8;--panel:#fff;--ink:#15171b;--muted:#727985;--line:#e6e8ec;
@@ -117,7 +117,7 @@ button,input,select,textarea{font:inherit}
 .limitNotice{border:1px solid #ffd8a8;background:#fff9db;color:#8a5d00;border-radius:13px;padding:12px;font-size:10px;line-height:1.55}
 .toast{position:fixed;right:22px;bottom:22px;background:#111318;color:#fff;padding:12px 15px;border-radius:12px;font-size:11px;opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s;z-index:20}.toast.show{opacity:1;transform:none}
 
-/* v0.5.7 responsive navigation and workspace */
+/* v0.6.0 responsive navigation and workspace */
 html{scroll-padding-top:82px}
 html,body{width:100%;max-width:100%;overflow-x:clip}
 button,select,input,.copyTab,.cardThumb,.blogTitle,.modeCard,.product{touch-action:manipulation}
@@ -276,7 +276,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 }
 
 
-/* Content review and booking — v0.5.7 */
+/* Content review and booking — v0.6.0 */
 .threadFinalEditor,.instaFinalEditor{width:100%;display:block;resize:vertical;font-family:inherit;font-size:13px;line-height:1.7;outline-offset:3px;border:1px solid var(--line);border-radius:13px;background:#fff;padding:14px;color:var(--ink)}
 .threadFinalEditor{min-height:310px;white-space:pre-wrap;margin:13px 0}.instaFinalEditor{min-height:310px;white-space:pre-wrap}
 .finalActions .pad{display:flex;align-items:center;justify-content:space-between;gap:14px}
@@ -370,6 +370,28 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 .reserveChecklist>strong{font-size:12px;color:#252932}
 .reserveChecklist .reserveApproval{margin:0}
 
+
+/* v0.6 writing controls */
+.copySettings{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px}
+.copySettings label{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:900;color:#404955}
+.copySettings select{border:1px solid var(--line);border-radius:10px;background:#fff;padding:9px 12px;font-size:12px;min-height:40px}
+.copyHint{color:#7c8591;font-size:10px;line-height:1.6;flex:1;min-width:220px}
+#threadTabs{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#threadTabs .copyTab{min-width:0;min-height:85px}
+#threadTabs .copyTab .hookKind{display:block;font-size:10px;color:#57718a;font-weight:950;margin-bottom:5px}
+#threadTabs .copyTab b{font-size:11px;line-height:1.5;word-break:keep-all;overflow-wrap:anywhere}
+.similarityNotice{display:flex;align-items:center;min-height:37px;font-size:11px;color:#64748b;line-height:1.5;border:1px solid #e6ebf1;border-radius:10px;margin-top:12px;padding:9px 11px;background:#f8fafc}
+.similarityNotice.warning{color:#9b4c12;background:#fff6ed;border-color:#f9d8bb}
+.similarityNotice.ok{color:#15704c;background:#eef9f3;border-color:#cbe8d8}
+@media (max-width:650px){
+ #threadTabs{display:flex;overflow:auto;scroll-snap-type:x mandatory}
+ #threadTabs .copyTab{flex:0 0 min(65vw,260px);scroll-snap-align:start}
+ .copySettings{align-items:flex-start}
+ .copySettings label{width:100%;justify-content:space-between}
+ .copySettings select{flex:0 0 auto}
+ .copyHint{min-width:0}
+}
+
 </style>
 </head>
 <body>
@@ -382,7 +404,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 <div class="app">
 <aside class="side" id="siteSidebar" aria-label="전체 메뉴">
   <div class="sideHeader"><div class="brand">ViralPick</div><button type="button" class="mobileClose" onclick="closeMobileMenu()" aria-label="전체 메뉴 닫기">✕</button></div>
-  <div class="ver">v0.5.7 · Threads + Instagram + Blog + Scheduler</div>
+  <div class="ver">v0.6.0 · Threads + Instagram + Blog + Scheduler</div>
   <nav class="nav">
     <button data-view="dashboard" class="active">🏠 대시보드</button>
     <button data-view="discover">🔥 상품 발굴</button>
@@ -394,7 +416,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
     <button data-view="scheduler">📅 자동게시 설정</button>
     
   </nav>
-  <div class="sideFoot"><b>v0.5.7 Prototype</b>토스 API 승인 전 샘플 데이터로 실제 제작 흐름을 점검하는 버전입니다. v0.4 검수 페이지는 그대로 유지됩니다.</div>
+  <div class="sideFoot"><b>v0.6.0 Prototype</b>토스 API 승인 전 샘플 데이터로 실제 제작 흐름을 점검하는 버전입니다. v0.4 검수 페이지는 그대로 유지됩니다.</div>
 </aside>
 
 <main class="main">
@@ -438,8 +460,12 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 </section>
 
 <section id="threads" class="view">
-  <div class="top"><div><span class="badge blue">Threads</span><h1>글 + 후킹 이미지 1~2장</h1><p>글이 메인이고 이미지는 스크롤을 멈추게 하는 역할. 너무 광고처럼 보이지 않게 구성합니다.</p></div><div class="btnrow"><button class="btn" onclick="cycleThread()">3안 다시 만들기</button><button class="btn" onclick="copyThread()">선택 본문 복사</button><button class="btn primary" onclick="openReservation('Threads')">📅 최종 검수 후 예약</button></div></div>
-  <div class="panel"><div class="panelHead"><h2>본문 3안</h2><span class="badge" id="threadTypeBadge">-</span></div><div class="pad"><div class="copyTabs" id="threadTabs"></div></div></div>
+  <div class="top"><div><span class="badge blue">Threads</span><h1>글 + 후킹 이미지 1~2장</h1><p>글이 메인이고 이미지는 스크롤을 멈추게 하는 역할. 너무 광고처럼 보이지 않게 구성합니다.</p></div><div class="btnrow"><button class="btn" onclick="cycleThread()">후킹 6안 새로 만들기</button><button class="btn" onclick="copyThread()">선택 본문 복사</button><button class="btn green" onclick="downloadThreadPNG()">선택 이미지 PNG 저장</button><button class="btn primary" onclick="openReservation('Threads')">📅 최종 검수 후 예약</button></div></div>
+  <div class="panel"><div class="panelHead"><h2>상품별 후킹·본문 6안</h2><span class="badge" id="threadTypeBadge">-</span></div>
+<div class="pad"><div class="copySettings">
+  <label>문구 다양화 강도 <select id="threadDiversity" onchange="changeThreadDiversity(this.value)"><option value="stable">담백형</option><option value="balanced" selected>균형형</option><option value="creative">실험형</option></select></label>
+  <span class="copyHint">공감 · 발견 · 문제해결 · 정보 · 질문 · 구매판단 — 상품마다 6가지 방향으로 생성</span>
+</div><div class="copyTabs" id="threadTabs"></div><div class="similarityNotice" id="threadDupStatus" aria-live="polite"></div></div></div>
   <div class="threadPreview">
     <div>
       <div class="panel hookImagePanel"><div class="panelHead"><h2>후킹 이미지 3안</h2><span class="badge green">4:5</span></div><div class="pad imageGrid3" id="threadImages"></div><p class="hookSwipeHint">← 좌우로 넘겨 3가지 이미지를 비교하세요 →</p></div>
@@ -448,20 +474,23 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
       <div class="panel"><div class="panelHead"><h2>Threads 최종 미리보기</h2><span class="badge">선택 이미지 + 본문</span></div><div class="pad"><div class="postCard"><div class="postHead"><div class="avatar">VP</div><div><div class="handle">viralpick</div><div class="ago">방금 전</div></div></div><textarea class="postText threadFinalEditor" id="threadFinalText" oninput="onThreadFinalEdit()" aria-label="Threads 최종 게시글 편집" spellcheck="true"></textarea><div id="threadFinalImage"></div><div class="postActions">♡ 좋아요　◯ 답글　↗ 공유</div></div></div></div>
     </div>
   </div>
-  <div class="panel finalActions"><div class="pad"><div><b>최종 글을 확인하고 예약하세요</b><p>위 미리보기 본문을 직접 수정할 수 있습니다. 현재 선택한 본문·후킹 이미지가 예약 내용에 저장됩니다.</p></div><button class="btn primary" onclick="openReservation('Threads')">✓ 수정 완료 · 게시 예약하기</button></div></div>
+  <div class="aiNote" style="margin-top:12px">선택 이미지 PNG는 실제 파일로 저장되는 <b>텍스트 그래픽 시안</b>입니다. AI 이미지 생성 및 실물 사진 합성은 API 연동 전 단계입니다.</div><div class="panel finalActions"><div class="pad"><div><b>최종 글을 확인하고 예약하세요</b><p>위 미리보기 본문을 직접 수정할 수 있습니다. 현재 선택한 본문·후킹 이미지가 예약 내용에 저장됩니다.</p></div><button class="btn primary" onclick="openReservation('Threads')">✓ 수정 완료 · 게시 예약하기</button></div></div>
 </section>
 
 <section id="instagram" class="view">
-  <div class="top"><div><span class="badge orange">Instagram Carousel</span><h1>5장 카드형 콘텐츠 만들기</h1><p>첫 장은 후킹, 2장은 문제, 3장은 상품, 4장은 장점, 5장은 CTA로 구성합니다.</p></div><div class="btnrow"><button class="btn" onclick="cycleCover()">표지 4안 재생성</button><button class="btn" onclick="toast('프로토타입에서는 카드 구성이 현재 선택 상태로 유지됩니다')">카드 세트 선택</button><button class="btn primary" onclick="openReservation('Instagram')">📅 최종 검수 후 예약</button></div></div>
-  <div class="panel"><div class="panelHead"><h2>첫 장 표지 4안</h2><span class="badge green">1080 × 1350</span></div><div class="pad coverGrid" id="coverGrid"></div></div>
+  <div class="top"><div><span class="badge orange">Instagram Carousel</span><h1>5장 카드형 콘텐츠 만들기</h1><p>첫 장은 후킹, 2장은 문제, 3장은 상품, 4장은 장점, 5장은 CTA로 구성합니다.</p></div><div class="btnrow"><button class="btn" onclick="cycleCover()">표지 4안 재생성</button><button class="btn green" onclick="downloadInstagramZIP()">카드 5장 ZIP 저장</button><button class="btn primary" onclick="openReservation('Instagram')">📅 최종 검수 후 예약</button></div></div>
+  <div class="panel"><div class="panelHead"><h2>첫 장 표지 4안</h2><span class="badge green">1080 × 1350</span></div><div class="pad">
+  <div class="copySettings"><label>표지·캡션 문구 스타일 <select id="instagramDiversity" onchange="changeInstagramDiversity(this.value)"><option value="stable">담백형</option><option value="balanced" selected>균형형</option><option value="creative">실험형</option></select></label><span class="copyHint">상품별 문제·발견·정보·구매판단 방향을 선택하세요</span></div>
+  <div class="coverGrid" id="coverGrid"></div><div class="similarityNotice" id="instaDupStatus" aria-live="polite"></div>
+</div></div>
   <div class="twocol">
     <div class="panel"><div class="panelHead"><h2>5장 캐러셀</h2><span class="badge" id="cardIndexBadge">1 / 5</span></div><div class="pad"><div class="carousel"><div class="thumbRail" id="cardThumbs"></div><div><div class="instaCard" id="instaCard"></div><div class="dots">● ○ ○ ○ ○</div></div></div></div></div>
     <div>
-      <div class="panel"><div class="panelHead"><h2>Instagram 캡션</h2></div><div class="pad"><textarea class="copybox instaFinalEditor" id="instaCaption" oninput="onInstagramFinalEdit()" aria-label="Instagram 최종 캡션 편집" spellcheck="true"></textarea><div class="btnrow" style="margin-top:10px"><button class="btn" onclick="copyCaption()">캡션 복사</button><button class="btn" onclick="toast('해시태그 세트를 바꿨습니다')">해시태그 변경</button></div></div></div>
-      <div class="panel"><div class="panelHead"><h2>출력 구성</h2></div><div class="pad statusline"><span class="status">표지 4안</span><span class="status">5장 카드</span><span class="status">캡션 3안 예정</span><span class="status">해시태그 2세트</span><span class="status">CTA 3안</span></div></div>
+      <div class="panel"><div class="panelHead"><h2>Instagram 캡션</h2></div><div class="pad"><textarea class="copybox instaFinalEditor" id="instaCaption" oninput="onInstagramFinalEdit()" aria-label="Instagram 최종 캡션 편집" spellcheck="true"></textarea><div class="btnrow" style="margin-top:10px"><button class="btn" onclick="copyCaption()">캡션 복사</button><button class="btn" onclick="toast('해시태그는 캡션 입력창에서 직접 수정할 수 있습니다')">해시태그 변경</button></div></div></div>
+      <div class="panel"><div class="panelHead"><h2>출력 구성</h2></div><div class="pad statusline"><span class="status">표지 4안</span><span class="status">5장 카드</span><span class="status">문구 3가지 톤</span><span class="status">카드 5장 PNG 출력</span><span class="status">최근 저장 예약문 중복 검사</span></div></div>
     </div>
   </div>
-  <div class="panel finalActions"><div class="pad"><div><b>5장 카드와 캡션을 확인하고 예약하세요</b><p>선택한 표지 1안, 카드 5장 구성, 직접 수정한 캡션이 예약 항목에 함께 기록됩니다.</p></div><button class="btn primary" onclick="openReservation('Instagram')">✓ 수정 완료 · 게시 예약하기</button></div></div>
+  <div class="aiNote" style="margin-top:12px">현재 ZIP/PNG 출력은 실제 파일로 저장되는 <b>텍스트 그래픽 카드</b>입니다. 상품 실물 사진이나 AI 생성 이미지는 아직 합성되지 않습니다. API 연결 이후 실제 상품 이미지와 AI 상황 이미지를 반영할 예정입니다.</div><div class="panel finalActions"><div class="pad"><div><b>5장 카드와 캡션을 확인하고 예약하세요</b><p>선택한 표지 1안, 카드 5장 구성, 직접 수정한 캡션이 예약 항목에 함께 기록됩니다.</p></div><button class="btn primary" onclick="openReservation('Instagram')">✓ 수정 완료 · 게시 예약하기</button></div></div>
 </section>
 
 <section id="analytics" class="view">
@@ -656,42 +685,123 @@ function productCard(p){
 function renderProductLists(){ $('#dashProducts').innerHTML=products.map(productCard).join(''); $('#discoverProducts').innerHTML=products.map(productCard).join(''); }
 function selectProduct(id){ selected=products.find(p=>p.id===id)||products[0]; renderProductLists(); renderLab(); renderThreads(); renderInstagram(); show('lab'); }
 function renderLab(){ const p=selected; $('#labType').textContent=p.type; $('#labName').textContent=p.name; $('#labPrice').textContent=fmt(p.price); $('#labReason').textContent=p.reason; $('#viralScore').textContent=p.viral; $('#threadScore').textContent=p.thread; $('#instaScore').textContent=p.insta; $('#adScore').textContent=p.ad+'%'; $('#analysisText').innerHTML=`<b>추천 유형: ${p.type}</b><br><br>문제 상황: ${p.problem}<br>신기/해결 포인트: ${p.novel}<br>주요 타깃: ${p.audience}<br>추천 시각: ${p.visual}`; }
-function threadHooks(p){ const sets=[
- [`아니 이런 게 있는 줄 나만 몰랐음?ㅋㅋ`,`가구 조립할 때 이런 거 은근 필요하더라`,`별거 아닌데 이런 게 진짜 편한 듯`],
- [`이 불편 나만 계속 참고 있었음?`,`처음 봤을 때 뭐 하는 물건인가 했는데ㅋㅋ`,`이런 생활템은 알고 나면 괜히 억울함`],
- [`나 이거 왜 이제 알았지ㅋㅋ`,`맨날 귀찮다고 하면서도 그냥 참고 있었네`,`은근 자주 쓰는 건 이런 쪽인 듯`]
- ]; return sets[threadSeed%sets.length];}
-function threadBodies(p){ const hs=threadHooks(p); return hs.map((h,i)=>`${h}
 
-${p.problem}
+const hookKinds=['공감형','발견형','문제해결형','정보형','질문형','구매판단형'];
+const hookProfiles={
+ 1:{
+ pain:'선반을 달았는데 한쪽이 기울어 보이는 상황',solution:'각도를 숫자로 확인하고 레이저 선을 활용하는 방식',
+ hooks:[
+  ['선반 달고 나서 기울어진 거 발견하면 꽤 난감하지','가구 조립 끝났는데 수평 안 맞으면 다시 손봐야 하더라','벽에 선반 달았다가 한쪽만 내려가서 다시 한 적 있지?'],
+  ['요즘 수평계는 숫자로 각도도 보여주는구나','수평계에 레이저 선까지 나오는 모델도 있네','공구도 이렇게 디지털로 바뀌는 거 조금 신기함'],
+  ['수평 잡느라 여러 번 확인한다면 이런 방식도 있음','선반 수평 맞추기가 어렵다면 확인해볼 만한 도구','셀프 인테리어에서 수평 확인을 줄이는 방법'],
+  ['일반 수평계와 디지털 수평계는 뭐가 다를까','디지털 수평계 볼 때 확인할 기능 몇 가지','레이저 수평계가 편한 상황은 생각보다 정해져 있음'],
+  ['선반 설치할 때 수평은 어떻게 확인하세요?','셀프 인테리어 할 때 가장 귀찮은 작업이 뭐야?','디지털 수평계 써본 사람 체감 차이 있어?'],
+  ['수평계 자주 안 쓰면 굳이 필요할까?','이 공구는 가끔 쓰는 사람보다 DIY 자주 하는 사람용','레이저 기능 때문에 사도 되는지 따져볼 필요가 있음']
+ ]},
+ 2:{
+ pain:'차량 좌석과 책상 틈에 쌓이는 작은 부스러기',solution:'작은 무선 청소기로 좁은 공간을 부분 청소하는 방식',
+ hooks:[
+  ['차 좌석 사이 부스러기 청소할 때 은근 귀찮아','차 안에 과자 부스러기 하나 들어가면 잘 안 나오지','책상 틈새 먼지 때문에 큰 청소기 꺼내기 귀찮을 때'],
+  ['한 손에 들어오는 무선 청소기도 종류가 꽤 많네','차에 두고 쓰는 미니 청소기 이런 형태도 있구나','작은 청소기 하나로 틈새만 관리하는 방법도 있네'],
+  ['차량 구석 청소가 번거롭다면 이런 선택지도 있음','큰 청소기 없이 작은 부스러기만 치우고 싶을 때','좁은 틈 먼지 청소 때문에 스트레스라면'],
+  ['핸디 청소기 고를 때 먼저 볼 건 흡입력일까?','무선 핸디 청소기는 배터리와 노즐을 확인해야 함','미니 청소기와 일반 청소기, 쓰임이 다른 이유'],
+  ['차 안 청소는 보통 얼마나 자주 해?','차량용 청소기 써본 사람, 실제로 자주 꺼내 쓰나?','차에 작은 청소기 하나 두면 편할까?'],
+  ['차량용 미니 청소기는 누구에게 필요할까','이런 제품은 청소 빈도가 낮으면 과할 수도 있음','핸디 청소기 살 때 꼭 확인할 아쉬운 점']
+ ]},
+ 3:{
+ pain:'산책 후 흙 묻은 반려견 발을 하나씩 닦는 일',solution:'실리콘 세정컵으로 반려견 발 주변을 씻는 방식',
+ hooks:[
+  ['강아지 산책 후 발 닦는 시간이 더 걸릴 때 있지','산책은 좋은데 들어와서 발 씻기는 게 은근 일','비 오는 날 산책 다녀오면 발 닦기가 번거롭더라'],
+  ['강아지 발 씻기는 컵도 따로 있구나','발을 컵에 넣고 씻는 반려견 용품이 있네','산책 후 발 관리 도구도 이렇게 생겼네'],
+  ['산책 후 발 닦는 게 번거롭다면 이 방법도 있음','강아지 발 세척을 조금 간편하게 할 방법은 없을까','실리콘 세정컵으로 발 씻기는 방식을 살펴봄'],
+  ['반려견 발 세정컵은 어떤 구조로 씻길까?','강아지 발 세정컵 선택할 때 크기가 중요한 이유','반려견 발 씻길 때 피부 자극도 확인해야 함'],
+  ['산책하고 오면 발은 어떻게 닦아주시나요?','강아지 발 세정컵 써본 집 만족도 어때?','비 오는 날 발 씻기는 꿀팁 있는 사람?'],
+  ['발 세정컵은 모든 강아지에게 맞을까','발 세척 도구보다 중요한 건 강아지가 편안한지','이런 용품은 반려견 성격에 따라 다를 수도 있음']
+ ]}
+};
+let threadDiversity='balanced',instagramDiversity='balanced';
+function getHookProfile(p){return hookProfiles[p.id]||hookProfiles[1]}
+function hookVersion(genre,seed,tone){
+ const shift={stable:0,balanced:1,creative:2}[tone]??1;
+ return (seed+shift+genre)%3;
+}
+function threadHooks(p){
+ const prof=getHookProfile(p);
+ return prof.hooks.map((group,i)=>group[hookVersion(i,threadSeed,threadDiversity)]);
+}
+function threadBodies(p){
+ const prof=getHookProfile(p),hs=threadHooks(p);
+ const explanations=[
+  '이런 상황이 자주 생기면 해결 방법을 찾아보게 되죠.',
+  '처음 보는 방식이라면 실제 쓰임부터 확인하는 게 좋겠습니다.',
+  '반복되는 불편을 줄이는 도구인지 살펴봤습니다.',
+  '기능 이름보다 내게 필요한 용도인지가 더 중요합니다.',
+  '사용하는 분들의 경험도 궁금한 제품입니다.',
+  '사용 빈도와 필요한 기능을 먼저 따져보면 좋겠습니다.'
+ ];
+ const closings=[
+  '이런 불편 겪는 사람 있어?',
+  '이런 방식 처음 보는 사람?',
+  '어떤 작업에서 더 유용할까?',
+  '구매 전에 뭘 더 확인하면 좋을까?',
+  '직접 써본 분들 의견이 궁금함.',
+  '꼭 필요한 사람은 따로 있을 듯.'
+ ];
+ return hs.map((hook,i)=>{
+  const intro=threadDiversity==='stable'?'간단히 정리하면,':threadDiversity==='creative'?'궁금해서 찾아봤는데,':'관련 제품을 살펴보니,';
+  return `${hook}
 
-${p.name} 보니까
-${p.novel}
+${prof.pain}.
+${explanations[i]}
 
-처음엔 별거 아닌 줄 알았는데 ${i===0?'이런 게 은근 자주 쓰는 템인 듯ㅋㅋ':i===1?'불편 하나 줄여주는 용도로는 꽤 괜찮아 보임':'필요한 사람한텐 딱 체감되는 물건 같음'}
+${intro} ${p.name}은
+${prof.solution}.
+${p.novel}.
 
-지금 토스쇼핑 기준 ${fmt(p.price)} · ${p.discount}% 할인.
-가격이나 판매 상태는 바뀔 수 있으니 구매 전에는 다시 확인하는 게 좋을 듯.
+${i===5?'모든 사람에게 필요한 건 아니고, 사용 빈도와 옵션을 꼭 확인해봐야 함.':i===3?'성능과 상세 사양은 모델마다 다를 수 있으니 구매 전 확인이 필요함.':'실제로 내 상황에 얼마나 필요한지 따져보는 편이 좋겠음.'}
 
-${i===2?'이런 거 잘 쓰는 사람 있음?':'이 정도면 한 번 써볼 만함?'}
+작성 화면의 예시 가격은 ${fmt(p.price)}. 가격·할인은 변동될 수 있음.
+${closings[i]}
 
-※ 이 게시물은 토스쇼핑 쉐어링크 활동의 일환으로, 구매 발생 시 일정 수수료를 제공받을 수 있습니다.`)}
-function threadVisuals(p){ const hs=threadHooks(p); const cls=['scene1','scene2','scene3']; return hs.map((h,i)=>`<div class="visual ${cls[i]} ${threadImageIndex===i?'selected':''}" onclick="threadImageIndex=${i};renderThreads()"><div class="ghost">${p.visual}<br><span style="font-weight:600;font-size:9px">AI 상황 이미지 자리</span></div><div class="copy">${h}<span class="sub">${p.name}</span></div></div>`).join('');}
-function threadEditKey(){return selected.id+':'+threadSeed+':'+threadCopyIndex}
+※ 이 게시물은 토스쇼핑 쉐어링크 활동의 일환으로, 구매 발생 시 일정 수수료를 제공받을 수 있습니다.`;
+ });
+}
+function changeThreadDiversity(v){
+ if(!['stable','balanced','creative'].includes(v))return;
+ threadDiversity=v;threadCopyIndex=0;threadImageIndex=0;renderThreads();
+}
+function threadVisuals(p){ const hook=threadHooks(p)[threadCopyIndex]; const cls=['scene1','scene2','scene3'];
+return cls.map((cl,i)=>`<div class="visual ${cl} ${threadImageIndex===i?'selected':''}" onclick="threadImageIndex=${i};renderThreads()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'){threadImageIndex=${i};renderThreads()}"><div class="ghost">${p.visual}<br><span style="font-weight:600;font-size:9px">텍스트 그래픽 시안 ${i+1}</span></div><div class="copy">${hook}<span class="sub">${p.name}</span></div></div>`).join('');}
+function threadEditKey(){return selected.id+':'+threadDiversity+':'+threadSeed+':'+threadCopyIndex}
 function getCurrentThreadText(){const key=threadEditKey();return Object.prototype.hasOwnProperty.call(customThreadEdits,key)?customThreadEdits[key]:threadBodies(selected)[threadCopyIndex]}
-function onThreadFinalEdit(){customThreadEdits[threadEditKey()]=$('#threadFinalText').value}
-function getCurrentInstagramCaption(){return Object.prototype.hasOwnProperty.call(customInstagramCaptions,selected.id)?customInstagramCaptions[selected.id]:instaCaption(selected)}
-function onInstagramFinalEdit(){customInstagramCaptions[selected.id]=$('#instaCaption').value}
-function renderThreads(){ const p=selected,b=threadBodies(p),hs=threadHooks(p),cls=['scene1','scene2','scene3']; $('#threadTypeBadge').textContent=p.type; $('#threadTabs').innerHTML=b.map((x,i)=>`<div class="copyTab ${threadCopyIndex===i?'active':''}" onclick="threadCopyIndex=${i};renderThreads()"><b>${hs[i]}</b><span>본문 ${String.fromCharCode(65+i)}안</span></div>`).join(''); $('#threadImages').innerHTML=threadVisuals(p); $('#threadFinalText').value=getCurrentThreadText(); const i=threadImageIndex; $('#threadFinalImage').innerHTML=`<div style="max-width:360px"><div class="visual ${cls[i]}"><div class="ghost">${p.visual}<br><span style="font-weight:600;font-size:9px">AI 상황 이미지 자리</span></div><div class="copy">${hs[i]}<span class="sub">${p.name}</span></div></div></div>`; }
-function cycleThread(){threadSeed++;threadCopyIndex=0;threadImageIndex=0;renderThreads();toast('Threads 3안을 새로 만들었습니다')}
+function onThreadFinalEdit(){customThreadEdits[threadEditKey()]=$('#threadFinalText').value;renderThreadDupStatus()}
+function getCurrentInstagramCaption(){return Object.prototype.hasOwnProperty.call(customInstagramCaptions,selected.id+':'+instagramDiversity)?customInstagramCaptions[selected.id+':'+instagramDiversity]:instaCaption(selected)}
+function onInstagramFinalEdit(){customInstagramCaptions[selected.id+':'+instagramDiversity]=$('#instaCaption').value;renderInstagramDupStatus()}
+function renderThreads(){
+ const p=selected,b=threadBodies(p),hs=threadHooks(p),cls=['scene1','scene2','scene3'];
+ $('#threadTypeBadge').textContent=p.type;
+ $('#threadDiversity').value=threadDiversity;
+ $('#threadTabs').innerHTML=b.map((x,i)=>`<div class="copyTab ${threadCopyIndex===i?'active':''}" onclick="threadCopyIndex=${i};renderThreads()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'){threadCopyIndex=${i};renderThreads()}"><span class="hookKind">${hookKinds[i]}</span><b>${hs[i]}</b></div>`).join('');
+ $('#threadImages').innerHTML=threadVisuals(p);
+ $('#threadFinalText').value=getCurrentThreadText();
+ const i=threadImageIndex;
+ $('#threadFinalImage').innerHTML=`<div style="max-width:360px"><div class="visual ${cls[i]}"><div class="ghost">${p.visual}<br><span style="font-weight:600;font-size:9px">텍스트 그래픽 시안</span></div><div class="copy">${hs[threadCopyIndex]}<span class="sub">${p.name}</span></div></div></div>`;
+ renderThreadDupStatus();
+}
+function cycleThread(){threadSeed++;threadCopyIndex=0;threadImageIndex=0;renderThreads();toast('상품별 후킹 6안을 새로 구성했습니다')}
 async function copyThread(){ try{await navigator.clipboard.writeText(getCurrentThreadText());toast('Threads 본문을 복사했습니다')}catch(e){toast('브라우저 복사 권한을 확인해주세요')} }
 
-function coverHooks(p){ const pool=[
- [`이거 나만<br>몰랐음?`,`이 불편 아직도<br>참고 있었어?`,`별거 아닌데<br>은근 잘 쓰는 물건`,`처음 보면<br>용도 모름ㅋㅋ`],
- [`생활의 질<br>올려주는 소소템`,`알고 나면<br>괜히 억울한 물건`,`이런 게<br>왜 이제 보이지?`,`은근 자주 쓰는<br>생활템 발견`]
- ]; return pool[coverSeed%pool.length];}
+function coverHooks(p){
+ const profile=getHookProfile(p),order=[0,1,2,5];
+ const tone={stable:0,balanced:1,creative:2}[instagramDiversity]??1;
+ return order.map((g,j)=>profile.hooks[g][(tone+coverSeed+j)%3]);
+}
+function changeInstagramDiversity(v){
+ if(!['stable','balanced','creative'].includes(v))return;
+ instagramDiversity=v;coverIndex=0;instaCardIndex=0;renderInstagram();
+}
 function renderInstagram(){ const p=selected, hooks=coverHooks(p), cls=['scene1','dark','yellow','pink']; $('#coverGrid').innerHTML=hooks.map((h,i)=>`<div class="visual ${cls[i]} ${coverIndex===i?'selected':''}" onclick="coverIndex=${i};instaCardIndex=0;renderInstagram()"><div class="ghost">${i===0?p.visual:'콘텐츠 표지 비주얼'}</div><div class="copy">${h}<span class="sub">${p.name}</span></div></div>`).join('');
- const cards=instaCards(p); $('#cardThumbs').innerHTML=cards.map((c,i)=>`<div class="cardThumb ${instaCardIndex===i?'active':''}" onclick="instaCardIndex=${i};renderInstagram()">${i+1}. ${c.short}</div>`).join(''); $('#instaCard').innerHTML=cards[instaCardIndex].html; $('#cardIndexBadge').textContent=(instaCardIndex+1)+' / 5'; $('.dots').textContent=[0,1,2,3,4].map(i=>i===instaCardIndex?'●':'○').join(' '); $('#instaCaption').value=getCurrentInstagramCaption(); }
+ const cards=instaCards(p); $('#cardThumbs').innerHTML=cards.map((c,i)=>`<div class="cardThumb ${instaCardIndex===i?'active':''}" onclick="instaCardIndex=${i};renderInstagram()">${i+1}. ${c.short}</div>`).join(''); $('#instaCard').innerHTML=cards[instaCardIndex].html; $('#cardIndexBadge').textContent=(instaCardIndex+1)+' / 5'; $('.dots').textContent=[0,1,2,3,4].map(i=>i===instaCardIndex?'●':'○').join(' '); $('#instaCaption').value=getCurrentInstagramCaption();$('#instagramDiversity').value=instagramDiversity;renderInstagramDupStatus(); }
 function instaCards(p){ const cover=coverHooks(p)[coverIndex]; return [
  {short:'후킹 표지',html:`<div class="bg scene1"></div><div class="content"><div><div class="num">01 / 05</div><h3>${cover}</h3><p>${p.name}</p></div><div class="cta">넘겨서 보기 →</div></div>`},
  {short:'문제 공감',html:`<div class="bg scene2"></div><div class="content"><div><div class="num">02 / 05</div><h3>은근 반복되는<br>이 불편</h3><p>${p.problem}</p></div><div class="productBox">${p.visual}<br><span style="font-size:10px;font-weight:700">AI 상황 이미지 자리</span></div></div>`},
@@ -699,20 +809,30 @@ function instaCards(p){ const cover=coverHooks(p)[coverIndex]; return [
  {short:'핵심 장점',html:`<div class="bg scene3"></div><div class="content"><div><div class="num">04 / 05</div><h3>왜 괜찮아<br>보였냐면</h3><p>✓ ${p.novel}<br><br>✓ ${p.audience}에게 특히 잘 맞음<br><br>✓ 문제 하나를 단순하게 줄여주는 타입</p></div><div class="cta">핵심만 짧게 정리</div></div>`},
  {short:'가격·CTA',html:`<div class="bg" style="background:#fff"></div><div class="content"><div><div class="num">05 / 05</div><h3>필요한 사람은<br>가격만 체크</h3><p>현재 토스쇼핑 기준</p><div style="font-size:38px;font-weight:950;margin-top:8px">${fmt(p.price)}</div><p>정상가 ${fmt(p.old)} · ${p.discount}% 할인<br>가격·판매 상태는 변동될 수 있음</p></div><div class="cta">저장해두고 필요할 때 확인</div></div>`}
  ];}
-function instaCaption(p){return `${p.name}, 처음엔 그냥 신기한 제품인가 했는데 생각보다 쓰임이 분명한 타입.
+function instaCaption(p){
+ const profile=getHookProfile(p);
+ const lead=coverHooks(p)[coverIndex];
+ const lines={
+ stable:'제품을 찾을 때는 어떤 상황에서 쓸지 먼저 확인하는 편이 좋습니다.',
+ balanced:'신기한 점보다 일상에서 얼마나 필요한지가 더 중요하겠죠.',
+ creative:'생활 속 번거로운 일을 줄일 방법이 있다면 한 번쯤 궁금해지죠.'
+ };
+ return `${lead}
 
-${p.problem}
-${p.novel}
+${profile.pain}을(를) 떠올려봤습니다.
+${p.name}은 ${profile.solution}으로 소개되는 제품입니다.
 
-특히 ${p.audience}라면 관심 가질 만해 보여요.
+${lines[instagramDiversity]}
 
-현재 토스쇼핑 기준 ${fmt(p.price)} · ${p.discount}% 할인이고, 실제 구매 전에는 최신 가격과 판매 상태를 다시 확인해 주세요.
+구매 전에는 실제 사양, 옵션, 리뷰를 확인하세요.
+작성 화면의 예시 가격은 ${fmt(p.price)}이며 현재 판매가와 다를 수 있습니다.
 
-이런 생활템 좋아하면 저장해두기.
+비슷한 고민이 있었다면 저장해두고 필요한 때 확인해보세요.
 
-#생활템 #추천템 #살림템 #삶의질상승 #오늘의추천
+#생활템 #제품정보 #사용팁 #구매가이드
 
-※ 이 게시물은 토스쇼핑 쉐어링크 활동의 일환으로, 구매 발생 시 일정 수수료를 제공받을 수 있습니다.`}
+※ 이 게시물은 토스쇼핑 쉐어링크 활동의 일환으로, 구매 발생 시 일정 수수료를 제공받을 수 있습니다.`;
+}
 function cycleCover(){coverSeed++;coverIndex=0;instaCardIndex=0;renderInstagram();toast('Instagram 표지 4안을 새로 만들었습니다')}
 async function copyCaption(){try{await navigator.clipboard.writeText(getCurrentInstagramCaption());toast('Instagram 캡션을 복사했습니다')}catch(e){toast('브라우저 복사 권한을 확인해주세요')}}
 
