@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ViralPick v0.5.3 Prototype</title>
+<title>ViralPick v0.5.4 Prototype</title>
 <style>
 :root{
   --bg:#f5f6f8;--panel:#fff;--ink:#15171b;--muted:#727985;--line:#e6e8ec;
@@ -70,6 +70,20 @@ button,input,select,textarea{font:inherit}
 .instaCard .bg{position:absolute;inset:0}.instaCard .content{position:absolute;inset:0;padding:34px;display:flex;flex-direction:column;justify-content:space-between}.instaCard .num{font-size:10px;font-weight:900;color:#6f7782}.instaCard h3{font-size:34px;line-height:1.12;letter-spacing:-1.4px;margin:14px 0}.instaCard p{font-size:14px;line-height:1.6;color:#59616c}.instaCard .productBox{height:47%;border-radius:24px;background:rgba(255,255,255,.65);border:1px solid rgba(255,255,255,.9);display:grid;place-items:center;text-align:center;font-weight:950;color:#6b7480}.instaCard .cta{background:#111318;color:#fff;border-radius:15px;padding:14px 16px;font-weight:900;font-size:13px}.dots{text-align:center;margin-top:10px;color:#8b929c;font-size:12px}
 .statusline{display:flex;gap:8px;flex-wrap:wrap}.status{padding:9px 10px;border-radius:11px;background:#f3f5f7;font-size:10px;font-weight:850;color:#5f6772}
 
+
+.analyticsFilters{display:grid;grid-template-columns:150px 150px 180px 1fr auto;gap:8px;align-items:end}
+.analyticsFilters label{display:grid;gap:5px;font-size:9px;color:#7c8490;font-weight:900}
+.analyticsFilters select,.analyticsFilters input{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px;background:#fff}
+.analyticsGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.analyticsMetric{border:1px solid var(--line);border-radius:15px;padding:14px;background:#fff}
+.analyticsMetric .ak{font-size:9px;color:#808894}.analyticsMetric .av{font-size:25px;font-weight:950;margin-top:5px}.analyticsMetric .as{font-size:9px;color:#8c939d;margin-top:4px}
+.analyticsSplit{display:grid;grid-template-columns:1.2fr .8fr;gap:15px}
+.rankList{display:grid;gap:8px}.rankItem{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:12px;background:#fff}.rankNo{width:28px;height:28px;border-radius:50%;background:#111318;color:#fff;display:grid;place-items:center;font-size:10px;font-weight:900}.rankItem b{font-size:11px}.rankItem span{display:block;font-size:9px;color:#7d8590;margin-top:3px}.rankVal{font-size:14px;font-weight:950}
+.analyticsTable{width:100%;border-collapse:collapse}.analyticsTable th,.analyticsTable td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;font-size:9px;white-space:nowrap}.analyticsTable th{color:#7a838e;font-weight:900}.analyticsTable td b{font-size:10px}.clickrow{cursor:pointer}.clickrow:hover{background:#fafbfc}
+.platformPill{display:inline-flex;padding:5px 7px;border-radius:999px;font-size:8px;font-weight:900}.platformPill.th{background:#edf2ff;color:#364fc7}.platformPill.ig{background:#fff0f6;color:#a61e4d}
+.scoreChip{display:inline-flex;padding:5px 7px;border-radius:999px;background:#e9f8f2;color:#087f5b;font-size:8px;font-weight:900}
+.analysisDetail{display:grid;grid-template-columns:95px 1fr;gap:14px}.analysisVisual{aspect-ratio:4/5;border-radius:15px;background:linear-gradient(145deg,#e8edf3,#d6dee7);display:grid;place-items:center;text-align:center;font-size:9px;color:#68727d;font-weight:900}.detailStats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:12px}.detailStat{background:#f7f8fa;border-radius:10px;padding:9px}.detailStat b{display:block;font-size:13px}.detailStat span{font-size:8px;color:#808894}
+.insightBox{border:1px solid #dbe6ff;background:#f3f6ff;border-radius:14px;padding:13px;color:#425b9d;font-size:10px;line-height:1.65}
 .performanceHero{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .perfBox{border:1px solid var(--line);border-radius:15px;padding:14px;background:#fff}
 .perfBox .pk{font-size:9px;color:#7f8792}.perfBox .pv{font-size:24px;font-weight:950;margin-top:5px}.perfBox .ps{font-size:9px;color:#8b929d;margin-top:3px}
@@ -101,25 +115,26 @@ button,input,select,textarea{font:inherit}
 .scheduleForm{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end}.scheduleForm input,.scheduleForm select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}.scheduleForm label{font-size:9px;color:#7c8490;font-weight:900;display:grid;gap:5px}
 .limitNotice{border:1px solid #ffd8a8;background:#fff9db;color:#8a5d00;border-radius:13px;padding:12px;font-size:10px;line-height:1.55}
 .toast{position:fixed;right:22px;bottom:22px;background:#111318;color:#fff;padding:12px 15px;border-radius:12px;font-size:11px;opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s;z-index:20}.toast.show{opacity:1;transform:none}
-@media(max-width:1100px){.app{grid-template-columns:1fr}.side{height:auto;position:relative}.sideFoot{position:static;margin-top:14px}.nav{display:flex;overflow:auto}.nav button{min-width:max-content}.main{padding:18px}.grid4,.grid5,.products,.twocol,.threadPreview,.settingGrid,.recoGrid,.postModeGrid,.performanceHero{grid-template-columns:1fr}.coverGrid{grid-template-columns:repeat(2,1fr)}.recommendItem{grid-template-columns:1fr}.perfMetrics{grid-template-columns:repeat(2,1fr)}.imageGrid3{grid-template-columns:1fr}.scoreGrid{grid-template-columns:repeat(2,1fr)}.scheduleForm{grid-template-columns:1fr}}
+@media(max-width:1100px){.app{grid-template-columns:1fr}.side{height:auto;position:relative}.sideFoot{position:static;margin-top:14px}.nav{display:flex;overflow:auto}.nav button{min-width:max-content}.main{padding:18px}.grid4,.grid5,.products,.twocol,.threadPreview,.settingGrid,.recoGrid,.postModeGrid,.performanceHero,.analyticsGrid,.analyticsSplit{grid-template-columns:1fr}.coverGrid{grid-template-columns:repeat(2,1fr)}.recommendItem{grid-template-columns:1fr}.perfMetrics{grid-template-columns:repeat(2,1fr)}.analyticsFilters{grid-template-columns:1fr}.detailStats{grid-template-columns:repeat(2,1fr)}.imageGrid3{grid-template-columns:1fr}.scoreGrid{grid-template-columns:repeat(2,1fr)}.scheduleForm{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="app">
 <aside class="side">
   <div class="brand">ViralPick</div>
-  <div class="ver">v0.5.3 · Threads + Instagram + Blog + Scheduler</div>
+  <div class="ver">v0.5.4 · Threads + Instagram + Blog + Scheduler</div>
   <nav class="nav">
     <button data-view="dashboard" class="active">🏠 대시보드</button>
     <button data-view="discover">🔥 상품 발굴</button>
     <button data-view="lab">🧠 상품 분석</button>
     <button data-view="threads">💬 Threads 제작</button>
     <button data-view="instagram">▦ Instagram 카드</button>
+    <button data-view="analytics">📊 게시 성과 분석</button>
     <button data-view="blog">📝 Blog 제작</button>
     <button data-view="scheduler">📅 자동게시 설정</button>
     <button data-view="publish">🔗 게시 준비</button>
   </nav>
-  <div class="sideFoot"><b>v0.5.3 Prototype</b>토스 API 승인 전 샘플 데이터로 실제 제작 흐름을 점검하는 버전입니다. v0.4 검수 페이지는 그대로 유지됩니다.</div>
+  <div class="sideFoot"><b>v0.5.4 Prototype</b>토스 API 승인 전 샘플 데이터로 실제 제작 흐름을 점검하는 버전입니다. v0.4 검수 페이지는 그대로 유지됩니다.</div>
 </aside>
 
 <main class="main">
@@ -185,6 +200,37 @@ button,input,select,textarea{font:inherit}
       <div class="panel"><div class="panelHead"><h2>출력 구성</h2></div><div class="pad statusline"><span class="status">표지 4안</span><span class="status">5장 카드</span><span class="status">캡션 3안 예정</span><span class="status">해시태그 2세트</span><span class="status">CTA 3안</span></div></div>
     </div>
   </div>
+</section>
+
+<section id="analytics" class="view">
+  <div class="top"><div><span class="badge blue">Content Performance</span><h1>게시했던 글에서 다음 승자를 찾기</h1><p>조회·저장·답글보다 링크 클릭과 구매 전환까지 함께 보고 어떤 상품·후킹·콘텐츠 유형이 실제 수익으로 이어졌는지 분석합니다.</p></div><div class="btnrow"><button class="btn" onclick="cycleAnalyticsData()">성과 데이터 시뮬레이션</button><button class="btn primary" onclick="renderAnalytics()">분석 새로고침</button></div></div>
+
+  <div class="panel" style="margin-top:0"><div class="pad"><div class="analyticsFilters">
+    <label>기간<select id="anPeriod" onchange="renderAnalytics()"><option value="7">최근 7일</option><option value="30">최근 30일</option><option value="all">전체</option></select></label>
+    <label>플랫폼<select id="anPlatform" onchange="renderAnalytics()"><option value="all">전체</option><option value="Threads">Threads</option><option value="Instagram">Instagram</option></select></label>
+    <label>콘텐츠 유형<select id="anType" onchange="renderAnalytics()"><option value="all">전체 유형</option><option>신기템형</option><option>문제해결형</option><option>생활개선형</option></select></label>
+    <label>상품 검색<input id="anSearch" placeholder="상품명 검색" oninput="renderAnalytics()"></label>
+    <button class="btn" onclick="resetAnalyticsFilters()">필터 초기화</button>
+  </div></div></div>
+
+  <div class="analyticsGrid" style="margin-top:15px">
+    <div class="analyticsMetric"><div class="ak">게시물</div><div class="av" id="anPosts">0</div><div class="as">선택 기간</div></div>
+    <div class="analyticsMetric"><div class="ak">총 도달/조회</div><div class="av" id="anReach">0</div><div class="as">Threads 조회 + Instagram 도달</div></div>
+    <div class="analyticsMetric"><div class="ak">링크 클릭</div><div class="av" id="anClicks">0</div><div class="as">쉐어링크 이동</div></div>
+    <div class="analyticsMetric"><div class="ak">구매</div><div class="av" id="anSales">0</div><div class="as">전환 발생</div></div>
+    <div class="analyticsMetric"><div class="ak">예상 제휴수익</div><div class="av" id="anRevenue">0원</div><div class="as">샘플 수익 데이터</div></div>
+  </div>
+
+  <div class="analyticsSplit">
+    <div class="panel"><div class="panelHead"><h2>잘된 콘텐츠 유형</h2><span class="badge green">구매·클릭 가중</span></div><div class="pad"><div class="rankList" id="typeRanking"></div></div></div>
+    <div class="panel"><div class="panelHead"><h2>AI 운영 인사이트</h2><span class="badge orange">다음 게시 추천</span></div><div class="pad"><div class="insightBox" id="analyticsInsight"></div><div class="statusline" style="margin-top:10px"><span class="status" id="bestHookStatus">후킹 -</span><span class="status" id="bestTimeStatus">시간대 -</span><span class="status" id="bestPlatformStatus">플랫폼 -</span></div></div></div>
+  </div>
+
+  <div class="panel"><div class="panelHead"><h2>게시물별 성과</h2><span class="badge" id="analyticsCountBadge">0개</span></div><div class="pad" style="overflow:auto">
+    <table class="analyticsTable"><thead><tr><th>게시일</th><th>플랫폼</th><th>상품 / 후킹</th><th>유형</th><th>조회·도달</th><th>반응</th><th>클릭</th><th>구매</th><th>CTR</th><th>수익</th><th>성과점수</th></tr></thead><tbody id="analyticsTableBody"></tbody></table>
+  </div></div>
+
+  <div class="panel"><div class="panelHead"><h2>선택 게시물 상세 분석</h2><span class="badge blue" id="detailBadge">게시물을 선택하세요</span></div><div class="pad" id="analyticsDetail"><div class="blogGate"><b>게시물 행을 클릭해주세요</b>후킹·이미지·플랫폼 성과와 다음 액션 추천을 확인할 수 있습니다.</div></div></div>
 </section>
 
 <section id="blog" class="view">
@@ -389,6 +435,88 @@ ${p.novel}
 ※ 이 게시물은 토스쇼핑 쉐어링크 활동의 일환으로, 구매 발생 시 일정 수수료를 제공받을 수 있습니다.`}
 function cycleCover(){coverSeed++;coverIndex=0;instaCardIndex=0;renderInstagram();toast('Instagram 표지 4안을 새로 만들었습니다')}
 async function copyCaption(){try{await navigator.clipboard.writeText(instaCaption(selected));toast('Instagram 캡션을 복사했습니다')}catch(e){toast('브라우저 복사 권한을 확인해주세요')}}
+
+
+let analyticsScenario=0, analyticsSelectedId=null;
+const analyticsSets=[
+ [
+  {id:'a1',day:1,date:'10/11',platform:'Threads',productId:1,type:'신기템형',hook:'아니 이런 게 있는 줄 나만 몰랐음?ㅋㅋ',reach:23800,engagement:182,clicks:420,sales:14,revenue:29400,time:'20:30',score:96},
+  {id:'a2',day:1,date:'10/11',platform:'Instagram',productId:3,type:'생활개선형',hook:'산책 후 발 닦는 거 은근 오래 걸림',reach:22200,engagement:804,clicks:358,sales:5,revenue:6450,time:'19:00',score:88},
+  {id:'a3',day:2,date:'10/10',platform:'Instagram',productId:2,type:'문제해결형',hook:'차 청소 귀찮은 사람 이거 봐',reach:18800,engagement:612,clicks:506,sales:18,revenue:40500,time:'12:00',score:98},
+  {id:'a4',day:2,date:'10/10',platform:'Threads',productId:2,type:'문제해결형',hook:'차에 과자 부스러기 맨날 쌓이는 사람',reach:16200,engagement:96,clicks:386,sales:12,revenue:27000,time:'09:30',score:91},
+  {id:'a5',day:3,date:'10/09',platform:'Threads',productId:3,type:'생활개선형',hook:'산책 끝나고 발 하나씩 닦는 집 있음?',reach:10800,engagement:145,clicks:274,sales:4,revenue:5160,time:'16:30',score:76},
+  {id:'a6',day:4,date:'10/08',platform:'Instagram',productId:1,type:'신기템형',hook:'처음 보면 용도 모름ㅋㅋ',reach:12400,engagement:438,clicks:315,sales:10,revenue:21000,time:'18:30',score:86},
+  {id:'a7',day:6,date:'10/06',platform:'Threads',productId:1,type:'신기템형',hook:'가구 조립할 때 이런 거 은근 필요하더라',reach:15100,engagement:122,clicks:301,sales:8,revenue:16800,time:'21:00',score:84},
+  {id:'a8',day:12,date:'09/30',platform:'Instagram',productId:2,type:'문제해결형',hook:'차 안 구석 청소 생각보다 더 귀찮음',reach:14600,engagement:501,clicks:346,sales:11,revenue:24750,time:'11:30',score:87}
+ ],
+ [
+  {id:'b1',day:1,date:'10/11',platform:'Instagram',productId:3,type:'생활개선형',hook:'산책 후 이거 매번 하는 사람',reach:28600,engagement:1120,clicks:486,sales:11,revenue:14190,time:'19:30',score:98},
+  {id:'b2',day:1,date:'10/11',platform:'Threads',productId:2,type:'문제해결형',hook:'차 청소 아직도 큰 청소기 꺼냄?',reach:19400,engagement:112,clicks:544,sales:20,revenue:45000,time:'20:00',score:99},
+  {id:'b3',day:2,date:'10/10',platform:'Threads',productId:1,type:'신기템형',hook:'이거 처음 봤을 때 뭐 하는 건가 했음ㅋㅋ',reach:18400,engagement:151,clicks:362,sales:10,revenue:21000,time:'21:00',score:90},
+  {id:'b4',day:3,date:'10/09',platform:'Instagram',productId:2,type:'문제해결형',hook:'차에 하나 두면 은근 잘 씀',reach:17100,engagement:521,clicks:402,sales:15,revenue:33750,time:'12:30',score:94},
+  {id:'b5',day:4,date:'10/08',platform:'Threads',productId:3,type:'생활개선형',hook:'발 닦기 전쟁 나는 집 이거 봐',reach:14500,engagement:201,clicks:331,sales:6,revenue:7740,time:'18:00',score:83}
+ ],
+ [
+  {id:'c1',day:1,date:'10/11',platform:'Threads',productId:1,type:'신기템형',hook:'나 이거 왜 이제 알았지ㅋㅋ',reach:30100,engagement:244,clicks:618,sales:22,revenue:46200,time:'20:30',score:100},
+  {id:'c2',day:2,date:'10/10',platform:'Instagram',productId:2,type:'문제해결형',hook:'차 청소 귀찮으면 이거부터 봐',reach:20500,engagement:704,clicks:401,sales:13,revenue:29250,time:'12:00',score:92},
+  {id:'c3',day:2,date:'10/10',platform:'Instagram',productId:3,type:'생활개선형',hook:'산책 후 발 닦는 시간 줄이기',reach:19800,engagement:690,clicks:274,sales:4,revenue:5160,time:'18:30',score:78},
+  {id:'c4',day:3,date:'10/09',platform:'Threads',productId:2,type:'문제해결형',hook:'차량 틈새 청소 맨날 미뤘는데',reach:13100,engagement:84,clicks:298,sales:9,revenue:20250,time:'09:00',score:84},
+  {id:'c5',day:5,date:'10/07',platform:'Threads',productId:3,type:'생활개선형',hook:'산책은 좋은데 발 닦는 게 귀찮음',reach:12100,engagement:162,clicks:211,sales:3,revenue:3870,time:'17:30',score:72}
+ ]
+];
+function currentAnalytics(){return analyticsSets[analyticsScenario%analyticsSets.length]}
+function analyticsRows(){
+ let rows=currentAnalytics();
+ const period=$('#anPeriod')?.value||'7', platform=$('#anPlatform')?.value||'all', type=$('#anType')?.value||'all', search=($('#anSearch')?.value||'').trim().toLowerCase();
+ if(period!=='all') rows=rows.filter(r=>r.day<=Number(period));
+ if(platform!=='all') rows=rows.filter(r=>r.platform===platform);
+ if(type!=='all') rows=rows.filter(r=>r.type===type);
+ if(search) rows=rows.filter(r=>blogProduct(r.productId).name.toLowerCase().includes(search)||r.hook.toLowerCase().includes(search));
+ return rows;
+}
+function analyticsCtr(r){return r.reach?((r.clicks/r.reach)*100):0}
+function renderAnalytics(){
+ if(!$('#analyticsTableBody')) return;
+ const rows=analyticsRows();
+ const reach=rows.reduce((s,r)=>s+r.reach,0), clicks=rows.reduce((s,r)=>s+r.clicks,0), sales=rows.reduce((s,r)=>s+r.sales,0), revenue=rows.reduce((s,r)=>s+r.revenue,0);
+ $('#anPosts').textContent=rows.length;$('#anReach').textContent=reach.toLocaleString();$('#anClicks').textContent=clicks.toLocaleString();$('#anSales').textContent=sales;$('#anRevenue').textContent=revenue.toLocaleString()+'원';$('#analyticsCountBadge').textContent=rows.length+'개';
+ $('#analyticsTableBody').innerHTML=rows.map(r=>{const p=blogProduct(r.productId);return `<tr class="clickrow" onclick="selectAnalyticsPost('${r.id}')"><td>${r.date}</td><td><span class="platformPill ${r.platform==='Threads'?'th':'ig'}">${r.platform}</span></td><td><b>${p.name}</b><br><span style="color:#828a95">${r.hook}</span></td><td>${r.type}</td><td>${r.reach.toLocaleString()}</td><td>${r.engagement.toLocaleString()}</td><td>${r.clicks.toLocaleString()}</td><td>${r.sales}</td><td>${analyticsCtr(r).toFixed(2)}%</td><td>${r.revenue.toLocaleString()}원</td><td><span class="scoreChip">${r.score}</span></td></tr>`}).join('');
+ renderTypeRanking(rows);renderAnalyticsInsight(rows);
+ if(analyticsSelectedId && rows.some(r=>r.id===analyticsSelectedId)) renderAnalyticsDetail(analyticsSelectedId);
+ else if(rows.length){analyticsSelectedId=rows[0].id;renderAnalyticsDetail(rows[0].id)}
+ else $('#analyticsDetail').innerHTML='<div class="blogGate"><b>조건에 맞는 게시물이 없습니다</b>필터를 바꿔보세요.</div>';
+}
+function renderTypeRanking(rows){
+ const map={}; rows.forEach(r=>{if(!map[r.type])map[r.type]={type:r.type,n:0,clicks:0,sales:0,revenue:0,score:0};const x=map[r.type];x.n++;x.clicks+=r.clicks;x.sales+=r.sales;x.revenue+=r.revenue;x.score+=r.score});
+ const arr=Object.values(map).sort((a,b)=>(b.sales*10+b.clicks/20)-(a.sales*10+a.clicks/20));
+ $('#typeRanking').innerHTML=arr.map((x,i)=>`<div class="rankItem"><div class="rankNo">${i+1}</div><div><b>${x.type}</b><span>${x.n}개 게시 · 클릭 ${x.clicks.toLocaleString()} · 구매 ${x.sales}</span></div><div class="rankVal">${Math.round(x.score/x.n)}점</div></div>`).join('')||'<div class="blogGate">데이터 없음</div>';
+}
+function renderAnalyticsInsight(rows){
+ if(!rows.length){$('#analyticsInsight').textContent='분석할 데이터가 없습니다.';return}
+ const best=rows.slice().sort((a,b)=>b.score-a.score)[0], p=blogProduct(best.productId);
+ const platformSales={Threads:0,Instagram:0}; rows.forEach(r=>platformSales[r.platform]+=r.sales);
+ const bestPlatform=platformSales.Threads>=platformSales.Instagram?'Threads':'Instagram';
+ const evening=rows.filter(r=>Number(r.time.split(':')[0])>=18).reduce((s,r)=>s+r.score,0)/(rows.filter(r=>Number(r.time.split(':')[0])>=18).length||1);
+ const day=rows.filter(r=>Number(r.time.split(':')[0])<18).reduce((s,r)=>s+r.score,0)/(rows.filter(r=>Number(r.time.split(':')[0])<18).length||1);
+ const timeText=evening>=day?'저녁 18~22시':'오전·낮';
+ $('#analyticsInsight').innerHTML=`현재 가장 강한 신호는 <b>${best.type}</b>입니다. 특히 “${best.hook}” 게시물이 성과점수 ${best.score}로 가장 좋았습니다.<br><br><b>${p.name}</b>처럼 문제 또는 신기함이 즉시 이해되는 상품을 비슷한 구조로 추가 테스트하고, 클릭은 높지만 구매가 낮은 게시물은 상품 설명보다 구매 판단 정보를 보강하는 편이 좋습니다.`;
+ $('#bestHookStatus').textContent='최고 후킹 · '+best.hook.slice(0,18)+(best.hook.length>18?'…':'');
+ $('#bestTimeStatus').textContent='추천 시간 · '+timeText;$('#bestPlatformStatus').textContent='구매 강세 · '+bestPlatform;
+}
+function selectAnalyticsPost(id){analyticsSelectedId=id;renderAnalyticsDetail(id)}
+function renderAnalyticsDetail(id){
+ const r=currentAnalytics().find(x=>x.id===id); if(!r)return;
+ const p=blogProduct(r.productId);
+ $('#detailBadge').textContent=r.platform+' · 성과점수 '+r.score;
+ const purchaseRate=r.clicks?((r.sales/r.clicks)*100).toFixed(1):'0.0';
+ $('#analyticsDetail').innerHTML=`<div class="analysisDetail"><div class="analysisVisual">${r.platform}<br>게시 이미지<br>미리보기</div><div><span class="badge ${r.platform==='Threads'?'blue':'orange'}">${r.type}</span><h3 style="margin:7px 0 5px;font-size:18px">${p.name}</h3><div style="font-size:12px;font-weight:850">${r.hook}</div><div class="detailStats"><div class="detailStat"><b>${r.reach.toLocaleString()}</b><span>조회·도달</span></div><div class="detailStat"><b>${r.clicks.toLocaleString()}</b><span>클릭</span></div><div class="detailStat"><b>${r.sales}</b><span>구매</span></div><div class="detailStat"><b>${purchaseRate}%</b><span>클릭→구매</span></div></div><div class="insightBox" style="margin-top:10px"><b>다음 액션</b><br>${r.score>=92?'이 구조는 반복 테스트 가치가 높습니다. 같은 콘텐츠 유형을 다른 상품에도 적용하고, 블로그 확장 후보로 우선 검토하세요.':r.clicks>300&&r.sales<8?'관심과 클릭은 충분하지만 구매 전환이 약합니다. 가격·옵션·추천대상을 더 명확히 설명하는 버전을 테스트하세요.':'반응은 확인됐지만 최상위 성과는 아닙니다. 후킹이나 이미지 방향을 바꿔 A/B 테스트하는 편이 좋습니다.'}</div><div class="btnrow" style="margin-top:10px"><button class="btn blue" onclick="repeatFromAnalytics('${r.id}')">같은 유형으로 제작</button><button class="btn green" onclick="blogFromAnalytics(${r.productId})">블로그로 확장</button></div></div></div>`;
+}
+function repeatFromAnalytics(id){
+ const r=currentAnalytics().find(x=>x.id===id);if(!r)return;selected=blogProduct(r.productId);renderProductLists();renderLab();renderThreads();renderInstagram();toast(r.type+' 구조로 새 콘텐츠 제작 화면을 열었습니다');show(r.platform==='Threads'?'threads':'instagram');
+}
+function blogFromAnalytics(productId){show('blog');setTimeout(()=>chooseBlogRecommendation(productId),50)}
+function resetAnalyticsFilters(){if($('#anPeriod'))$('#anPeriod').value='7';if($('#anPlatform'))$('#anPlatform').value='all';if($('#anType'))$('#anType').value='all';if($('#anSearch'))$('#anSearch').value='';renderAnalytics()}
+function cycleAnalyticsData(){analyticsScenario=(analyticsScenario+1)%analyticsSets.length;analyticsSelectedId=null;renderAnalytics();toast('게시 성과 데이터 시나리오를 변경했습니다')}
 
 let blogSelectedId=null, blogPerformanceScenario=0;
 const blogPerformanceSets=[
@@ -614,11 +742,11 @@ function addSchedule(){
 function removeSchedule(i){scheduleQueue.splice(i,1);renderQueue();toast('예약을 삭제했습니다')}
 
 function generateSNS(){renderThreads();renderInstagram();toast('Threads + Instagram 패키지를 생성했습니다');show('threads')}
-function show(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===id));if(id==='scheduler')renderPostingSettings();history.replaceState(null,'',`?view=${id}`)}
+function show(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===id));if(id==='scheduler')renderPostingSettings();if(id==='analytics')renderAnalytics();history.replaceState(null,'',`?view=${id}`)}
 $$('.nav button').forEach(b=>b.onclick=()=>show(b.dataset.view));
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
-loadPostingSettings();renderProductLists();renderLab();renderThreads();renderInstagram();renderBlogRecommendations();renderPostingSettings();$('#pubProduct').textContent=selected.name;
-const q=new URLSearchParams(location.search).get('view');if(['dashboard','discover','lab','threads','instagram','blog','scheduler','publish'].includes(q))show(q);
+loadPostingSettings();renderProductLists();renderLab();renderThreads();renderInstagram();renderAnalytics();renderBlogRecommendations();renderPostingSettings();$('#pubProduct').textContent=selected.name;
+const q=new URLSearchParams(location.search).get('view');if(['dashboard','discover','lab','threads','instagram','analytics','blog','scheduler','publish'].includes(q))show(q);
 </script>
 </body>
 </html>
