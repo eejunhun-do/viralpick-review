@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ViralPick - 개인용 SNS 상품 콘텐츠 제작 도구</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f6f7fb;color:#111}
+.wrap{max-width:1100px;margin:0 auto;padding:40px 20px}
+.card{background:#fff;border-radius:18px;padding:28px;box-shadow:0 8px 30px rgba(0,0,0,.06);margin-bottom:20px}
+h1{font-size:40px;margin:0 0 12px}
+h2{font-size:24px;margin:0 0 14px}
+.badge{display:inline-block;background:#111;color:#fff;padding:7px 12px;border-radius:999px;font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.item{border:1px solid #e7e7eb;border-radius:14px;padding:18px}
+.btn{display:inline-block;background:#111;color:#fff;padding:12px 16px;border-radius:10px;text-decoration:none;font-weight:700}
+.muted{color:#666;line-height:1.7}
+.flow{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+.step{background:#fafafa;border:1px solid #ececf0;border-radius:12px;padding:14px;font-size:14px;text-align:center}
+@media(max-width:800px){.grid,.flow{grid-template-columns:1fr}.wrap{padding:24px 14px}h1{font-size:32px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <span class="badge">개인용 내부 도구 · 토스 쉐어링크 Open API 연동 예정</span>
+    <h1>ViralPick</h1>
+    <p class="muted">제가 개인적으로 운영하는 Threads·Instagram·블로그 채널에 올릴 상품 소개 콘텐츠를 빠르게 제작하기 위한 SNS 콘텐츠 자동화 도구입니다.</p>
+  </div>
+
+  <div class="card">
+    <h2>사용 흐름</h2>
+    <div class="flow">
+      <div class="step">1. 인기·특가 상품 확인</div>
+      <div class="step">2. 소개할 상품 선택</div>
+      <div class="step">3. Threads 글 생성</div>
+      <div class="step">4. 이미지 문구 생성</div>
+      <div class="step">5. 쉐어링크 발급</div>
+      <div class="step">6. 직접 검수 후 게시</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>오늘 소개할 상품</h2>
+    <div class="grid">
+      <div class="item">
+        <strong>생활용품 특가 상품</strong>
+        <p class="muted">할인율, 리뷰, 판매 상태를 확인하고 SNS 콘텐츠 후보로 선택합니다.</p>
+        <a class="btn" href="#content">Threads 콘텐츠 만들기</a>
+      </div>
+      <div class="item">
+        <strong>카테고리 인기 상품</strong>
+        <p class="muted">카테고리별 인기 상품 중 SNS에서 소개하기 좋은 상품을 고릅니다.</p>
+        <a class="btn" href="#content">Threads 콘텐츠 만들기</a>
+      </div>
+      <div class="item">
+        <strong>오늘의 특가 상품</strong>
+        <p class="muted">특가 종료 시간과 현재 판매 상태를 확인한 뒤 게시할 상품을 선택합니다.</p>
+        <a class="btn" href="#content">Threads 콘텐츠 만들기</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="content">
+    <h2>Threads 콘텐츠 제작</h2>
+    <p><strong>콘텐츠 초안</strong></p>
+    <p class="muted">아니 이거 나만 몰랐음?ㅋㅋ<br><br>
+    요즘 자꾸 보여서 찾아봤는데 생각보다 괜찮네.<br>
+    지금 토스쇼핑에서 할인 중이라 필요한 사람은 한 번 확인해봐.<br><br>
+    게시 전에는 가격과 판매 상태를 다시 확인하고 직접 수정해서 올립니다.</p>
+  </div>
+
+  <div class="card">
+    <h2>쉐어링크 · 게시 준비</h2>
+    <p class="muted">게시할 상품을 최종 선택한 뒤 쉐어링크를 발급하고, 제휴 사실 안내 문구를 함께 확인합니다. 생성된 게시글은 자동 게시 전에 직접 검수·수정합니다.</p>
+    <p><strong>제휴 고지 예시</strong><br>이 게시물은 토스쇼핑 쉐어링크 활동의 일환으로 일정액의 수수료를 제공받을 수 있습니다.</p>
+  </div>
+
+  <div class="card">
+    <h2>서비스 운영 방식</h2>
+    <p class="muted">ViralPick은 외부 사용자가 상품을 검색하거나 구매하는 쇼핑몰이 아닙니다. 토스 Open API 상품 정보는 개인 SNS 콘텐츠 제작과 게시 전 최신 정보 확인에 필요한 범위에서만 사용하며, 공개 상품 카탈로그나 타 쇼핑몰 가격비교 서비스로 제공하지 않습니다.</p>
+  </div>
+</div>
+</body>
+</html>
