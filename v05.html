@@ -933,9 +933,9 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMobileMenu()});
 window.addEventListener('resize',()=>{if(window.innerWidth>930)closeMobileMenu()});
 function show(id){
  if(!document.getElementById(id))return;
- $('.view').forEach(v=>v.classList.toggle('active',v.id===id));
- $('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
- $('.mobileBottom [data-quick-view]').forEach(b=>{const active=b.dataset.quickView===id;b.classList.toggle('active',active);if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
+ document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===id));
+ document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
+ document.querySelectorAll('.mobileBottom [data-quick-view]').forEach(b=>{const active=b.dataset.quickView===id;b.classList.toggle('active',active);if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
  const current=$('#mobileCurrentView');if(current)current.textContent=viewLabels[id]||'ViralPick';
  closeMobileMenu();
  window.scrollTo({top:0,behavior:'auto'});
