@@ -777,6 +777,52 @@ function getCurrentThreadText(){const key=threadEditKey();return Object.prototyp
 function onThreadFinalEdit(){customThreadEdits[threadEditKey()]=$('#threadFinalText').value;renderThreadDupStatus()}
 function getCurrentInstagramCaption(){return Object.prototype.hasOwnProperty.call(customInstagramCaptions,selected.id+':'+instagramDiversity)?customInstagramCaptions[selected.id+':'+instagramDiversity]:instaCaption(selected)}
 function onInstagramFinalEdit(){customInstagramCaptions[selected.id+':'+instagramDiversity]=$('#instaCaption').value;renderInstagramDupStatus()}
+
+function dupNormalize(text){
+ const lines=String(text||'').split('\n').filter(line=>!/(토스쇼핑 쉐어링크 활동|구매 발생 시 일정 수수료|#생활템|#제품정보)/.test(line));
+ return lines.join(' ').normalize('NFKC').toLowerCase().replace(/[^a-z0-9가-힣]+/g,' ').replace(/\s+/g,' ').trim().slice(0,2000);
+}
+function getBigrams(str){
+ const out=new Set();
+ for(let i=0;i<str.length-1;i++){if(str.slice(i,i+2).trim().length>=2)out.add(str.slice(i,i+2))}
+ return out;
+}
+function copySimilarity(a,b){
+ const x=getBigrams(dupNormalize(a)),y=getBigrams(dupNormalize(b));
+ if(!x.size||!y.size)return 0;
+ let hits=0;for(const term of x)if(y.has(term))hits++;
+ return hits/(x.size+y.size-hits);
+}
+function findDuplicate(platform,text){
+ let top={score:0,matched:null},count=0;
+ const now=Date.now();
+ for(const q of scheduleQueue){
+  if(q.platform!==platform||!q.snapshot?.text)continue;
+  const dt=q.date?Date.parse(q.date+'T'+(q.time||'12:00')+':00+09:00'):NaN;
+  if(!Number.isFinite(dt)||Math.abs(now-dt)>30*86400000)continue;
+  count++;
+  const score=copySimilarity(text,q.snapshot.text);
+  if(score>top.score)top={score,matched:q};
+ }
+ return {...top,count};
+}
+function duplicateMessage(platform,text){
+ const {score,matched,count}=findDuplicate(platform,text);
+ if(!count)return {level:'ok',text:'저장된 최근 30일 모의예약 기록 없음 · 새 예약이 쌓이면 문구 중복을 검사합니다.'};
+ if(score>=.8)return {level:'warning',text:'유사 문구 '+Math.round(score*100)+'% 감지 · '+matched.product+' 예약과 유사합니다. 문구를 다시 검토하세요. ('+count+'건 검사)'};
+ if(score>=.55)return {level:'warning',text:'문구 유사도 '+Math.round(score*100)+'% · 이전 모의예약 '+count+'건 중 일부 표현이 겹칩니다.'};
+ return {level:'ok',text:'중복 위험 낮음 · 최근 30일 저장 모의예약 '+count+'건과 비교했습니다.'};
+}
+function renderThreadDupStatus(){
+ const node=$('#threadDupStatus');if(!node)return;
+ const m=duplicateMessage('Threads',getCurrentThreadText());
+ node.className='similarityNotice '+m.level;node.textContent=m.text;
+}
+function renderInstagramDupStatus(){
+ const node=$('#instaDupStatus');if(!node)return;
+ const m=duplicateMessage('Instagram',getCurrentInstagramCaption());
+ node.className='similarityNotice '+m.level;node.textContent=m.text;
+}
 function renderThreads(){
  const p=selected,b=threadBodies(p),hs=threadHooks(p),cls=['scene1','scene2','scene3'];
  $('#threadTypeBadge').textContent=p.type;
@@ -819,7 +865,7 @@ function instaCaption(p){
  };
  return `${lead}
 
-${profile.pain}을(를) 떠올려봤습니다.
+이런 상황이 익숙할 수 있습니다: ${profile.pain}.
 ${p.name}은 ${profile.solution}으로 소개되는 제품입니다.
 
 ${lines[instagramDiversity]}
@@ -1248,6 +1294,10 @@ function confirmReservation(){
  const r=pendingReservation;
  if(!r.snapshot.text.trim()){showReserveError('본문 또는 캡션이 비어 있습니다.');return}
  if(postingSettings.checks.disclosure&&!/수수료|제휴|협찬|광고/.test(r.snapshot.text)){showReserveError('제휴 고지 문구가 없습니다. 제작 화면에서 고지를 추가한 뒤 다시 예약하세요.');return}
+ if(postingSettings.checks.duplicate){
+   const d=findDuplicate(r.platform,r.snapshot.text);
+   if(d.score>=.80){showReserveError('유사 문구가 '+Math.round(d.score*100)+'%로 감지됐습니다. 최근 30일 모의예약과 중복됩니다. 제작 화면에서 문구를 바꾼 뒤 다시 예약하세요.');return}
+ }
  const error=slotError(r.platform,r.product,date,time);
  if(error){showReserveError(error);return}
  const saved={
