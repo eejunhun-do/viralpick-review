@@ -463,7 +463,7 @@ function syncPostingSettings(){
 }
 function renderPostingSettings(){
  if(!$('#postModeGrid')) return;
- $('.modeCard').forEach(x=>x.classList.toggle('active',x.dataset.mode===postingSettings.mode));
+ $$('.modeCard').forEach(x=>x.classList.toggle('active',x.dataset.mode===postingSettings.mode));
  const names={manual:'수동 게시',review:'검수 후 자동',auto:'완전 자동'}; $('#modeBadge').textContent=names[postingSettings.mode];
  $('#thTarget').value=postingSettings.threads.target;$('#thMax').value=postingSettings.threads.max;$('#thGap').value=postingSettings.threads.gap;$('#thCooldown').value=postingSettings.threads.cooldown;
  $('#igTarget').value=postingSettings.instagram.target;$('#igMax').value=postingSettings.instagram.max;$('#igGap').value=postingSettings.instagram.gap;$('#igCooldown').value=postingSettings.instagram.cooldown;
@@ -522,7 +522,7 @@ function addSchedule(){
 function removeSchedule(i){scheduleQueue.splice(i,1);renderQueue();toast('예약을 삭제했습니다')}
 
 function generateAll(){renderThreads();renderInstagram();renderBlog();toast('Threads + Instagram + Blog 패키지를 생성했습니다');show('threads')}
-function show(id){$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===id));if(id==='scheduler')renderPostingSettings();history.replaceState(null,'',`?view=${id}`)}
+function show(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===id));if(id==='scheduler')renderPostingSettings();history.replaceState(null,'',`?view=${id}`)}
 $$('.nav button').forEach(b=>b.onclick=()=>show(b.dataset.view));
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
 loadPostingSettings();renderProductLists();renderLab();renderThreads();renderInstagram();renderBlog();renderPostingSettings();$('#pubProduct').textContent=selected.name;
