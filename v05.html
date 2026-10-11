@@ -652,7 +652,7 @@ function renderAnalytics(){
  const rows=analyticsRows();
  const reach=rows.reduce((s,r)=>s+r.reach,0), clicks=rows.reduce((s,r)=>s+r.clicks,0), sales=rows.reduce((s,r)=>s+r.sales,0), revenue=rows.reduce((s,r)=>s+r.revenue,0);
  $('#anPosts').textContent=rows.length;$('#anReach').textContent=reach.toLocaleString();$('#anClicks').textContent=clicks.toLocaleString();$('#anSales').textContent=sales;$('#anRevenue').textContent=revenue.toLocaleString()+'원';$('#analyticsCountBadge').textContent=rows.length+'개';
- $('#analyticsTableBody').innerHTML=rows.map(r=>{const p=blogProduct(r.productId);return `<tr class="clickrow" onclick="selectAnalyticsPost('${r.id}')"><td>${r.date}</td><td><span class="platformPill ${r.platform==='Threads'?'th':'ig'}">${r.platform}</span></td><td><b>${p.name}</b><br><span style="color:#828a95">${r.hook}</span></td><td>${r.type}</td><td>${r.reach.toLocaleString()}</td><td>${r.engagement.toLocaleString()}</td><td>${r.clicks.toLocaleString()}</td><td>${r.sales}</td><td>${analyticsCtr(r).toFixed(2)}%</td><td>${r.revenue.toLocaleString()}원</td><td><span class="scoreChip">${r.score}</span></td></tr>`}).join('');
+ $('#analyticsTableBody').innerHTML=rows.map(r=>{const p=blogProduct(r.productId);return `<tr class="clickrow" role="button" tabindex="0" aria-label="${p.name} 게시 성과 상세 보기" onclick="selectAnalyticsPost('${r.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectAnalyticsPost('${r.id}')}"><td data-label="게시일">${r.date}</td><td data-label="플랫폼"><span class="platformPill ${r.platform==='Threads'?'th':'ig'}">${r.platform}</span></td><td data-label="상품 / 후킹"><b>${p.name}</b><br><span style="color:#828a95">${r.hook}</span></td><td data-label="유형">${r.type}</td><td data-label="조회·도달">${r.reach.toLocaleString()}</td><td data-label="반응">${r.engagement.toLocaleString()}</td><td data-label="클릭">${r.clicks.toLocaleString()}</td><td data-label="구매">${r.sales}</td><td data-label="CTR">${analyticsCtr(r).toFixed(2)}%</td><td data-label="수익">${r.revenue.toLocaleString()}원</td><td data-label="성과점수"><span class="scoreChip">${r.score}</span></td></tr>`}).join('');
  renderTypeRanking(rows);renderAnalyticsInsight(rows);
  if(analyticsSelectedId && rows.some(r=>r.id===analyticsSelectedId)) renderAnalyticsDetail(analyticsSelectedId);
  else if(rows.length){analyticsSelectedId=rows[0].id;renderAnalyticsDetail(rows[0].id)}
@@ -902,7 +902,7 @@ function applyInstagramRecommendation(){
 }
 function renderQueue(){
  if(!$('#queueBody')) return;
- $('#queueBody').innerHTML=scheduleQueue.map((q,i)=>`<tr><td>${i+1}</td><td><b>${q.platform}</b></td><td>${q.time}</td><td>${q.product}</td><td><span class="qstatus ${q.status==='검수완료'?'ready':'wait'}">${q.status}</span></td><td><button class="btn" style="padding:6px 8px" onclick="removeSchedule(${i})">삭제</button></td></tr>`).join('');
+ $('#queueBody').innerHTML=scheduleQueue.map((q,i)=>`<tr><td data-label="순서">${i+1}</td><td data-label="플랫폼"><b>${q.platform}</b></td><td data-label="예약 시각">${q.time}</td><td data-label="상품">${q.product}</td><td data-label="상태"><span class="qstatus ${q.status==='검수완료'?'ready':'wait'}">${q.status}</span></td><td data-label="작업"><button class="btn" style="padding:6px 8px" onclick="removeSchedule(${i})">삭제</button></td></tr>`).join('');
  $('#queueCount').textContent=scheduleQueue.length+'개 예약';
 }
 function addSchedule(){
@@ -938,7 +938,7 @@ function show(id){
  $('.mobileBottom [data-quick-view]').forEach(b=>{const active=b.dataset.quickView===id;b.classList.toggle('active',active);if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
  const current=$('#mobileCurrentView');if(current)current.textContent=viewLabels[id]||'ViralPick';
  closeMobileMenu();
- window.scrollTo({top:0,behavior:'instant'});
+ window.scrollTo({top:0,behavior:'auto'});
  if(id==='scheduler')renderPostingSettings();
  if(id==='analytics')renderAnalytics();
  history.replaceState(null,'',`?view=${id}`);
