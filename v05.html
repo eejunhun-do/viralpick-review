@@ -468,7 +468,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 </div><div class="copyTabs" id="threadTabs"></div><div class="similarityNotice" id="threadDupStatus" aria-live="polite"></div></div></div>
   <div class="threadPreview">
     <div>
-      <div class="panel hookImagePanel"><div class="panelHead"><h2>후킹 이미지 3안</h2><span class="badge green">4:5</span></div><div class="pad imageGrid3" id="threadImages"></div><p class="hookSwipeHint">← 좌우로 넘겨 3가지 이미지를 비교하세요 →</p></div>
+      <div class="panel hookImagePanel"><div class="panelHead"><h2>후킹 이미지 3색 시안</h2><span class="badge green">4:5</span></div><div class="pad imageGrid3" id="threadImages"></div><p class="hookSwipeHint">← 좌우로 넘겨 3가지 이미지를 비교하세요 →</p></div>
     </div>
     <div>
       <div class="panel"><div class="panelHead"><h2>Threads 최종 미리보기</h2><span class="badge">선택 이미지 + 본문</span></div><div class="pad"><div class="postCard"><div class="postHead"><div class="avatar">VP</div><div><div class="handle">viralpick</div><div class="ago">방금 전</div></div></div><textarea class="postText threadFinalEditor" id="threadFinalText" oninput="onThreadFinalEdit()" aria-label="Threads 최종 게시글 편집" spellcheck="true"></textarea><div id="threadFinalImage"></div><div class="postActions">♡ 좋아요　◯ 답글　↗ 공유</div></div></div></div>
@@ -775,8 +775,8 @@ return cls.map((cl,i)=>`<div class="visual ${cl} ${threadImageIndex===i?'selecte
 function threadEditKey(){return selected.id+':'+threadDiversity+':'+threadSeed+':'+threadCopyIndex}
 function getCurrentThreadText(){const key=threadEditKey();return Object.prototype.hasOwnProperty.call(customThreadEdits,key)?customThreadEdits[key]:threadBodies(selected)[threadCopyIndex]}
 function onThreadFinalEdit(){customThreadEdits[threadEditKey()]=$('#threadFinalText').value;renderThreadDupStatus()}
-function getCurrentInstagramCaption(){return Object.prototype.hasOwnProperty.call(customInstagramCaptions,selected.id+':'+instagramDiversity)?customInstagramCaptions[selected.id+':'+instagramDiversity]:instaCaption(selected)}
-function onInstagramFinalEdit(){customInstagramCaptions[selected.id+':'+instagramDiversity]=$('#instaCaption').value;renderInstagramDupStatus()}
+function getCurrentInstagramCaption(){return Object.prototype.hasOwnProperty.call(customInstagramCaptions,selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex)?customInstagramCaptions[selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex]:instaCaption(selected)}
+function onInstagramFinalEdit(){customInstagramCaptions[selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex]=$('#instaCaption').value;renderInstagramDupStatus()}
 
 function dupNormalize(text){
  const lines=String(text||'').split('\n').filter(line=>!/(토스쇼핑 쉐어링크 활동|구매 발생 시 일정 수수료|#생활템|#제품정보)/.test(line));
@@ -831,7 +831,12 @@ function renderThreads(){
  $('#threadImages').innerHTML=threadVisuals(p);
  $('#threadFinalText').value=getCurrentThreadText();
  const i=threadImageIndex;
- $('#threadFinalImage').innerHTML=`<div style="max-width:360px"><div class="visual ${cls[i]}"><div class="ghost">${p.visual}<br><span style="font-weight:600;font-size:9px">텍스트 그래픽 시안</span></div><div class="copy">${hs[threadCopyIndex]}<span class="sub">${p.name}</span></div></div></div>`;
+ try{
+   const png=buildContentCanvas('Threads',0,i).toDataURL('image/png');
+   $('#threadFinalImage').innerHTML='<img src="'+png+'" alt="선택한 Threads 이미지 출력 미리보기" style="width:min(100%,360px);display:block;aspect-ratio:4/5;object-fit:contain;border-radius:15px;border:1px solid #e7e9ed">';
+ }catch(e){
+   $('#threadFinalImage').innerHTML=`<div style="max-width:360px"><div class="visual ${cls[i]}"><div class="ghost">${p.visual}</div><div class="copy">${hs[threadCopyIndex]}<span class="sub">${p.name}</span></div></div></div>`;
+ }
  renderThreadDupStatus();
 }
 function cycleThread(){threadSeed++;threadCopyIndex=0;threadImageIndex=0;renderThreads();toast('상품별 후킹 6안을 새로 구성했습니다')}
@@ -847,11 +852,14 @@ function changeInstagramDiversity(v){
  instagramDiversity=v;coverIndex=0;instaCardIndex=0;renderInstagram();
 }
 function renderInstagram(){ const p=selected, hooks=coverHooks(p), cls=['scene1','dark','yellow','pink']; $('#coverGrid').innerHTML=hooks.map((h,i)=>`<div class="visual ${cls[i]} ${coverIndex===i?'selected':''}" onclick="coverIndex=${i};instaCardIndex=0;renderInstagram()"><div class="ghost">${i===0?p.visual:'콘텐츠 표지 비주얼'}</div><div class="copy">${h}<span class="sub">${p.name}</span></div></div>`).join('');
- const cards=instaCards(p); $('#cardThumbs').innerHTML=cards.map((c,i)=>`<div class="cardThumb ${instaCardIndex===i?'active':''}" onclick="instaCardIndex=${i};renderInstagram()">${i+1}. ${c.short}</div>`).join(''); $('#instaCard').innerHTML=cards[instaCardIndex].html; $('#cardIndexBadge').textContent=(instaCardIndex+1)+' / 5'; $('.dots').textContent=[0,1,2,3,4].map(i=>i===instaCardIndex?'●':'○').join(' '); $('#instaCaption').value=getCurrentInstagramCaption();$('#instagramDiversity').value=instagramDiversity;renderInstagramDupStatus(); }
+ const cards=instaCards(p); $('#cardThumbs').innerHTML=cards.map((c,i)=>`<div class="cardThumb ${instaCardIndex===i?'active':''}" onclick="instaCardIndex=${i};renderInstagram()">${i+1}. ${c.short}</div>`).join(''); try{
+ const png=buildContentCanvas('Instagram',instaCardIndex,coverIndex).toDataURL('image/png');
+ $('#instaCard').innerHTML='<img src="'+png+'" alt="다운로드할 Instagram 카드 실제 미리보기" style="display:block;width:100%;height:100%;object-fit:contain">';
+ }catch(e){$('#instaCard').innerHTML=cards[instaCardIndex].html;} $('#cardIndexBadge').textContent=(instaCardIndex+1)+' / 5'; $('.dots').textContent=[0,1,2,3,4].map(i=>i===instaCardIndex?'●':'○').join(' '); $('#instaCaption').value=getCurrentInstagramCaption();$('#instagramDiversity').value=instagramDiversity;renderInstagramDupStatus(); }
 function instaCards(p){ const cover=coverHooks(p)[coverIndex]; return [
  {short:'후킹 표지',html:`<div class="bg scene1"></div><div class="content"><div><div class="num">01 / 05</div><h3>${cover}</h3><p>${p.name}</p></div><div class="cta">넘겨서 보기 →</div></div>`},
- {short:'문제 공감',html:`<div class="bg scene2"></div><div class="content"><div><div class="num">02 / 05</div><h3>은근 반복되는<br>이 불편</h3><p>${p.problem}</p></div><div class="productBox">${p.visual}<br><span style="font-size:10px;font-weight:700">AI 상황 이미지 자리</span></div></div>`},
- {short:'상품 등장',html:`<div class="bg" style="background:#f7f8fa"></div><div class="content"><div><div class="num">03 / 05</div><h3>그래서<br>찾아본 게 이거</h3></div><div class="productBox">토스 제공<br>상품 원본 이미지</div><p>${p.name}</p></div>`},
+ {short:'문제 공감',html:`<div class="bg scene2"></div><div class="content"><div><div class="num">02 / 05</div><h3>은근 반복되는<br>이 불편</h3><p>${p.problem}</p></div><div class="productBox">${p.visual}<br><span style="font-size:10px;font-weight:700">이미지 연동 전 시안</span></div></div>`},
+ {short:'상품 등장',html:`<div class="bg" style="background:#f7f8fa"></div><div class="content"><div><div class="num">03 / 05</div><h3>그래서<br>찾아본 게 이거</h3></div><div class="productBox">실제 상품 사진<br>미연결</div><p>${p.name}</p></div>`},
  {short:'핵심 장점',html:`<div class="bg scene3"></div><div class="content"><div><div class="num">04 / 05</div><h3>왜 괜찮아<br>보였냐면</h3><p>✓ ${p.novel}<br><br>✓ ${p.audience}에게 특히 잘 맞음<br><br>✓ 문제 하나를 단순하게 줄여주는 타입</p></div><div class="cta">핵심만 짧게 정리</div></div>`},
  {short:'가격·CTA',html:`<div class="bg" style="background:#fff"></div><div class="content"><div><div class="num">05 / 05</div><h3>필요한 사람은<br>가격만 체크</h3><p>현재 토스쇼핑 기준</p><div style="font-size:38px;font-weight:950;margin-top:8px">${fmt(p.price)}</div><p>정상가 ${fmt(p.old)} · ${p.discount}% 할인<br>가격·판매 상태는 변동될 수 있음</p></div><div class="cta">저장해두고 필요할 때 확인</div></div>`}
  ];}
