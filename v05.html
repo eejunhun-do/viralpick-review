@@ -1023,6 +1023,85 @@ function viewQueueItem(i){
 }
 function closeQueueDetail(){$('#queueDetailOverlay').hidden=true}
 
+
+function openReservation(platform){
+ if(platform!=='Threads'&&platform!=='Instagram')return;
+ reserveReturnFocus=document.activeElement;
+ const p=selected;
+ const text=platform==='Threads'?getCurrentThreadText():getCurrentInstagramCaption();
+ const desc=platform==='Threads'
+ ? '본문 '+(threadCopyIndex+1)+'안 · 후킹 이미지 '+(threadImageIndex+1)+'안'
+ : '표지 '+(coverIndex+1)+'안 · Instagram 카드 5장 · 최종 캡션';
+ const cards=platform==='Instagram'?instaCards(p).map((card,i)=>({index:i+1,label:card.short,html:card.html})):[];
+ pendingReservation={
+  platform,productId:p.id,product:p.name,price:p.price,discount:p.discount,
+  snapshot:{
+   text,description:desc,contentType:p.type,
+   bodyVariant:platform==='Threads'?threadCopyIndex+1:null,
+   imageVariant:platform==='Threads'?threadImageIndex+1:null,
+   coverVariant:platform==='Instagram'?coverIndex+1:null,
+   cards,
+   productPrice:p.price,
+   productDiscount:p.discount,
+   selectedAt:new Date().toISOString()
+  }
+ };
+ if(!String(text||'').trim()){toast('최종 게시글이 비어 있습니다. 본문을 먼저 작성해주세요.');return}
+ const when=new Date(Date.now()+9*3600000+2*3600000).toISOString();
+ $('#reservePlatform').textContent=platform;
+ $('#reserveProduct').textContent=p.name;
+ $('#reserveSelection').textContent=desc;
+ $('#reserveText').value=text;
+ $('#reserveDate').min=kstNow().date;
+ $('#reserveDate').value=when.slice(0,10);
+ $('#reserveTime').value=when.slice(11,16);
+ $('#reserveApproved').checked=false;
+ $('#reserveWarning').textContent='※ 현재는 실제 SNS 자동게시가 아닌 브라우저에 저장되는 모의 예약입니다. 상품 가격·품절 여부는 실제 API와 연결되지 않았습니다.';
+ $('#reserveWarning').classList.remove('error');
+ updateReservationButton();
+ $('#reservationOverlay').hidden=false;
+ document.body.classList.add('reservation-open');
+ $('#reserveDate').focus();
+}
+function updateReservationButton(){
+ $('#confirmReserveBtn').disabled=!($('#reserveApproved').checked&&pendingReservation);
+}
+function closeReservation(){
+ const modal=$('#reservationOverlay');if(!modal||modal.hidden)return;
+ modal.hidden=true;document.body.classList.remove('reservation-open');
+ pendingReservation=null;
+ if(reserveReturnFocus&&typeof reserveReturnFocus.focus==='function')reserveReturnFocus.focus();
+}
+function showReserveError(msg){
+ const out=$('#reserveWarning');out.classList.add('error');out.textContent=msg;
+}
+function confirmReservation(){
+ if(!pendingReservation)return;
+ if(!$('#reserveApproved').checked){showReserveError('최종 검수 확인에 동의해 주세요.');return}
+ const date=$('#reserveDate').value,time=$('#reserveTime').value;
+ const r=pendingReservation;
+ if(!r.snapshot.text.trim()){showReserveError('본문 또는 캡션이 비어 있습니다.');return}
+ if(postingSettings.checks.disclosure&&!/수수료|제휴|협찬|광고/.test(r.snapshot.text)){showReserveError('제휴 고지 문구가 없습니다. 제작 화면에서 고지를 추가한 뒤 다시 예약하세요.');return}
+ const error=slotError(r.platform,r.product,date,time);
+ if(error){showReserveError(error);return}
+ const saved={
+  id:'reviewed-'+Date.now()+'-'+Math.floor(Math.random()*10000),
+  platform:r.platform,productId:r.productId,product:r.product,
+  date,time,approved:true,status:'검수완료 · 모의예약',
+  mode:postingSettings.mode,source:'editor',snapshot:{...r.snapshot}
+ };
+ scheduleQueue.push(saved);
+ if(!persistQueue()){
+  scheduleQueue.pop();
+  showReserveError('브라우저 저장소를 사용할 수 없어 예약을 저장하지 못했습니다. 저장 허용 여부를 확인해주세요.');
+  return;
+ }
+ closeReservation();
+ renderQueue();
+ show('scheduler');
+ toast(r.platform+' '+date+' '+time+' (KST) 모의 예약이 등록됐습니다.');
+}
+
 function generateSNS(){renderThreads();renderInstagram();toast('Threads + Instagram 패키지를 생성했습니다');show('threads')}
 
 const viewLabels={dashboard:'대시보드',discover:'상품 발굴',lab:'상품 분석',threads:'Threads 제작',instagram:'Instagram 카드',analytics:'게시 성과 분석',blog:'Blog 제작',scheduler:'자동게시 설정',publish:'게시 준비'};
@@ -1039,7 +1118,7 @@ function closeMobileMenu(){
   const opener=$('#mobileOpenButton');if(opener)opener.setAttribute('aria-expanded','false');
   if(mobileMenuOpener && typeof mobileMenuOpener.focus==='function')mobileMenuOpener.focus();
 }
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMobileMenu()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeReservation();closeQueueDetail();closeMobileMenu();}});
 window.addEventListener('resize',()=>{if(window.innerWidth>930)closeMobileMenu()});
 function show(id){
  if(!document.getElementById(id))return;
@@ -1055,7 +1134,7 @@ function show(id){
 }
 $$('.nav button').forEach(b=>b.onclick=()=>show(b.dataset.view));
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
-loadPostingSettings();renderProductLists();renderLab();renderThreads();renderInstagram();renderAnalytics();renderBlogRecommendations();renderPostingSettings();$('#pubProduct').textContent=selected.name;
+loadPostingSettings();setDefaultScheduleFields();renderProductLists();renderLab();renderThreads();renderInstagram();renderAnalytics();renderBlogRecommendations();renderPostingSettings();$('#pubProduct').textContent=selected.name;
 const q=new URLSearchParams(location.search).get('view');if(['dashboard','discover','lab','threads','instagram','analytics','blog','scheduler','publish'].includes(q))show(q);
 </script>
 </body>
