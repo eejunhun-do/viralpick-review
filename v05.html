@@ -595,12 +595,8 @@ let postingSettings={
  instagram:{target:1,max:2,gap:6,cooldown:14},
  checks:{price:true,stock:true,disclosure:true,duplicate:true,autoTune:true}
 };
-let scheduleQueue=[
- {platform:'Threads',time:'09:30',product:'디지털 레이저 수평계',status:'예약'},
- {platform:'Instagram',time:'12:00',product:'무선 핸디 청소기',status:'검수완료'},
- {platform:'Threads',time:'16:30',product:'반려동물 발 세정컵',status:'예약'},
- {platform:'Threads',time:'20:30',product:'무선 핸디 청소기',status:'예약'}
-];
+let scheduleQueue=[];
+let customThreadEdits={}, customInstagramCaptions={}, pendingReservation=null, reserveReturnFocus=null;
 let perfScenario=0;
 const $=q=>document.querySelector(q), $$=q=>[...document.querySelectorAll(q)];
 const fmt=n=>Number(n).toLocaleString('ko-KR')+'원';
@@ -637,16 +633,21 @@ ${i===2?'이런 거 잘 쓰는 사람 있음?':'이 정도면 한 번 써볼 만
 
 ※ 이 게시물은 토스쇼핑 쉐어링크 활동의 일환으로, 구매 발생 시 일정 수수료를 제공받을 수 있습니다.`)}
 function threadVisuals(p){ const hs=threadHooks(p); const cls=['scene1','scene2','scene3']; return hs.map((h,i)=>`<div class="visual ${cls[i]} ${threadImageIndex===i?'selected':''}" onclick="threadImageIndex=${i};renderThreads()"><div class="ghost">${p.visual}<br><span style="font-weight:600;font-size:9px">AI 상황 이미지 자리</span></div><div class="copy">${h}<span class="sub">${p.name}</span></div></div>`).join('');}
-function renderThreads(){ const p=selected,b=threadBodies(p),hs=threadHooks(p),cls=['scene1','scene2','scene3']; $('#threadTypeBadge').textContent=p.type; $('#threadTabs').innerHTML=b.map((x,i)=>`<div class="copyTab ${threadCopyIndex===i?'active':''}" onclick="threadCopyIndex=${i};renderThreads()"><b>${hs[i]}</b><span>본문 ${String.fromCharCode(65+i)}안</span></div>`).join(''); $('#threadImages').innerHTML=threadVisuals(p); $('#threadFinalText').textContent=b[threadCopyIndex]; const i=threadImageIndex; $('#threadFinalImage').innerHTML=`<div style="max-width:360px"><div class="visual ${cls[i]}"><div class="ghost">${p.visual}<br><span style="font-weight:600;font-size:9px">AI 상황 이미지 자리</span></div><div class="copy">${hs[i]}<span class="sub">${p.name}</span></div></div></div>`; }
+function threadEditKey(){return selected.id+':'+threadSeed+':'+threadCopyIndex}
+function getCurrentThreadText(){const key=threadEditKey();return Object.prototype.hasOwnProperty.call(customThreadEdits,key)?customThreadEdits[key]:threadBodies(selected)[threadCopyIndex]}
+function onThreadFinalEdit(){customThreadEdits[threadEditKey()]=$('#threadFinalText').value}
+function getCurrentInstagramCaption(){return Object.prototype.hasOwnProperty.call(customInstagramCaptions,selected.id)?customInstagramCaptions[selected.id]:instaCaption(selected)}
+function onInstagramFinalEdit(){customInstagramCaptions[selected.id]=$('#instaCaption').value}
+function renderThreads(){ const p=selected,b=threadBodies(p),hs=threadHooks(p),cls=['scene1','scene2','scene3']; $('#threadTypeBadge').textContent=p.type; $('#threadTabs').innerHTML=b.map((x,i)=>`<div class="copyTab ${threadCopyIndex===i?'active':''}" onclick="threadCopyIndex=${i};renderThreads()"><b>${hs[i]}</b><span>본문 ${String.fromCharCode(65+i)}안</span></div>`).join(''); $('#threadImages').innerHTML=threadVisuals(p); $('#threadFinalText').value=getCurrentThreadText(); const i=threadImageIndex; $('#threadFinalImage').innerHTML=`<div style="max-width:360px"><div class="visual ${cls[i]}"><div class="ghost">${p.visual}<br><span style="font-weight:600;font-size:9px">AI 상황 이미지 자리</span></div><div class="copy">${hs[i]}<span class="sub">${p.name}</span></div></div></div>`; }
 function cycleThread(){threadSeed++;threadCopyIndex=0;threadImageIndex=0;renderThreads();toast('Threads 3안을 새로 만들었습니다')}
-async function copyThread(){ try{await navigator.clipboard.writeText(threadBodies(selected)[threadCopyIndex]);toast('Threads 본문을 복사했습니다')}catch(e){toast('브라우저 복사 권한을 확인해주세요')} }
+async function copyThread(){ try{await navigator.clipboard.writeText(getCurrentThreadText());toast('Threads 본문을 복사했습니다')}catch(e){toast('브라우저 복사 권한을 확인해주세요')} }
 
 function coverHooks(p){ const pool=[
  [`이거 나만<br>몰랐음?`,`이 불편 아직도<br>참고 있었어?`,`별거 아닌데<br>은근 잘 쓰는 물건`,`처음 보면<br>용도 모름ㅋㅋ`],
  [`생활의 질<br>올려주는 소소템`,`알고 나면<br>괜히 억울한 물건`,`이런 게<br>왜 이제 보이지?`,`은근 자주 쓰는<br>생활템 발견`]
  ]; return pool[coverSeed%pool.length];}
 function renderInstagram(){ const p=selected, hooks=coverHooks(p), cls=['scene1','dark','yellow','pink']; $('#coverGrid').innerHTML=hooks.map((h,i)=>`<div class="visual ${cls[i]} ${coverIndex===i?'selected':''}" onclick="coverIndex=${i};instaCardIndex=0;renderInstagram()"><div class="ghost">${i===0?p.visual:'콘텐츠 표지 비주얼'}</div><div class="copy">${h}<span class="sub">${p.name}</span></div></div>`).join('');
- const cards=instaCards(p); $('#cardThumbs').innerHTML=cards.map((c,i)=>`<div class="cardThumb ${instaCardIndex===i?'active':''}" onclick="instaCardIndex=${i};renderInstagram()">${i+1}. ${c.short}</div>`).join(''); $('#instaCard').innerHTML=cards[instaCardIndex].html; $('#cardIndexBadge').textContent=(instaCardIndex+1)+' / 5'; $('.dots').textContent=[0,1,2,3,4].map(i=>i===instaCardIndex?'●':'○').join(' '); $('#instaCaption').textContent=instaCaption(p); }
+ const cards=instaCards(p); $('#cardThumbs').innerHTML=cards.map((c,i)=>`<div class="cardThumb ${instaCardIndex===i?'active':''}" onclick="instaCardIndex=${i};renderInstagram()">${i+1}. ${c.short}</div>`).join(''); $('#instaCard').innerHTML=cards[instaCardIndex].html; $('#cardIndexBadge').textContent=(instaCardIndex+1)+' / 5'; $('.dots').textContent=[0,1,2,3,4].map(i=>i===instaCardIndex?'●':'○').join(' '); $('#instaCaption').value=getCurrentInstagramCaption(); }
 function instaCards(p){ const cover=coverHooks(p)[coverIndex]; return [
  {short:'후킹 표지',html:`<div class="bg scene1"></div><div class="content"><div><div class="num">01 / 05</div><h3>${cover}</h3><p>${p.name}</p></div><div class="cta">넘겨서 보기 →</div></div>`},
  {short:'문제 공감',html:`<div class="bg scene2"></div><div class="content"><div><div class="num">02 / 05</div><h3>은근 반복되는<br>이 불편</h3><p>${p.problem}</p></div><div class="productBox">${p.visual}<br><span style="font-size:10px;font-weight:700">AI 상황 이미지 자리</span></div></div>`},
@@ -669,7 +670,7 @@ ${p.novel}
 
 ※ 이 게시물은 토스쇼핑 쉐어링크 활동의 일환으로, 구매 발생 시 일정 수수료를 제공받을 수 있습니다.`}
 function cycleCover(){coverSeed++;coverIndex=0;instaCardIndex=0;renderInstagram();toast('Instagram 표지 4안을 새로 만들었습니다')}
-async function copyCaption(){try{await navigator.clipboard.writeText(instaCaption(selected));toast('Instagram 캡션을 복사했습니다')}catch(e){toast('브라우저 복사 권한을 확인해주세요')}}
+async function copyCaption(){try{await navigator.clipboard.writeText(getCurrentInstagramCaption());toast('Instagram 캡션을 복사했습니다')}catch(e){toast('브라우저 복사 권한을 확인해주세요')}}
 
 
 let analyticsScenario=0, analyticsSelectedId=null;
@@ -925,6 +926,10 @@ function renderPostingSettings(){
  $('#checkPrice').checked=postingSettings.checks.price;$('#checkStock').checked=postingSettings.checks.stock;$('#checkDisclosure').checked=postingSettings.checks.disclosure;$('#checkDuplicate').checked=postingSettings.checks.duplicate;$('#autoTune').checked=postingSettings.checks.autoTune;
  renderQueue();
 }
+function persistQueue(){
+ try{localStorage.setItem('viralpickScheduleQueue',JSON.stringify(scheduleQueue));return true}
+ catch(e){return false}
+}
 function savePostingSettings(){
  syncPostingSettings();
  try{localStorage.setItem('viralpickPostingSettings',JSON.stringify(postingSettings));localStorage.setItem('viralpickScheduleQueue',JSON.stringify(scheduleQueue));}catch(e){}
@@ -934,7 +939,7 @@ function savePostingSettings(){
 function loadPostingSettings(){
  try{
    const s=localStorage.getItem('viralpickPostingSettings'); if(s) postingSettings={...postingSettings,...JSON.parse(s)};
-   const q=localStorage.getItem('viralpickScheduleQueue'); if(q) scheduleQueue=JSON.parse(q);
+   const q=localStorage.getItem('viralpickScheduleQueue'); if(q){const loaded=JSON.parse(q);if(Array.isArray(loaded))scheduleQueue=loaded.map((item,i)=>({...item,id:item.id||('legacy-'+i),date:item.date||'',status:item.date?item.status:'이전 샘플'}));}
  }catch(e){}
 }
 function resetPostingDefaults(){
@@ -963,18 +968,60 @@ function applyInstagramRecommendation(){
  postingSettings.instagram.target=txt.includes('2 테스트')?2:1;
  renderPostingSettings();toast('Instagram 권장 게시량을 적용했습니다');
 }
+const cleanMarkup=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+const kstDateTime=(date,time)=>new Date(date+'T'+time+':00+09:00').getTime();
+function kstNow(){const parts=new Date(Date.now()+9*3600000).toISOString().slice(0,16).split('T');return {date:parts[0],time:parts[1]}}
+function slotError(platform,product,date,time){
+ if(!date||!time)return '예약 날짜와 시간을 선택해주세요.';
+ const ts=kstDateTime(date,time);
+ if(!Number.isFinite(ts)||ts<=Date.now())return '현재 한국시간보다 이후의 날짜와 시간을 선택해주세요.';
+ syncPostingSettings();
+ const conf=platform==='Threads'?postingSettings.threads:postingSettings.instagram;
+ const peers=scheduleQueue.filter(q=>q.platform===platform&&q.date&&q.time&&q.status!=='취소');
+ const count=peers.filter(q=>q.date===date).length;
+ if(count>=conf.max)return platform+'의 하루 최대 게시량('+conf.max+'개)을 초과합니다.';
+ for(const q of peers){
+  const diff=Math.abs(ts-kstDateTime(q.date,q.time));
+  if(diff < conf.gap*3600000)return platform+' 게시 간격은 최소 '+conf.gap+'시간입니다.';
+  if(q.product===product&&diff < conf.cooldown*86400000)return '동일 상품은 '+conf.cooldown+'일이 지나야 '+platform+'에 다시 예약할 수 있습니다.';
+ }
+ return '';
+}
+function setDefaultScheduleFields(){
+ const now=new Date(Date.now()+9*3600000+2*3600000).toISOString();
+ if($('#scheduleDate')&&!$('#scheduleDate').value)$('#scheduleDate').value=now.slice(0,10);
+ if($('#scheduleTime')&&!$('#scheduleTime').value)$('#scheduleTime').value=now.slice(11,16);
+ if($('#scheduleDate'))$('#scheduleDate').min=kstNow().date;
+}
 function renderQueue(){
- if(!$('#queueBody')) return;
- $('#queueBody').innerHTML=scheduleQueue.map((q,i)=>`<tr><td data-label="순서">${i+1}</td><td data-label="플랫폼"><b>${q.platform}</b></td><td data-label="예약 시각">${q.time}</td><td data-label="상품">${q.product}</td><td data-label="상태"><span class="qstatus ${q.status==='검수완료'?'ready':'wait'}">${q.status}</span></td><td data-label="작업"><button class="btn" style="padding:6px 8px" onclick="removeSchedule(${i})">삭제</button></td></tr>`).join('');
- $('#queueCount').textContent=scheduleQueue.length+'개 예약';
+ if(!$('#queueBody'))return;
+ const entries=scheduleQueue.slice().sort((a,b)=>((a.date||'9999')+' '+(a.time||'')).localeCompare((b.date||'9999')+' '+(b.time||'')));
+ $('#queueBody').innerHTML=entries.length?entries.map((q,i)=>{
+ const idx=scheduleQueue.indexOf(q),confirmed=!!q.approved;
+ return `<tr><td data-label="순서">${i+1}</td><td data-label="플랫폼"><b>${cleanMarkup(q.platform)}</b></td><td data-label="예약일">${cleanMarkup(q.date||'날짜 미지정')}</td><td data-label="예약 시각">${cleanMarkup(q.time||'-')}</td><td data-label="상품">${cleanMarkup(q.product)}</td><td data-label="상태"><span class="qstatus ${confirmed?'ready':'wait'}">${cleanMarkup(q.status||'초안')}</span></td><td data-label="작업"><div class="btnrow">${q.snapshot?'<button class="btn" style="padding:6px 8px" onclick="viewQueueItem('+idx+')">내용 보기</button>':''}<button class="btn" style="padding:6px 8px" onclick="removeSchedule(${idx})">삭제</button></div></td></tr>`;
+ }).join(''):'<tr><td colspan="7" style="padding:18px;color:#77818c">예약된 게시글이 없습니다. Threads 또는 Instagram 제작 화면에서 최종 검수를 마친 뒤 예약하세요.</td></tr>';
+ $('#queueCount').textContent=entries.length+'개 일정';
 }
 function addSchedule(){
- const platform=$('#schedulePlatform').value,time=$('#scheduleTime').value,product=$('#scheduleProduct').value;
- if(!time){toast('게시 시각을 선택해주세요');return}
- scheduleQueue.push({platform,time,product,status:postingSettings.mode==='manual'?'수동':'예약'});
- scheduleQueue.sort((a,b)=>a.time.localeCompare(b.time));renderQueue();toast(platform+' 예약을 추가했습니다');
+ const platform=$('#schedulePlatform').value, date=$('#scheduleDate').value,time=$('#scheduleTime').value,product=$('#scheduleProduct').value;
+ const err=slotError(platform,product,date,time);if(err){toast(err);return}
+ scheduleQueue.push({id:'draft-'+Date.now(),platform,date,time,product,status:'초안 · 검수 필요',approved:false});
+ persistQueue();renderQueue();toast('일정만 추가했습니다. 콘텐츠 검수가 필요합니다.');
 }
-function removeSchedule(i){scheduleQueue.splice(i,1);renderQueue();toast('예약을 삭제했습니다')}
+function removeSchedule(i){
+ if(i<0||i>=scheduleQueue.length)return;
+ scheduleQueue.splice(i,1);persistQueue();renderQueue();toast('예약 목록에서 삭제했습니다');
+}
+function viewQueueItem(i){
+ const q=scheduleQueue[i];if(!q||!q.snapshot)return;
+ $('#queueDetailHeading').textContent=q.platform+' 예약 내용';
+ $('#queueDetailMeta').textContent=[q.date,q.time,'KST'].join(' ');
+ const x=q.snapshot;
+ $('#queueDetailSnapshot').innerHTML='<b>'+cleanMarkup(q.product)+'</b><p>'+cleanMarkup(x.description||'최종 콘텐츠')+'</p>';
+ $('#queueDetailText').value=x.text||'';
+ $('#queueDetailOverlay').hidden=false;
+}
+function closeQueueDetail(){$('#queueDetailOverlay').hidden=true}
 
 function generateSNS(){renderThreads();renderInstagram();toast('Threads + Instagram 패키지를 생성했습니다');show('threads')}
 
