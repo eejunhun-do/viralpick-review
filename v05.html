@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111318">
-<title>ViralPick v0.5.5 Prototype</title>
+<title>ViralPick v0.5.6 Prototype</title>
 <style>
 :root{
   --bg:#f5f6f8;--panel:#fff;--ink:#15171b;--muted:#727985;--line:#e6e8ec;
@@ -117,7 +117,7 @@ button,input,select,textarea{font:inherit}
 .limitNotice{border:1px solid #ffd8a8;background:#fff9db;color:#8a5d00;border-radius:13px;padding:12px;font-size:10px;line-height:1.55}
 .toast{position:fixed;right:22px;bottom:22px;background:#111318;color:#fff;padding:12px 15px;border-radius:12px;font-size:11px;opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s;z-index:20}.toast.show{opacity:1;transform:none}
 
-/* v0.5.5 responsive navigation and workspace */
+/* v0.5.6 responsive navigation and workspace */
 html{scroll-padding-top:82px}
 html,body{width:100%;max-width:100%;overflow-x:clip}
 button,select,input,.copyTab,.cardThumb,.blogTitle,.modeCard,.product{touch-action:manipulation}
@@ -275,6 +275,49 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
   .side,.mobileBackdrop,.toast{transition:none}
 }
 
+
+/* Content review and booking — v0.5.6 */
+.threadFinalEditor,.instaFinalEditor{width:100%;display:block;resize:vertical;font-family:inherit;font-size:13px;line-height:1.7;outline-offset:3px;border:1px solid var(--line);border-radius:13px;background:#fff;padding:14px;color:var(--ink)}
+.threadFinalEditor{min-height:310px;white-space:pre-wrap;margin:13px 0}.instaFinalEditor{min-height:310px;white-space:pre-wrap}
+.finalActions .pad{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.finalActions b{font-size:14px}.finalActions p{font-size:11px;color:#77818c;line-height:1.5;margin:5px 0 0}
+.finalActions .btn{flex-shrink:0}
+.reservationOverlay[hidden]{display:none!important}
+.reservationOverlay{position:fixed;inset:0;z-index:250;background:rgba(9,12,19,.65);padding:20px;display:grid;place-items:center;overflow:auto;overscroll-behavior:contain}
+.reservationDialog{width:min(100%,570px);background:#fff;border-radius:20px;box-shadow:0 24px 90px rgba(0,0,0,.32);max-height:calc(100dvh - 35px);overflow:auto}
+.reservationHeader{padding:20px 22px 14px;display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line)}
+.reservationHeader h2{font-size:21px;margin:10px 0 5px;letter-spacing:-.6px}
+.reservationHeader p{font-size:11px;color:#79828c;margin:0;line-height:1.5}
+.reservationClose{width:40px;height:40px;border:1px solid var(--line);border-radius:10px;background:#fff;flex:none;cursor:pointer;font-size:17px}
+.reservationBody{padding:18px 22px;display:grid;gap:15px}
+.reservationSummary{display:grid;gap:8px;background:#f6f7f9;border:1px solid var(--line);padding:13px;border-radius:13px}
+.reservationSummary>b{font-size:15px}.reservationSummary>p{font-size:11px;color:#68717e;line-height:1.5;margin:0}
+.reserveLabel{display:grid;gap:7px;font-size:11px;font-weight:900;color:#454e59}
+.reserveLabel input,.reserveLabel textarea,#queueDetailText{width:100%;min-width:0;border:1px solid #dce1e6;border-radius:11px;background:#fff;padding:12px;font-size:13px;color:#252932;line-height:1.5}
+.reserveLabel textarea,#queueDetailText{resize:vertical}
+.reserveFields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.reserveApproval{display:flex;gap:11px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:12px;background:#fcfcfd;cursor:pointer}
+.reserveApproval input{width:19px;height:19px;flex:0 0 19px;accent-color:#111318}
+.reserveApproval span{font-size:11px;line-height:1.6;color:#454e59;font-weight:750}
+.reserveWarning{font-size:11px;line-height:1.55;color:#a05f00;background:#fff9e8;border:1px solid #ffe4a8;border-radius:11px;padding:11px}
+.reserveWarning.error{color:#b12b39;border-color:#ffd1d9;background:#fff3f5}
+.reservationFooter{display:flex;justify-content:flex-end;gap:8px;padding:14px 22px 20px;border-top:1px solid var(--line)}
+.reservationFooter .btn{min-height:44px}
+.reservationFooter .btn:disabled{opacity:.42;cursor:not-allowed}
+.queueHint{font-size:11px;color:#77818c;line-height:1.6;margin:13px 0 0}
+@media(max-width:650px){
+ .finalActions .pad{display:grid;align-items:stretch}
+ .finalActions .btn{width:100%}
+ .reservationOverlay{padding:8px;place-items:end center}
+ .reservationDialog{width:100%;max-height:calc(100dvh - 20px);border-radius:20px 20px 12px 12px}
+ .reservationHeader{padding:15px 16px 12px}.reservationBody{padding:12px 16px;gap:12px}.reservationFooter{padding:12px 16px calc(13px + env(safe-area-inset-bottom,0px))}
+ .reserveFields{grid-template-columns:1fr 1fr}
+ .reserveLabel input{font-size:16px;min-height:44px}
+ .threadFinalEditor,.instaFinalEditor{font-size:14px}
+ .queueTable td:nth-child(4){grid-column:auto}
+ .queueTable td:nth-child(5){grid-column:span 2}
+ .queueTable td:last-child{grid-column:span 2}
+}
 </style>
 </head>
 <body>
@@ -287,7 +330,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 <div class="app">
 <aside class="side" id="siteSidebar" aria-label="전체 메뉴">
   <div class="sideHeader"><div class="brand">ViralPick</div><button type="button" class="mobileClose" onclick="closeMobileMenu()" aria-label="전체 메뉴 닫기">✕</button></div>
-  <div class="ver">v0.5.5 · Threads + Instagram + Blog + Scheduler</div>
+  <div class="ver">v0.5.6 · Threads + Instagram + Blog + Scheduler</div>
   <nav class="nav">
     <button data-view="dashboard" class="active">🏠 대시보드</button>
     <button data-view="discover">🔥 상품 발굴</button>
@@ -299,7 +342,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
     <button data-view="scheduler">📅 자동게시 설정</button>
     <button data-view="publish">🔗 게시 준비</button>
   </nav>
-  <div class="sideFoot"><b>v0.5.5 Prototype</b>토스 API 승인 전 샘플 데이터로 실제 제작 흐름을 점검하는 버전입니다. v0.4 검수 페이지는 그대로 유지됩니다.</div>
+  <div class="sideFoot"><b>v0.5.6 Prototype</b>토스 API 승인 전 샘플 데이터로 실제 제작 흐름을 점검하는 버전입니다. v0.4 검수 페이지는 그대로 유지됩니다.</div>
 </aside>
 
 <main class="main">
@@ -343,28 +386,30 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 </section>
 
 <section id="threads" class="view">
-  <div class="top"><div><span class="badge blue">Threads</span><h1>글 + 후킹 이미지 1~2장</h1><p>글이 메인이고 이미지는 스크롤을 멈추게 하는 역할. 너무 광고처럼 보이지 않게 구성합니다.</p></div><div class="btnrow"><button class="btn" onclick="cycleThread()">3안 다시 만들기</button><button class="btn primary" onclick="copyThread()">선택 본문 복사</button></div></div>
+  <div class="top"><div><span class="badge blue">Threads</span><h1>글 + 후킹 이미지 1~2장</h1><p>글이 메인이고 이미지는 스크롤을 멈추게 하는 역할. 너무 광고처럼 보이지 않게 구성합니다.</p></div><div class="btnrow"><button class="btn" onclick="cycleThread()">3안 다시 만들기</button><button class="btn" onclick="copyThread()">선택 본문 복사</button><button class="btn primary" onclick="openReservation('Threads')">📅 최종 검수 후 예약</button></div></div>
   <div class="panel"><div class="panelHead"><h2>본문 3안</h2><span class="badge" id="threadTypeBadge">-</span></div><div class="pad"><div class="copyTabs" id="threadTabs"></div></div></div>
   <div class="threadPreview">
     <div>
       <div class="panel"><div class="panelHead"><h2>후킹 이미지 3안</h2><span class="badge green">4:5</span></div><div class="pad imageGrid3" id="threadImages"></div></div>
     </div>
     <div>
-      <div class="panel"><div class="panelHead"><h2>Threads 최종 미리보기</h2><span class="badge">선택 이미지 + 본문</span></div><div class="pad"><div class="postCard"><div class="postHead"><div class="avatar">VP</div><div><div class="handle">viralpick</div><div class="ago">방금 전</div></div></div><div class="postText" id="threadFinalText"></div><div id="threadFinalImage"></div><div class="postActions">♡ 좋아요　◯ 답글　↗ 공유</div></div></div></div>
+      <div class="panel"><div class="panelHead"><h2>Threads 최종 미리보기</h2><span class="badge">선택 이미지 + 본문</span></div><div class="pad"><div class="postCard"><div class="postHead"><div class="avatar">VP</div><div><div class="handle">viralpick</div><div class="ago">방금 전</div></div></div><textarea class="postText threadFinalEditor" id="threadFinalText" oninput="onThreadFinalEdit()" aria-label="Threads 최종 게시글 편집" spellcheck="true"></textarea><div id="threadFinalImage"></div><div class="postActions">♡ 좋아요　◯ 답글　↗ 공유</div></div></div></div>
     </div>
   </div>
+  <div class="panel finalActions"><div class="pad"><div><b>최종 글을 확인하고 예약하세요</b><p>위 미리보기 본문을 직접 수정할 수 있습니다. 현재 선택한 본문·후킹 이미지가 예약 내용에 저장됩니다.</p></div><button class="btn primary" onclick="openReservation('Threads')">✓ 수정 완료 · 게시 예약하기</button></div></div>
 </section>
 
 <section id="instagram" class="view">
-  <div class="top"><div><span class="badge orange">Instagram Carousel</span><h1>5장 카드형 콘텐츠 만들기</h1><p>첫 장은 후킹, 2장은 문제, 3장은 상품, 4장은 장점, 5장은 CTA로 구성합니다.</p></div><div class="btnrow"><button class="btn" onclick="cycleCover()">표지 4안 재생성</button><button class="btn primary" onclick="toast('카드 5장 세트를 저장했습니다')">카드 세트 저장</button></div></div>
+  <div class="top"><div><span class="badge orange">Instagram Carousel</span><h1>5장 카드형 콘텐츠 만들기</h1><p>첫 장은 후킹, 2장은 문제, 3장은 상품, 4장은 장점, 5장은 CTA로 구성합니다.</p></div><div class="btnrow"><button class="btn" onclick="cycleCover()">표지 4안 재생성</button><button class="btn" onclick="toast('프로토타입에서는 카드 구성이 현재 선택 상태로 유지됩니다')">카드 세트 선택</button><button class="btn primary" onclick="openReservation('Instagram')">📅 최종 검수 후 예약</button></div></div>
   <div class="panel"><div class="panelHead"><h2>첫 장 표지 4안</h2><span class="badge green">1080 × 1350</span></div><div class="pad coverGrid" id="coverGrid"></div></div>
   <div class="twocol">
     <div class="panel"><div class="panelHead"><h2>5장 캐러셀</h2><span class="badge" id="cardIndexBadge">1 / 5</span></div><div class="pad"><div class="carousel"><div class="thumbRail" id="cardThumbs"></div><div><div class="instaCard" id="instaCard"></div><div class="dots">● ○ ○ ○ ○</div></div></div></div></div>
     <div>
-      <div class="panel"><div class="panelHead"><h2>Instagram 캡션</h2></div><div class="pad"><div class="copybox" id="instaCaption"></div><div class="btnrow" style="margin-top:10px"><button class="btn" onclick="copyCaption()">캡션 복사</button><button class="btn" onclick="toast('해시태그 세트를 바꿨습니다')">해시태그 변경</button></div></div></div>
+      <div class="panel"><div class="panelHead"><h2>Instagram 캡션</h2></div><div class="pad"><textarea class="copybox instaFinalEditor" id="instaCaption" oninput="onInstagramFinalEdit()" aria-label="Instagram 최종 캡션 편집" spellcheck="true"></textarea><div class="btnrow" style="margin-top:10px"><button class="btn" onclick="copyCaption()">캡션 복사</button><button class="btn" onclick="toast('해시태그 세트를 바꿨습니다')">해시태그 변경</button></div></div></div>
       <div class="panel"><div class="panelHead"><h2>출력 구성</h2></div><div class="pad statusline"><span class="status">표지 4안</span><span class="status">5장 카드</span><span class="status">캡션 3안 예정</span><span class="status">해시태그 2세트</span><span class="status">CTA 3안</span></div></div>
     </div>
   </div>
+  <div class="panel finalActions"><div class="pad"><div><b>5장 카드와 캡션을 확인하고 예약하세요</b><p>선택한 표지 1안, 카드 5장 구성, 직접 수정한 캡션이 예약 항목에 함께 기록됩니다.</p></div><button class="btn primary" onclick="openReservation('Instagram')">✓ 수정 완료 · 게시 예약하기</button></div></div>
 </section>
 
 <section id="analytics" class="view">
@@ -485,12 +530,14 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 
   <div class="panel"><div class="panelHead"><h2>예약 게시 큐</h2><span class="badge" id="queueCount">4개 예약</span></div><div class="pad">
     <div class="scheduleForm">
+      <label>예약 날짜<input id="scheduleDate" type="date" aria-label="예약 날짜"></label>
       <label>플랫폼<select id="schedulePlatform"><option>Threads</option><option>Instagram</option></select></label>
       <label>게시 시각<input id="scheduleTime" type="time" value="19:30"></label>
       <label>상품<select id="scheduleProduct"><option>디지털 레이저 수평계</option><option>무선 핸디 청소기</option><option>반려동물 발 세정컵</option></select></label>
       <button class="btn primary" onclick="addSchedule()">예약 추가</button>
     </div>
-    <div style="overflow:auto;margin-top:14px"><table class="queueTable"><thead><tr><th>순서</th><th>플랫폼</th><th>시간</th><th>상품</th><th>상태</th><th></th></tr></thead><tbody id="queueBody"></tbody></table></div>
+    <p class="queueHint">제작 화면에서 최종 검수 후 등록한 예약은 <b>검수완료 · 모의예약</b>으로 표시됩니다. 이 화면에서 추가한 일정은 아직 콘텐츠가 확정되지 않은 <b>초안</b>입니다. 실제 SNS 자동게시 및 서버 예약은 아직 연결되지 않았습니다.</p>
+    <div style="overflow:auto;margin-top:14px"><table class="queueTable"><thead><tr><th>순서</th><th>플랫폼</th><th>예약일</th><th>시간</th><th>상품</th><th>상태</th><th>작업</th></tr></thead><tbody id="queueBody"></tbody></table></div>
   </div></div>
 </section>
 
@@ -517,6 +564,22 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
   <button type="button" data-quick-view="analytics" onclick="show('analytics')"><span class="quickIcon">📊</span><span>성과 분석</span></button>
   <button type="button" id="quickMoreButton" onclick="openMobileMenu()" aria-label="전체 메뉴 열기"><span class="quickIcon">☰</span><span>전체 메뉴</span></button>
 </nav>
+<div class="reservationOverlay" id="reservationOverlay" hidden role="presentation" onclick="if(event.target===this)closeReservation()">
+ <section class="reservationDialog" role="dialog" aria-modal="true" aria-labelledby="reservationHeading">
+  <div class="reservationHeader"><div><span class="badge blue">최종 검수 후 예약</span><h2 id="reservationHeading">게시 예약</h2><p>게시할 내용을 확정하고 한국시간(KST) 기준 날짜와 시간을 선택하세요.</p></div><button type="button" class="reservationClose" aria-label="닫기" onclick="closeReservation()">✕</button></div>
+  <div class="reservationBody">
+    <div class="reservationSummary"><span class="badge" id="reservePlatform">플랫폼</span><b id="reserveProduct">상품</b><p id="reserveSelection">현재 선택한 콘텐츠</p></div>
+    <label class="reserveLabel">최종 게시글 내용<textarea id="reserveText" rows="5" readonly aria-label="예약할 게시글 내용"></textarea></label>
+    <div class="reserveFields"><label class="reserveLabel">예약 날짜<input type="date" id="reserveDate" required></label><label class="reserveLabel">예약 시간<input type="time" id="reserveTime" required></label></div>
+    <label class="reserveApproval"><input type="checkbox" id="reserveApproved" onchange="updateReservationButton()"><span>본문·이미지/카드·제휴 고지를 최종 검수했고, 이 내용으로 예약하는 데 동의합니다.</span></label>
+    <div class="reserveWarning" id="reserveWarning" aria-live="polite">※ 현재는 실제 SNS 게시가 아닌 브라우저에 저장되는 모의 예약입니다.</div>
+  </div>
+  <div class="reservationFooter"><button type="button" class="btn" onclick="closeReservation()">취소</button><button type="button" class="btn primary" id="confirmReserveBtn" onclick="confirmReservation()" disabled>예약 큐에 등록</button></div>
+ </section>
+</div>
+<div class="reservationOverlay" id="queueDetailOverlay" hidden role="presentation" onclick="if(event.target===this)closeQueueDetail()">
+ <section class="reservationDialog" role="dialog" aria-modal="true" aria-labelledby="queueDetailHeading"><div class="reservationHeader"><div><span class="badge green">예약된 콘텐츠</span><h2 id="queueDetailHeading">예약 상세보기</h2><p id="queueDetailMeta"></p></div><button class="reservationClose" type="button" onclick="closeQueueDetail()" aria-label="닫기">✕</button></div><div class="reservationBody"><div class="reservationSummary" id="queueDetailSnapshot"></div><textarea id="queueDetailText" rows="8" readonly aria-label="예약된 게시글 본문"></textarea><p class="queueHint">실제 게시가 아닌 저장된 모의 예약입니다.</p></div><div class="reservationFooter"><button class="btn primary" type="button" onclick="closeQueueDetail()">닫기</button></div></section>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
