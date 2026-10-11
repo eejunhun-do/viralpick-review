@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ViralPick v0.5.1 Prototype</title>
+<title>ViralPick v0.5.2 Prototype</title>
 <style>
 :root{
   --bg:#f5f6f8;--panel:#fff;--ink:#15171b;--muted:#727985;--line:#e6e8ec;
@@ -69,15 +69,33 @@ button,input,select,textarea{font:inherit}
 .carousel{display:grid;grid-template-columns:110px 1fr;gap:13px}.thumbRail{display:grid;gap:8px}.cardThumb{aspect-ratio:4/5;border-radius:12px;border:1px solid var(--line);background:#fff;padding:8px;font-size:9px;cursor:pointer;display:flex;align-items:flex-end;font-weight:850}.cardThumb.active{outline:2px solid #111318}.instaCard{max-width:500px;aspect-ratio:4/5;border-radius:22px;overflow:hidden;margin:auto;position:relative;border:1px solid var(--line);box-shadow:var(--shadow);background:#fff}
 .instaCard .bg{position:absolute;inset:0}.instaCard .content{position:absolute;inset:0;padding:34px;display:flex;flex-direction:column;justify-content:space-between}.instaCard .num{font-size:10px;font-weight:900;color:#6f7782}.instaCard h3{font-size:34px;line-height:1.12;letter-spacing:-1.4px;margin:14px 0}.instaCard p{font-size:14px;line-height:1.6;color:#59616c}.instaCard .productBox{height:47%;border-radius:24px;background:rgba(255,255,255,.65);border:1px solid rgba(255,255,255,.9);display:grid;place-items:center;text-align:center;font-weight:950;color:#6b7480}.instaCard .cta{background:#111318;color:#fff;border-radius:15px;padding:14px 16px;font-weight:900;font-size:13px}.dots{text-align:center;margin-top:10px;color:#8b929c;font-size:12px}
 .statusline{display:flex;gap:8px;flex-wrap:wrap}.status{padding:9px 10px;border-radius:11px;background:#f3f5f7;font-size:10px;font-weight:850;color:#5f6772}
-.blogTitleGrid{display:grid;gap:8px}.blogTitle{border:1px solid var(--line);border-radius:13px;padding:12px 14px;background:#fff;cursor:pointer;font-size:12px;font-weight:850;line-height:1.5}.blogTitle.active{border-color:#111318;background:#f7f7f8}.keywordWrap{display:flex;gap:6px;flex-wrap:wrap}.keyword{padding:7px 9px;border-radius:999px;background:#eef2f6;color:#56606b;font-size:10px;font-weight:850}.blogPreview{background:#fff;border:1px solid var(--line);border-radius:18px;padding:26px;max-width:760px;margin:auto}.blogPreview h1{font-size:27px;line-height:1.3;letter-spacing:-1px;margin:8px 0 16px}.blogPreview h2{font-size:19px;margin:28px 0 10px}.blogPreview p{font-size:14px;line-height:1.9;color:#454d57}.blogHero{aspect-ratio:16/9;border-radius:18px;background:linear-gradient(145deg,#e9eef4,#d5dee8);display:grid;place-items:center;text-align:center;font-size:13px;font-weight:900;color:#5e6874;margin:16px 0}.blogImage{aspect-ratio:16/9;border-radius:16px;background:#f3f4f6;border:1px solid var(--line);display:grid;place-items:center;text-align:center;color:#707986;font-size:11px;font-weight:850;margin:16px 0}.proscons{display:grid;grid-template-columns:1fr 1fr;gap:10px}.pc{border:1px solid var(--line);border-radius:14px;padding:14px}.pc b{font-size:12px}.pc div{font-size:11px;color:#626b76;line-height:1.7;margin-top:7px}.blogTools{display:grid;gap:10px}.toast{position:fixed;right:22px;bottom:22px;background:#111318;color:#fff;padding:12px 15px;border-radius:12px;font-size:11px;opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s;z-index:20}.toast.show{opacity:1;transform:none}
-@media(max-width:1100px){.app{grid-template-columns:1fr}.side{height:auto;position:relative}.sideFoot{position:static;margin-top:14px}.nav{display:flex;overflow:auto}.nav button{min-width:max-content}.main{padding:18px}.grid4,.grid5,.products,.twocol,.threadPreview{grid-template-columns:1fr}.coverGrid{grid-template-columns:repeat(2,1fr)}.imageGrid3{grid-template-columns:1fr}.scoreGrid{grid-template-columns:repeat(2,1fr)}}
+.blogTitleGrid{display:grid;gap:8px}.blogTitle{border:1px solid var(--line);border-radius:13px;padding:12px 14px;background:#fff;cursor:pointer;font-size:12px;font-weight:850;line-height:1.5}.blogTitle.active{border-color:#111318;background:#f7f7f8}.keywordWrap{display:flex;gap:6px;flex-wrap:wrap}.keyword{padding:7px 9px;border-radius:999px;background:#eef2f6;color:#56606b;font-size:10px;font-weight:850}.blogPreview{background:#fff;border:1px solid var(--line);border-radius:18px;padding:26px;max-width:760px;margin:auto}.blogPreview h1{font-size:27px;line-height:1.3;letter-spacing:-1px;margin:8px 0 16px}.blogPreview h2{font-size:19px;margin:28px 0 10px}.blogPreview p{font-size:14px;line-height:1.9;color:#454d57}.blogHero{aspect-ratio:16/9;border-radius:18px;background:linear-gradient(145deg,#e9eef4,#d5dee8);display:grid;place-items:center;text-align:center;font-size:13px;font-weight:900;color:#5e6874;margin:16px 0}.blogImage{aspect-ratio:16/9;border-radius:16px;background:#f3f4f6;border:1px solid var(--line);display:grid;place-items:center;text-align:center;color:#707986;font-size:11px;font-weight:850;margin:16px 0}.proscons{display:grid;grid-template-columns:1fr 1fr;gap:10px}.pc{border:1px solid var(--line);border-radius:14px;padding:14px}.pc b{font-size:12px}.pc div{font-size:11px;color:#626b76;line-height:1.7;margin-top:7px}.blogTools{display:grid;gap:10px}
+.postModeGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.modeCard{border:1px solid var(--line);border-radius:15px;padding:14px;background:#fff;cursor:pointer}
+.modeCard.active{border-color:#111318;background:#f7f7f8;box-shadow:0 6px 18px rgba(17,19,24,.05)}
+.modeCard b{display:block;font-size:13px;margin-bottom:5px}.modeCard span{font-size:10px;color:#737b86;line-height:1.55}
+.settingGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.platformSet{border:1px solid var(--line);border-radius:16px;padding:16px;background:#fff}
+.platformSet h3{margin:0 0 4px;font-size:16px}.platformSet .hint{font-size:10px;color:#7d8590;margin-bottom:14px}
+.settingRow{display:grid;grid-template-columns:1fr 130px;gap:12px;align-items:center;padding:10px 0;border-top:1px solid #f0f1f3}
+.settingRow:first-of-type{border-top:0}.settingRow label{font-size:11px;font-weight:850}.settingRow small{display:block;font-size:9px;color:#8a929c;margin-top:3px;line-height:1.45}
+.numberInput{display:flex;align-items:center;gap:6px}.numberInput input{width:76px;border:1px solid var(--line);border-radius:9px;padding:8px;text-align:center;font-weight:900}.numberInput span{font-size:10px;color:#7b838e}
+.toggleLine{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-top:1px solid #f0f1f3}.toggleLine:first-child{border-top:0}
+.toggleText b{font-size:11px}.toggleText span{display:block;font-size:9px;color:#838b96;margin-top:3px;line-height:1.45}
+.switch{position:relative;width:42px;height:24px;flex:0 0 auto}.switch input{display:none}.switch i{position:absolute;inset:0;background:#dfe3e8;border-radius:999px;cursor:pointer;transition:.2s}.switch i:after{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.18);transition:.2s}.switch input:checked+i{background:#111318}.switch input:checked+i:after{transform:translateX(18px)}
+.recoGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.reco{border:1px solid var(--line);border-radius:15px;padding:14px}.reco .delta{font-size:23px;font-weight:950;margin:5px 0}.reco p{font-size:10px;color:#717985;line-height:1.55;margin:0}.reco.good{background:#eef9f4}.reco.warn{background:#fff8e8}
+.queueTable{width:100%;border-collapse:collapse}.queueTable th,.queueTable td{text-align:left;padding:11px 9px;border-bottom:1px solid var(--line);font-size:10px}.queueTable th{color:#7c8490;font-weight:900}.queueTable td b{font-size:11px}.qstatus{display:inline-flex;padding:5px 7px;border-radius:999px;font-size:9px;font-weight:900;background:#eef1f4}.qstatus.wait{background:#fff4e6;color:#d9480f}.qstatus.ready{background:#e9f8f2;color:#087f5b}
+.scheduleForm{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end}.scheduleForm input,.scheduleForm select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}.scheduleForm label{font-size:9px;color:#7c8490;font-weight:900;display:grid;gap:5px}
+.limitNotice{border:1px solid #ffd8a8;background:#fff9db;color:#8a5d00;border-radius:13px;padding:12px;font-size:10px;line-height:1.55}
+.toast{position:fixed;right:22px;bottom:22px;background:#111318;color:#fff;padding:12px 15px;border-radius:12px;font-size:11px;opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s;z-index:20}.toast.show{opacity:1;transform:none}
+@media(max-width:1100px){.app{grid-template-columns:1fr}.side{height:auto;position:relative}.sideFoot{position:static;margin-top:14px}.nav{display:flex;overflow:auto}.nav button{min-width:max-content}.main{padding:18px}.grid4,.grid5,.products,.twocol,.threadPreview,.settingGrid,.recoGrid,.postModeGrid{grid-template-columns:1fr}.coverGrid{grid-template-columns:repeat(2,1fr)}.imageGrid3{grid-template-columns:1fr}.scoreGrid{grid-template-columns:repeat(2,1fr)}.scheduleForm{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="app">
 <aside class="side">
   <div class="brand">ViralPick</div>
-  <div class="ver">v0.5.1 · Threads + Instagram + Blog</div>
+  <div class="ver">v0.5.2 · Threads + Instagram + Blog + Scheduler</div>
   <nav class="nav">
     <button data-view="dashboard" class="active">🏠 대시보드</button>
     <button data-view="discover">🔥 상품 발굴</button>
@@ -85,9 +103,10 @@ button,input,select,textarea{font:inherit}
     <button data-view="threads">💬 Threads 제작</button>
     <button data-view="instagram">▦ Instagram 카드</button>
     <button data-view="blog">📝 Blog 제작</button>
+    <button data-view="scheduler">📅 자동게시 설정</button>
     <button data-view="publish">🔗 게시 준비</button>
   </nav>
-  <div class="sideFoot"><b>v0.5.1 Prototype</b>토스 API 승인 전 샘플 데이터로 실제 제작 흐름을 점검하는 버전입니다. v0.4 검수 페이지는 그대로 유지됩니다.</div>
+  <div class="sideFoot"><b>v0.5.2 Prototype</b>토스 API 승인 전 샘플 데이터로 실제 제작 흐름을 점검하는 버전입니다. v0.4 검수 페이지는 그대로 유지됩니다.</div>
 </aside>
 
 <main class="main">
@@ -177,6 +196,62 @@ button,input,select,textarea{font:inherit}
   <div class="panel"><div class="panelHead"><h2>네이버 블로그 미리보기</h2><span class="badge green">이미지 3~5장 + 본문</span></div><div class="pad"><article class="blogPreview" id="blogPreview"></article></div></div>
 </section>
 
+<section id="scheduler" class="view">
+  <div class="top"><div><span class="badge blue">Posting Scheduler</span><h1>자동게시 · 예약게시 운영 설정</h1><p>플랫폼별 게시량과 간격을 제한하고, 상품 상태가 바뀌면 자동으로 게시를 멈추도록 설정합니다.</p></div><div class="btnrow"><button class="btn" onclick="resetPostingDefaults()">기본값 복원</button><button class="btn primary" onclick="savePostingSettings()">설정 저장</button></div></div>
+
+  <div class="panel"><div class="panelHead"><h2>게시 방식</h2><span class="badge green" id="modeBadge">검수 후 자동</span></div><div class="pad">
+    <div class="postModeGrid" id="postModeGrid">
+      <div class="modeCard" data-mode="manual" onclick="setPostMode('manual')"><b>① 수동 게시</b><span>콘텐츠만 만들고 사용자가 직접 플랫폼에서 게시합니다.</span></div>
+      <div class="modeCard active" data-mode="review" onclick="setPostMode('review')"><b>② 검수 후 자동</b><span>사용자가 승인한 콘텐츠만 지정 시간에 자동 게시합니다.</span></div>
+      <div class="modeCard" data-mode="auto" onclick="setPostMode('auto')"><b>③ 완전 자동</b><span>상품 선정부터 생성·검사·게시까지 조건 충족 시 자동 진행합니다.</span></div>
+    </div>
+    <div class="limitNotice" style="margin-top:12px">프로토타입에서는 실제 SNS 게시를 실행하지 않습니다. Meta 계정 연결과 API 권한이 준비되면 Threads·Instagram 게시 기능을 서버에서 실행하는 구조입니다.</div>
+  </div></div>
+
+  <div class="settingGrid">
+    <div class="panel"><div class="panelHead"><h2>Threads 게시 기준</h2><span class="badge blue">기본 하루 4개</span></div><div class="pad platformSet" style="border:0;padding:0">
+      <h3>Threads</h3><div class="hint">대화형 콘텐츠 중심 · 게시 간격을 두고 반복 문구를 방지</div>
+      <div class="settingRow"><div><label>하루 목표 게시량</label><small>성과가 안정적이면 자동 속도조절에서 증감 추천</small></div><div class="numberInput"><input id="thTarget" type="number" min="1" max="8" value="4" onchange="syncPostingSettings()"><span>개/일</span></div></div>
+      <div class="settingRow"><div><label>하루 최대 게시량</label><small>프로그램 내부 안전 상한</small></div><div class="numberInput"><input id="thMax" type="number" min="1" max="12" value="6" onchange="syncPostingSettings()"><span>개/일</span></div></div>
+      <div class="settingRow"><div><label>최소 게시 간격</label><small>짧은 시간에 연속 게시되는 것을 방지</small></div><div class="numberInput"><input id="thGap" type="number" min="1" max="12" step="0.5" value="2.5" onchange="syncPostingSettings()"><span>시간</span></div></div>
+      <div class="settingRow"><div><label>동일 상품 재게시 제한</label><small>같은 상품의 반복 노출 최소화</small></div><div class="numberInput"><input id="thCooldown" type="number" min="1" max="60" value="7" onchange="syncPostingSettings()"><span>일</span></div></div>
+    </div></div>
+
+    <div class="panel"><div class="panelHead"><h2>Instagram 게시 기준</h2><span class="badge orange">기본 하루 1개</span></div><div class="pad platformSet" style="border:0;padding:0">
+      <h3>Instagram 카드</h3><div class="hint">5장 캐러셀 중심 · 저장/공유형 콘텐츠 품질 우선</div>
+      <div class="settingRow"><div><label>하루 목표 게시량</label><small>기본 1개, 데이터 축적 후 조절</small></div><div class="numberInput"><input id="igTarget" type="number" min="1" max="2" value="1" onchange="syncPostingSettings()"><span>개/일</span></div></div>
+      <div class="settingRow"><div><label>하루 최대 게시량</label><small>2개 게시 시 서로 다른 상품 권장</small></div><div class="numberInput"><input id="igMax" type="number" min="1" max="3" value="2" onchange="syncPostingSettings()"><span>개/일</span></div></div>
+      <div class="settingRow"><div><label>2개 게시 시 최소 간격</label><small>동일 시간대 게시 집중 방지</small></div><div class="numberInput"><input id="igGap" type="number" min="2" max="12" step="0.5" value="6" onchange="syncPostingSettings()"><span>시간</span></div></div>
+      <div class="settingRow"><div><label>동일 상품 재게시 제한</label><small>카드 디자인만 바꾼 반복 게시도 제한</small></div><div class="numberInput"><input id="igCooldown" type="number" min="1" max="90" value="14" onchange="syncPostingSettings()"><span>일</span></div></div>
+    </div></div>
+  </div>
+
+  <div class="twocol">
+    <div class="panel"><div class="panelHead"><h2>게시 전 자동 안전검사</h2><span class="badge green">권장 ON</span></div><div class="pad">
+      <div class="toggleLine"><div class="toggleText"><b>게시 직전 가격 재확인</b><span>예약 당시 가격과 달라지면 자동 수정 또는 중지</span></div><label class="switch"><input id="checkPrice" type="checkbox" checked onchange="syncPostingSettings()"><i></i></label></div>
+      <div class="toggleLine"><div class="toggleText"><b>품절·판매중지 자동 중지</b><span>상품 판매 상태가 유효하지 않으면 게시 보류</span></div><label class="switch"><input id="checkStock" type="checkbox" checked onchange="syncPostingSettings()"><i></i></label></div>
+      <div class="toggleLine"><div class="toggleText"><b>제휴 고지 자동 검사</b><span>필수 고지 문구가 빠지면 게시하지 않음</span></div><label class="switch"><input id="checkDisclosure" type="checkbox" checked onchange="syncPostingSettings()"><i></i></label></div>
+      <div class="toggleLine"><div class="toggleText"><b>최근 문구·이미지 중복 검사</b><span>유사 후킹·동일 템플릿 반복을 감지</span></div><label class="switch"><input id="checkDuplicate" type="checkbox" checked onchange="syncPostingSettings()"><i></i></label></div>
+      <div class="toggleLine"><div class="toggleText"><b>자동 속도 조절 추천</b><span>최근 7일 게시당 성과를 보고 게시량 변경을 제안</span></div><label class="switch"><input id="autoTune" type="checkbox" checked onchange="syncPostingSettings()"><i></i></label></div>
+    </div></div>
+
+    <div class="panel"><div class="panelHead"><h2>최근 7일 성과 기반 추천</h2><button class="btn" onclick="simulatePerformance()">성과 시뮬레이션</button></div><div class="pad recoGrid">
+      <div class="reco good"><span class="badge blue">Threads</span><div class="delta" id="thRecoDelta">4 → 5</div><p id="thRecoText">게시당 조회와 답글이 상승 중. 하루 5개를 7일간 테스트해볼 만합니다.</p><button class="btn blue" style="margin-top:10px" onclick="applyThreadRecommendation()">추천 적용</button></div>
+      <div class="reco warn"><span class="badge orange">Instagram</span><div class="delta" id="igRecoDelta">1 → 1</div><p id="igRecoText">현재 저장률과 도달이 안정적. 게시량을 늘리기보다 하루 1개 품질을 유지합니다.</p><button class="btn" style="margin-top:10px" onclick="applyInstagramRecommendation()">현재 유지</button></div>
+    </div></div>
+  </div>
+
+  <div class="panel"><div class="panelHead"><h2>예약 게시 큐</h2><span class="badge" id="queueCount">4개 예약</span></div><div class="pad">
+    <div class="scheduleForm">
+      <label>플랫폼<select id="schedulePlatform"><option>Threads</option><option>Instagram</option></select></label>
+      <label>게시 시각<input id="scheduleTime" type="time" value="19:30"></label>
+      <label>상품<select id="scheduleProduct"><option>디지털 레이저 수평계</option><option>무선 핸디 청소기</option><option>반려동물 발 세정컵</option></select></label>
+      <button class="btn primary" onclick="addSchedule()">예약 추가</button>
+    </div>
+    <div style="overflow:auto;margin-top:14px"><table class="queueTable"><thead><tr><th>순서</th><th>플랫폼</th><th>시간</th><th>상품</th><th>상태</th><th></th></tr></thead><tbody id="queueBody"></tbody></table></div>
+  </div></div>
+</section>
+
 <section id="publish" class="view">
   <div class="top"><div><span class="badge green">게시 준비</span><h1>최종 패키지 확인</h1><p>같은 상품을 플랫폼별 문법에 맞게 다르게 포장하고, 게시 전 최신 상품 정보와 제휴 고지를 확인합니다.</p></div><button class="btn primary" onclick="toast('프로토타입에서는 실제 게시를 하지 않습니다')">게시 준비 완료</button></div>
   <div class="grid5">
@@ -202,6 +277,19 @@ const products=[
  {id:3,name:'반려동물 발 세정컵',price:12900,old:19900,discount:35,viral:84,thread:86,insta:93,blog:86,ad:18,type:'생활개선형',reason:'산책 후 발 닦기라는 반복 불편이 공감대를 만들고 반려동물 카테고리는 이미지 친화도가 높음.',problem:'산책하고 들어올 때마다 발 하나씩 닦는 게 생각보다 오래 걸리는데',novel:'컵 안쪽 실리콘이 발 주변을 한 번에 씻어주는 구조임',audience:'반려견 보호자',visual:'산책 후 흙 묻은 강아지 발'}
 ];
 let selected=products[0], threadCopyIndex=0, threadImageIndex=0, coverIndex=0, instaCardIndex=0, threadSeed=0, coverSeed=0, blogTitleIndex=0, blogSeed=0;
+let postingSettings={
+ mode:'review',
+ threads:{target:4,max:6,gap:2.5,cooldown:7},
+ instagram:{target:1,max:2,gap:6,cooldown:14},
+ checks:{price:true,stock:true,disclosure:true,duplicate:true,autoTune:true}
+};
+let scheduleQueue=[
+ {platform:'Threads',time:'09:30',product:'디지털 레이저 수평계',status:'예약'},
+ {platform:'Instagram',time:'12:00',product:'무선 핸디 청소기',status:'검수완료'},
+ {platform:'Threads',time:'16:30',product:'반려동물 발 세정컵',status:'예약'},
+ {platform:'Threads',time:'20:30',product:'무선 핸디 청소기',status:'예약'}
+];
+let perfScenario=0;
 const $=q=>document.querySelector(q), $$=q=>[...document.querySelectorAll(q)];
 const fmt=n=>Number(n).toLocaleString('ko-KR')+'원';
 
@@ -353,12 +441,92 @@ function renderBlog(){
 function cycleBlogTitles(){blogSeed++;blogTitleIndex=0;renderBlog();toast('블로그 제목 5안을 새로 만들었습니다')}
 async function copyBlog(){try{await navigator.clipboard.writeText(blogBody(selected).text);toast('블로그 본문을 복사했습니다')}catch(e){toast('브라우저 복사 권한을 확인해주세요')}}
 
+
+function clampNum(v,min,max,fallback){const n=Number(v);return Number.isFinite(n)?Math.min(max,Math.max(min,n)):fallback}
+function setPostMode(mode){postingSettings.mode=mode;renderPostingSettings();syncPostingSettings()}
+function syncPostingSettings(){
+ if($('#thTarget')) postingSettings.threads.target=clampNum($('#thTarget').value,1,8,4);
+ if($('#thMax')) postingSettings.threads.max=clampNum($('#thMax').value,1,12,6);
+ if($('#thGap')) postingSettings.threads.gap=clampNum($('#thGap').value,1,12,2.5);
+ if($('#thCooldown')) postingSettings.threads.cooldown=clampNum($('#thCooldown').value,1,60,7);
+ if($('#igTarget')) postingSettings.instagram.target=clampNum($('#igTarget').value,1,2,1);
+ if($('#igMax')) postingSettings.instagram.max=clampNum($('#igMax').value,1,3,2);
+ if($('#igGap')) postingSettings.instagram.gap=clampNum($('#igGap').value,2,12,6);
+ if($('#igCooldown')) postingSettings.instagram.cooldown=clampNum($('#igCooldown').value,1,90,14);
+ if($('#checkPrice')) postingSettings.checks.price=$('#checkPrice').checked;
+ if($('#checkStock')) postingSettings.checks.stock=$('#checkStock').checked;
+ if($('#checkDisclosure')) postingSettings.checks.disclosure=$('#checkDisclosure').checked;
+ if($('#checkDuplicate')) postingSettings.checks.duplicate=$('#checkDuplicate').checked;
+ if($('#autoTune')) postingSettings.checks.autoTune=$('#autoTune').checked;
+ if(postingSettings.threads.target>postingSettings.threads.max) postingSettings.threads.target=postingSettings.threads.max;
+ if(postingSettings.instagram.target>postingSettings.instagram.max) postingSettings.instagram.target=postingSettings.instagram.max;
+}
+function renderPostingSettings(){
+ if(!$('#postModeGrid')) return;
+ $('.modeCard').forEach(x=>x.classList.toggle('active',x.dataset.mode===postingSettings.mode));
+ const names={manual:'수동 게시',review:'검수 후 자동',auto:'완전 자동'}; $('#modeBadge').textContent=names[postingSettings.mode];
+ $('#thTarget').value=postingSettings.threads.target;$('#thMax').value=postingSettings.threads.max;$('#thGap').value=postingSettings.threads.gap;$('#thCooldown').value=postingSettings.threads.cooldown;
+ $('#igTarget').value=postingSettings.instagram.target;$('#igMax').value=postingSettings.instagram.max;$('#igGap').value=postingSettings.instagram.gap;$('#igCooldown').value=postingSettings.instagram.cooldown;
+ $('#checkPrice').checked=postingSettings.checks.price;$('#checkStock').checked=postingSettings.checks.stock;$('#checkDisclosure').checked=postingSettings.checks.disclosure;$('#checkDuplicate').checked=postingSettings.checks.duplicate;$('#autoTune').checked=postingSettings.checks.autoTune;
+ renderQueue();
+}
+function savePostingSettings(){
+ syncPostingSettings();
+ try{localStorage.setItem('viralpickPostingSettings',JSON.stringify(postingSettings));localStorage.setItem('viralpickScheduleQueue',JSON.stringify(scheduleQueue));}catch(e){}
+ toast('자동게시 설정을 저장했습니다');
+ renderPostingSettings();
+}
+function loadPostingSettings(){
+ try{
+   const s=localStorage.getItem('viralpickPostingSettings'); if(s) postingSettings={...postingSettings,...JSON.parse(s)};
+   const q=localStorage.getItem('viralpickScheduleQueue'); if(q) scheduleQueue=JSON.parse(q);
+ }catch(e){}
+}
+function resetPostingDefaults(){
+ postingSettings={mode:'review',threads:{target:4,max:6,gap:2.5,cooldown:7},instagram:{target:1,max:2,gap:6,cooldown:14},checks:{price:true,stock:true,disclosure:true,duplicate:true,autoTune:true}};
+ renderPostingSettings();toast('권장 기본값으로 복원했습니다');
+}
+function simulatePerformance(){
+ perfScenario=(perfScenario+1)%3;
+ const scenarios=[
+  {td:'4 → 5',tt:'게시당 조회 +24%, 답글 +17%. 하루 5개를 7일간 시험할 만합니다.',id:'1 → 1',it:'저장률과 도달이 안정적. 하루 1개를 유지하는 편이 좋습니다.'},
+  {td:'4 → 3',tt:'게시당 조회 -31%, 답글 -22%. 하루 3개로 줄여 콘텐츠 간 경쟁을 낮추는 편이 좋습니다.',id:'1 → 1',it:'Instagram은 현재 빈도보다 카드 완성도 개선이 우선입니다.'},
+  {td:'4 → 4',tt:'최근 성과 변동이 작아 현재 하루 4개를 유지합니다.',id:'1 → 2 테스트',it:'저장률 +36%, 프로필 방문 +28%. 주 2일만 하루 2개 테스트를 제안합니다.'}
+ ][perfScenario];
+ $('#thRecoDelta').textContent=scenarios.td;$('#thRecoText').textContent=scenarios.tt;$('#igRecoDelta').textContent=scenarios.id;$('#igRecoText').textContent=scenarios.it;
+ toast('최근 7일 성과 시나리오를 바꿨습니다');
+}
+function applyThreadRecommendation(){
+ const txt=$('#thRecoDelta').textContent;
+ if(txt.includes('→ 5')) postingSettings.threads.target=5;
+ else if(txt.includes('→ 3')) postingSettings.threads.target=3;
+ else postingSettings.threads.target=4;
+ renderPostingSettings();toast('Threads 권장 게시량을 적용했습니다');
+}
+function applyInstagramRecommendation(){
+ const txt=$('#igRecoDelta').textContent;
+ postingSettings.instagram.target=txt.includes('2 테스트')?2:1;
+ renderPostingSettings();toast('Instagram 권장 게시량을 적용했습니다');
+}
+function renderQueue(){
+ if(!$('#queueBody')) return;
+ $('#queueBody').innerHTML=scheduleQueue.map((q,i)=>`<tr><td>${i+1}</td><td><b>${q.platform}</b></td><td>${q.time}</td><td>${q.product}</td><td><span class="qstatus ${q.status==='검수완료'?'ready':'wait'}">${q.status}</span></td><td><button class="btn" style="padding:6px 8px" onclick="removeSchedule(${i})">삭제</button></td></tr>`).join('');
+ $('#queueCount').textContent=scheduleQueue.length+'개 예약';
+}
+function addSchedule(){
+ const platform=$('#schedulePlatform').value,time=$('#scheduleTime').value,product=$('#scheduleProduct').value;
+ if(!time){toast('게시 시각을 선택해주세요');return}
+ scheduleQueue.push({platform,time,product,status:postingSettings.mode==='manual'?'수동':'예약'});
+ scheduleQueue.sort((a,b)=>a.time.localeCompare(b.time));renderQueue();toast(platform+' 예약을 추가했습니다');
+}
+function removeSchedule(i){scheduleQueue.splice(i,1);renderQueue();toast('예약을 삭제했습니다')}
+
 function generateAll(){renderThreads();renderInstagram();renderBlog();toast('Threads + Instagram + Blog 패키지를 생성했습니다');show('threads')}
-function show(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===id));history.replaceState(null,'',`?view=${id}`)}
+function show(id){$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===id));if(id==='scheduler')renderPostingSettings();history.replaceState(null,'',`?view=${id}`)}
 $$('.nav button').forEach(b=>b.onclick=()=>show(b.dataset.view));
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
-renderProductLists();renderLab();renderThreads();renderInstagram();renderBlog();$('#pubProduct').textContent=selected.name;
-const q=new URLSearchParams(location.search).get('view');if(['dashboard','discover','lab','threads','instagram','blog','publish'].includes(q))show(q);
+loadPostingSettings();renderProductLists();renderLab();renderThreads();renderInstagram();renderBlog();renderPostingSettings();$('#pubProduct').textContent=selected.name;
+const q=new URLSearchParams(location.search).get('view');if(['dashboard','discover','lab','threads','instagram','blog','scheduler','publish'].includes(q))show(q);
 </script>
 </body>
 </html>
