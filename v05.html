@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ViralPick v0.5 Prototype</title>
+<title>ViralPick v0.5.1 Prototype</title>
 <style>
 :root{
   --bg:#f5f6f8;--panel:#fff;--ink:#15171b;--muted:#727985;--line:#e6e8ec;
@@ -33,7 +33,7 @@ button,input,select,textarea{font:inherit}
 .panelHead{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 17px;border-bottom:1px solid var(--line)}
 .panelHead h2{margin:0;font-size:16px}
 .pad{padding:17px}
-.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
 .metric{padding:17px}.metric .k{font-size:10px;color:var(--muted)}.metric .v{font-size:26px;font-weight:950;margin-top:6px}.metric .s{font-size:10px;color:#8d949e;margin-top:4px}
 .btn{border:1px solid var(--line);background:#fff;padding:10px 13px;border-radius:11px;font-weight:850;cursor:pointer}
 .btn:hover{transform:translateY(-1px)}.btn.primary{background:#111318;color:#fff;border-color:#111318}.btn.green{background:#e9f8f2;color:#087f5b;border-color:#c7eadf}.btn.blue{background:#edf2ff;color:#364fc7;border-color:#d9e2ff}
@@ -50,7 +50,7 @@ button,input,select,textarea{font:inherit}
 .score{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;margin-top:10px}.bar{height:7px;background:#eef0f3;border-radius:999px;overflow:hidden}.bar i{display:block;height:100%;background:#15171b;border-radius:999px}
 .twocol{display:grid;grid-template-columns:1.05fr .95fr;gap:15px}
 .detail{display:flex;gap:16px;align-items:center}.heroImg{width:112px;height:112px;border-radius:19px;flex:0 0 auto;font-size:11px}.detail h3{font-size:23px;margin:6px 0}.detail p{font-size:11px;color:#6e7681;line-height:1.55;margin:7px 0 0}
-.scoreGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}.mini{border:1px solid var(--line);border-radius:12px;padding:10px}.mini b{display:block;font-size:17px}.mini span{font-size:9px;color:#7f8792}
+.scoreGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:14px}.mini{border:1px solid var(--line);border-radius:12px;padding:10px}.mini b{display:block;font-size:17px}.mini span{font-size:9px;color:#7f8792}
 .aiNote{background:#f7f8fa;border:1px solid var(--line);border-radius:14px;padding:14px;font-size:11px;line-height:1.65;color:#59616c}
 .field{display:grid;gap:6px;margin-bottom:12px}.field label{font-size:10px;color:#707885;font-weight:850}.field select,.field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}.field textarea{min-height:92px;resize:vertical}
 .sliderline{display:flex;align-items:center;gap:10px}.sliderline input{flex:1}
@@ -69,29 +69,30 @@ button,input,select,textarea{font:inherit}
 .carousel{display:grid;grid-template-columns:110px 1fr;gap:13px}.thumbRail{display:grid;gap:8px}.cardThumb{aspect-ratio:4/5;border-radius:12px;border:1px solid var(--line);background:#fff;padding:8px;font-size:9px;cursor:pointer;display:flex;align-items:flex-end;font-weight:850}.cardThumb.active{outline:2px solid #111318}.instaCard{max-width:500px;aspect-ratio:4/5;border-radius:22px;overflow:hidden;margin:auto;position:relative;border:1px solid var(--line);box-shadow:var(--shadow);background:#fff}
 .instaCard .bg{position:absolute;inset:0}.instaCard .content{position:absolute;inset:0;padding:34px;display:flex;flex-direction:column;justify-content:space-between}.instaCard .num{font-size:10px;font-weight:900;color:#6f7782}.instaCard h3{font-size:34px;line-height:1.12;letter-spacing:-1.4px;margin:14px 0}.instaCard p{font-size:14px;line-height:1.6;color:#59616c}.instaCard .productBox{height:47%;border-radius:24px;background:rgba(255,255,255,.65);border:1px solid rgba(255,255,255,.9);display:grid;place-items:center;text-align:center;font-weight:950;color:#6b7480}.instaCard .cta{background:#111318;color:#fff;border-radius:15px;padding:14px 16px;font-weight:900;font-size:13px}.dots{text-align:center;margin-top:10px;color:#8b929c;font-size:12px}
 .statusline{display:flex;gap:8px;flex-wrap:wrap}.status{padding:9px 10px;border-radius:11px;background:#f3f5f7;font-size:10px;font-weight:850;color:#5f6772}
-.toast{position:fixed;right:22px;bottom:22px;background:#111318;color:#fff;padding:12px 15px;border-radius:12px;font-size:11px;opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s;z-index:20}.toast.show{opacity:1;transform:none}
-@media(max-width:1100px){.app{grid-template-columns:1fr}.side{height:auto;position:relative}.sideFoot{position:static;margin-top:14px}.nav{display:flex;overflow:auto}.nav button{min-width:max-content}.main{padding:18px}.grid4,.products,.twocol,.threadPreview{grid-template-columns:1fr}.coverGrid{grid-template-columns:repeat(2,1fr)}.imageGrid3{grid-template-columns:1fr}.scoreGrid{grid-template-columns:repeat(2,1fr)}}
+.blogTitleGrid{display:grid;gap:8px}.blogTitle{border:1px solid var(--line);border-radius:13px;padding:12px 14px;background:#fff;cursor:pointer;font-size:12px;font-weight:850;line-height:1.5}.blogTitle.active{border-color:#111318;background:#f7f7f8}.keywordWrap{display:flex;gap:6px;flex-wrap:wrap}.keyword{padding:7px 9px;border-radius:999px;background:#eef2f6;color:#56606b;font-size:10px;font-weight:850}.blogPreview{background:#fff;border:1px solid var(--line);border-radius:18px;padding:26px;max-width:760px;margin:auto}.blogPreview h1{font-size:27px;line-height:1.3;letter-spacing:-1px;margin:8px 0 16px}.blogPreview h2{font-size:19px;margin:28px 0 10px}.blogPreview p{font-size:14px;line-height:1.9;color:#454d57}.blogHero{aspect-ratio:16/9;border-radius:18px;background:linear-gradient(145deg,#e9eef4,#d5dee8);display:grid;place-items:center;text-align:center;font-size:13px;font-weight:900;color:#5e6874;margin:16px 0}.blogImage{aspect-ratio:16/9;border-radius:16px;background:#f3f4f6;border:1px solid var(--line);display:grid;place-items:center;text-align:center;color:#707986;font-size:11px;font-weight:850;margin:16px 0}.proscons{display:grid;grid-template-columns:1fr 1fr;gap:10px}.pc{border:1px solid var(--line);border-radius:14px;padding:14px}.pc b{font-size:12px}.pc div{font-size:11px;color:#626b76;line-height:1.7;margin-top:7px}.blogTools{display:grid;gap:10px}.toast{position:fixed;right:22px;bottom:22px;background:#111318;color:#fff;padding:12px 15px;border-radius:12px;font-size:11px;opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s;z-index:20}.toast.show{opacity:1;transform:none}
+@media(max-width:1100px){.app{grid-template-columns:1fr}.side{height:auto;position:relative}.sideFoot{position:static;margin-top:14px}.nav{display:flex;overflow:auto}.nav button{min-width:max-content}.main{padding:18px}.grid4,.grid5,.products,.twocol,.threadPreview{grid-template-columns:1fr}.coverGrid{grid-template-columns:repeat(2,1fr)}.imageGrid3{grid-template-columns:1fr}.scoreGrid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
 <div class="app">
 <aside class="side">
   <div class="brand">ViralPick</div>
-  <div class="ver">v0.5 · SNS 콘텐츠 제작 프로토타입</div>
+  <div class="ver">v0.5.1 · Threads + Instagram + Blog</div>
   <nav class="nav">
     <button data-view="dashboard" class="active">🏠 대시보드</button>
     <button data-view="discover">🔥 상품 발굴</button>
     <button data-view="lab">🧠 상품 분석</button>
     <button data-view="threads">💬 Threads 제작</button>
     <button data-view="instagram">▦ Instagram 카드</button>
+    <button data-view="blog">📝 Blog 제작</button>
     <button data-view="publish">🔗 게시 준비</button>
   </nav>
-  <div class="sideFoot"><b>v0.5 Prototype</b>토스 API 승인 전 샘플 데이터로 실제 제작 흐름을 점검하는 버전입니다. v0.4 검수 페이지는 그대로 유지됩니다.</div>
+  <div class="sideFoot"><b>v0.5.1 Prototype</b>토스 API 승인 전 샘플 데이터로 실제 제작 흐름을 점검하는 버전입니다. v0.4 검수 페이지는 그대로 유지됩니다.</div>
 </aside>
 
 <main class="main">
 <section id="dashboard" class="view active">
-  <div class="top"><div><span class="badge green">Prototype</span><h1>오늘 만들 콘텐츠를 빠르게 고르기</h1><p>상품을 발굴하고, AI 분석을 확인한 뒤 Threads와 Instagram 카드 콘텐츠를 한 번에 제작합니다.</p></div><div class="btnrow"><button class="btn" onclick="location.href='index.html'">v0.4 검수 페이지</button><button class="btn primary" onclick="show('discover')">상품 발굴 시작</button></div></div>
+  <div class="top"><div><span class="badge green">Prototype</span><h1>오늘 만들 콘텐츠를 빠르게 고르기</h1><p>상품을 발굴하고, AI 분석을 확인한 뒤 Threads·Instagram·Blog 콘텐츠를 한 번에 제작합니다.</p></div><div class="btnrow"><button class="btn" onclick="location.href='index.html'">v0.4 검수 페이지</button><button class="btn primary" onclick="show('discover')">상품 발굴 시작</button></div></div>
   <div class="grid4">
     <div class="metric"><div class="k">오늘 후보</div><div class="v">12</div><div class="s">바이럴 70점 이상</div></div>
     <div class="metric"><div class="k">Threads 추천</div><div class="v">8</div><div class="s">글+이미지 적합</div></div>
@@ -107,7 +108,7 @@ button,input,select,textarea{font:inherit}
 </section>
 
 <section id="lab" class="view">
-  <div class="top"><div><span class="badge orange">AI 상품 분석</span><h1>이 상품은 어떤 콘텐츠가 잘 맞을까?</h1><p>플랫폼 적합도와 추천 콘텐츠 유형을 보고 Threads/Instagram 제작 방향을 결정합니다.</p></div><button class="btn primary" onclick="show('threads')">콘텐츠 만들기</button></div>
+  <div class="top"><div><span class="badge orange">AI 상품 분석</span><h1>이 상품은 어떤 콘텐츠가 잘 맞을까?</h1><p>플랫폼 적합도와 추천 콘텐츠 유형을 보고 Threads·Instagram·Blog 제작 방향을 결정합니다.</p></div><button class="btn primary" onclick="show('threads')">콘텐츠 만들기</button></div>
   <div class="twocol">
     <div class="panel" style="margin-top:0"><div class="pad">
       <div class="detail"><div class="heroImg">상품 원본<br>이미지 자리</div><div><span class="badge green" id="labType">-</span><h3 id="labName">-</h3><div class="price" id="labPrice">-</div><p id="labReason">-</p></div></div>
@@ -115,6 +116,7 @@ button,input,select,textarea{font:inherit}
         <div class="mini"><b id="viralScore">-</b><span>바이럴 점수</span></div>
         <div class="mini"><b id="threadScore">-</b><span>Threads 적합도</span></div>
         <div class="mini"><b id="instaScore">-</b><span>Instagram 카드 적합도</span></div>
+        <div class="mini"><b id="blogScore">-</b><span>Blog 적합도</span></div>
         <div class="mini"><b id="adScore">-</b><span>광고 냄새</span></div>
       </div>
     </div></div>
@@ -123,7 +125,7 @@ button,input,select,textarea{font:inherit}
       <div style="height:12px"></div>
       <div class="field"><label>추천 콘텐츠 유형</label><select id="contentType"><option>AI 추천</option><option>문제해결형</option><option>신기템형</option><option>생활개선형</option><option>절약형</option></select></div>
       <div class="field"><label>말투 강도</label><div class="sliderline"><span style="font-size:10px;color:#777">담백</span><input id="tone" type="range" min="0" max="100" value="65"><span style="font-size:10px;color:#777">강한 후킹</span></div></div>
-      <div class="btnrow"><button class="btn blue" onclick="show('threads')">Threads 제작</button><button class="btn green" onclick="show('instagram')">Instagram 제작</button><button class="btn primary" onclick="generateAll()">둘 다 만들기</button></div>
+      <div class="btnrow"><button class="btn blue" onclick="show('threads')">Threads 제작</button><button class="btn green" onclick="show('instagram')">Instagram 제작</button><button class="btn" onclick="show('blog')">Blog 제작</button><button class="btn primary" onclick="generateAll()">전체 만들기</button></div>
     </div></div>
   </div>
 </section>
@@ -153,12 +155,34 @@ button,input,select,textarea{font:inherit}
   </div>
 </section>
 
+<section id="blog" class="view">
+  <div class="top"><div><span class="badge green">Naver Blog</span><h1>검색 유입을 위한 구매판단형 글 만들기</h1><p>상품을 바로 홍보하기보다 문제 상황 → 기능 → 추천 대상 → 아쉬운 점 → 가격 확인 순서로 정리합니다.</p></div><div class="btnrow"><button class="btn" onclick="cycleBlogTitles()">제목 5안 재생성</button><button class="btn primary" onclick="copyBlog()">본문 전체 복사</button></div></div>
+
+  <div class="twocol">
+    <div>
+      <div class="panel" style="margin-top:0"><div class="panelHead"><h2>검색형 제목 5안</h2><span class="badge blue">SEO 초안</span></div><div class="pad"><div class="blogTitleGrid" id="blogTitles"></div></div></div>
+      <div class="panel"><div class="panelHead"><h2>검색 키워드</h2><span class="badge">자연스럽게 사용</span></div><div class="pad"><div class="keywordWrap" id="blogKeywords"></div><p class="footnote">키워드 반복 삽입이 아니라 실제 검색 의도에 맞는 제목·소제목·본문 구성을 우선합니다.</p></div></div>
+      <div class="panel"><div class="panelHead"><h2>블로그용 이미지 구성</h2></div><div class="pad statusline"><span class="status">대표 이미지 1장</span><span class="status">상황 이미지 1장</span><span class="status">상품 원본 1장</span><span class="status">기능 요약 1장</span><span class="status">구매판단 카드 1장</span></div></div>
+    </div>
+
+    <div class="panel" style="margin-top:0"><div class="panelHead"><h2>블로그 설정</h2><span class="badge orange" id="blogTypeBadge">구매가이드형</span></div><div class="pad blogTools">
+      <div class="field"><label>작성 플랫폼</label><select><option>네이버 블로그</option><option disabled>티스토리 · 추후 지원</option><option disabled>WordPress · 추후 지원</option></select></div>
+      <div class="field"><label>글 유형</label><select id="blogType" onchange="renderBlog()"><option>구매가이드형</option><option>문제해결형</option><option>제품분석형</option><option>모음형</option></select></div>
+      <div class="field"><label>본문 길이</label><select id="blogLength"><option>기본 · 약 1,500~2,500자</option><option>짧게 · 약 1,000자</option><option>상세 · 약 3,000자</option></select></div>
+      <div class="aiNote">블로그는 Threads/Instagram보다 검색 의도와 구매 판단 정보를 우선합니다. 실제 사용 경험이 없는 상품은 ‘직접 사용해봤다’는 식으로 작성하지 않습니다.</div>
+    </div></div>
+  </div>
+
+  <div class="panel"><div class="panelHead"><h2>네이버 블로그 미리보기</h2><span class="badge green">이미지 3~5장 + 본문</span></div><div class="pad"><article class="blogPreview" id="blogPreview"></article></div></div>
+</section>
+
 <section id="publish" class="view">
   <div class="top"><div><span class="badge green">게시 준비</span><h1>최종 패키지 확인</h1><p>같은 상품을 플랫폼별 문법에 맞게 다르게 포장하고, 게시 전 최신 상품 정보와 제휴 고지를 확인합니다.</p></div><button class="btn primary" onclick="toast('프로토타입에서는 실제 게시를 하지 않습니다')">게시 준비 완료</button></div>
-  <div class="grid4">
+  <div class="grid5">
     <div class="metric"><div class="k">선택 상품</div><div class="v" style="font-size:18px" id="pubProduct">-</div><div class="s">현재 작업 상품</div></div>
     <div class="metric"><div class="k">Threads</div><div class="v">2장</div><div class="s">후킹+상품 이미지</div></div>
     <div class="metric"><div class="k">Instagram</div><div class="v">5장</div><div class="s">캐러셀 카드</div></div>
+    <div class="metric"><div class="k">Blog</div><div class="v">1편</div><div class="s">검색형 장문 + 이미지</div></div>
     <div class="metric"><div class="k">상태</div><div class="v" style="font-size:18px">검수 대기</div><div class="s">직접 확인 후 게시</div></div>
   </div>
   <div class="panel"><div class="panelHead"><h2>게시 전 체크리스트</h2></div><div class="pad">
@@ -172,25 +196,25 @@ button,input,select,textarea{font:inherit}
 
 <script>
 const products=[
- {id:1,name:'디지털 레이저 수평계',price:18900,old:32900,discount:42,viral:92,thread:94,insta:88,ad:21,type:'신기템형',reason:'가구 조립 때 반복되는 수평 확인 문제를 해결하고 레이저·디지털 숫자 표시가 시각적으로 이해하기 쉬움.',problem:'가구 조립할 때 수평 안 맞아서 다시 맞추는 게 은근 스트레스인데',novel:'갖다 대면 각도가 숫자로 바로 뜨고 레이저 선까지 나옴',audience:'DIY·셀프 인테리어 관심층',visual:'삐뚤어진 선반과 조립 중인 작업대'},
- {id:2,name:'무선 핸디 청소기',price:29900,old:45900,discount:35,viral:87,thread:90,insta:91,ad:24,type:'문제해결형',reason:'차량·책상 틈새 청소라는 불편이 명확하고 전후 상황을 카드로 보여주기 쉬움.',problem:'차에 과자 부스러기 떨어지면 구석구석 닦는 게 너무 귀찮았는데',novel:'크기가 작아서 차에 두고 필요할 때 바로 꺼내 쓰기 편해 보임',audience:'운전자·자취생',visual:'자동차 좌석 틈의 과자 부스러기'},
- {id:3,name:'반려동물 발 세정컵',price:12900,old:19900,discount:35,viral:84,thread:86,insta:93,ad:18,type:'생활개선형',reason:'산책 후 발 닦기라는 반복 불편이 공감대를 만들고 반려동물 카테고리는 이미지 친화도가 높음.',problem:'산책하고 들어올 때마다 발 하나씩 닦는 게 생각보다 오래 걸리는데',novel:'컵 안쪽 실리콘이 발 주변을 한 번에 씻어주는 구조임',audience:'반려견 보호자',visual:'산책 후 흙 묻은 강아지 발'}
+ {id:1,name:'디지털 레이저 수평계',price:18900,old:32900,discount:42,viral:92,thread:94,insta:88,blog:91,ad:21,type:'신기템형',reason:'가구 조립 때 반복되는 수평 확인 문제를 해결하고 레이저·디지털 숫자 표시가 시각적으로 이해하기 쉬움.',problem:'가구 조립할 때 수평 안 맞아서 다시 맞추는 게 은근 스트레스인데',novel:'갖다 대면 각도가 숫자로 바로 뜨고 레이저 선까지 나옴',audience:'DIY·셀프 인테리어 관심층',visual:'삐뚤어진 선반과 조립 중인 작업대'},
+ {id:2,name:'무선 핸디 청소기',price:29900,old:45900,discount:35,viral:87,thread:90,insta:91,blog:88,ad:24,type:'문제해결형',reason:'차량·책상 틈새 청소라는 불편이 명확하고 전후 상황을 카드로 보여주기 쉬움.',problem:'차에 과자 부스러기 떨어지면 구석구석 닦는 게 너무 귀찮았는데',novel:'크기가 작아서 차에 두고 필요할 때 바로 꺼내 쓰기 편해 보임',audience:'운전자·자취생',visual:'자동차 좌석 틈의 과자 부스러기'},
+ {id:3,name:'반려동물 발 세정컵',price:12900,old:19900,discount:35,viral:84,thread:86,insta:93,blog:86,ad:18,type:'생활개선형',reason:'산책 후 발 닦기라는 반복 불편이 공감대를 만들고 반려동물 카테고리는 이미지 친화도가 높음.',problem:'산책하고 들어올 때마다 발 하나씩 닦는 게 생각보다 오래 걸리는데',novel:'컵 안쪽 실리콘이 발 주변을 한 번에 씻어주는 구조임',audience:'반려견 보호자',visual:'산책 후 흙 묻은 강아지 발'}
 ];
-let selected=products[0], threadCopyIndex=0, threadImageIndex=0, coverIndex=0, instaCardIndex=0, threadSeed=0, coverSeed=0;
+let selected=products[0], threadCopyIndex=0, threadImageIndex=0, coverIndex=0, instaCardIndex=0, threadSeed=0, coverSeed=0, blogTitleIndex=0, blogSeed=0;
 const $=q=>document.querySelector(q), $$=q=>[...document.querySelectorAll(q)];
 const fmt=n=>Number(n).toLocaleString('ko-KR')+'원';
 
 function productCard(p){
  return `<div class="product ${p.id===selected.id?'selected':''}" onclick="selectProduct(${p.id})">
   <div class="prodTop"><div class="thumb">상품 원본<br>이미지</div><div><span class="badge ${p.id===1?'orange':'green'}">${p.type}</span><h3>${p.name}</h3><div class="old">${fmt(p.old)}</div><div class="price">${fmt(p.price)}</div></div></div>
-  <div class="meta"><span class="badge red">${p.discount}% 할인</span><span class="badge blue">Threads ${p.thread}</span><span class="badge green">Instagram ${p.insta}</span></div>
+  <div class="meta"><span class="badge red">${p.discount}% 할인</span><span class="badge blue">Threads ${p.thread}</span><span class="badge green">Instagram ${p.insta}</span><span class="badge">Blog ${p.blog}</span></div>
   <div class="reason">${p.reason}</div>
   <div class="score"><div><div style="font-size:9px;color:#7b838e;margin-bottom:5px">바이럴 점수</div><div class="bar"><i style="width:${p.viral}%"></i></div></div><b>${p.viral}</b></div>
  </div>`
 }
 function renderProductLists(){ $('#dashProducts').innerHTML=products.map(productCard).join(''); $('#discoverProducts').innerHTML=products.map(productCard).join(''); }
-function selectProduct(id){ selected=products.find(p=>p.id===id)||products[0]; renderProductLists(); renderLab(); renderThreads(); renderInstagram(); $('#pubProduct').textContent=selected.name; show('lab'); }
-function renderLab(){ const p=selected; $('#labType').textContent=p.type; $('#labName').textContent=p.name; $('#labPrice').textContent=fmt(p.price); $('#labReason').textContent=p.reason; $('#viralScore').textContent=p.viral; $('#threadScore').textContent=p.thread; $('#instaScore').textContent=p.insta; $('#adScore').textContent=p.ad+'%'; $('#analysisText').innerHTML=`<b>추천 유형: ${p.type}</b><br><br>문제 상황: ${p.problem}<br>신기/해결 포인트: ${p.novel}<br>주요 타깃: ${p.audience}<br>추천 시각: ${p.visual}`; }
+function selectProduct(id){ selected=products.find(p=>p.id===id)||products[0]; renderProductLists(); renderLab(); renderThreads(); renderInstagram(); renderBlog(); $('#pubProduct').textContent=selected.name; show('lab'); }
+function renderLab(){ const p=selected; $('#labType').textContent=p.type; $('#labName').textContent=p.name; $('#labPrice').textContent=fmt(p.price); $('#labReason').textContent=p.reason; $('#viralScore').textContent=p.viral; $('#threadScore').textContent=p.thread; $('#instaScore').textContent=p.insta; $('#blogScore').textContent=p.blog; $('#adScore').textContent=p.ad+'%'; $('#analysisText').innerHTML=`<b>추천 유형: ${p.type}</b><br><br>문제 상황: ${p.problem}<br>신기/해결 포인트: ${p.novel}<br>주요 타깃: ${p.audience}<br>추천 시각: ${p.visual}`; }
 function threadHooks(p){ const sets=[
  [`아니 이런 게 있는 줄 나만 몰랐음?ㅋㅋ`,`가구 조립할 때 이런 거 은근 필요하더라`,`별거 아닌데 이런 게 진짜 편한 듯`],
  [`이 불편 나만 계속 참고 있었음?`,`처음 봤을 때 뭐 하는 물건인가 했는데ㅋㅋ`,`이런 생활템은 알고 나면 괜히 억울함`],
@@ -245,12 +269,95 @@ ${p.novel}
 ※ 이 게시물은 토스쇼핑 쉐어링크 활동의 일환으로, 구매 발생 시 일정 수수료를 제공받을 수 있습니다.`}
 function cycleCover(){coverSeed++;coverIndex=0;instaCardIndex=0;renderInstagram();toast('Instagram 표지 4안을 새로 만들었습니다')}
 async function copyCaption(){try{await navigator.clipboard.writeText(instaCaption(selected));toast('Instagram 캡션을 복사했습니다')}catch(e){toast('브라우저 복사 권한을 확인해주세요')}}
-function generateAll(){renderThreads();renderInstagram();toast('Threads + Instagram 패키지를 생성했습니다');show('threads')}
+
+function blogKeywordList(p){
+  if(p.id===1) return ['디지털 수평계','레이저 수평계','가구 조립 수평계','DIY 공구','선반 수평 맞추기'];
+  if(p.id===2) return ['무선 핸디 청소기','차량용 청소기','차량 틈새 청소','미니 청소기','자취 생활템'];
+  return ['강아지 발 세정컵','반려동물 발 세척','산책 후 발 닦기','강아지 산책용품','반려견 생활용품'];
+}
+function blogTitleList(p){
+ const k=blogKeywordList(p)[0];
+ const sets=[
+  [
+   `${k} 필요할까? ${p.name} 기능·장단점·가격 정리`,
+   `${p.problem.replace('는데','다면')}? ${p.name} 살펴보기`,
+   `${p.name} 어떤 사람에게 유용할까? 추천 대상과 아쉬운 점`,
+   `${k} 고를 때 볼 점은? ${p.name} 구매 전 체크 포인트`,
+   `${p.name} 가격만 보고 사도 될까? 기능과 활용도 먼저 정리`
+  ],
+  [
+   `${p.name}, 왜 요즘 눈에 띌까? 사용 상황부터 가격까지`,
+   `${k} 찾는다면 먼저 볼 것들｜${p.name} 핵심 정리`,
+   `${p.name} 구매 전 5분 정리: 기능·추천 대상·주의점`,
+   `${p.problem.replace('는데','다면')} 알아둘 생활템`,
+   `${k} 입문용으로 괜찮을까? ${p.name} 체크리스트`
+  ]
+ ]; return sets[blogSeed%sets.length];
+}
+function blogBody(p){
+ const title=blogTitleList(p)[blogTitleIndex];
+ const k=blogKeywordList(p);
+ return {
+  title,
+  html:`<div class="badge green">구매 전 정보 정리</div><h1>${title}</h1>
+  <div class="aiNote">※ 이 글에는 토스쇼핑 쉐어링크가 포함될 수 있으며, 구매 발생 시 일정 수수료를 제공받을 수 있습니다.</div>
+  <div class="blogHero">대표 이미지<br><b>${p.name}</b><br><span style="font-size:10px;font-weight:700">문제 상황 + 짧은 제목</span></div>
+  <p>${p.problem} 이런 상황을 겪다 보면 단순한 작업도 생각보다 시간이 오래 걸립니다. 그래서 관련 제품을 찾아보다가 <b>${p.name}</b>처럼 불편을 줄이는 방식의 제품을 확인하게 됐습니다.</p>
+  <p>이 글에서는 광고 문구보다는 이 제품이 어떤 상황에서 필요한지, 어떤 기능을 기대할 수 있는지, 그리고 굳이 필요하지 않은 경우까지 정리해보겠습니다.</p>
+  <h2>어떤 제품인가?</h2>
+  <div class="blogImage">토스 제공 상품 원본 이미지 자리</div>
+  <p>${p.name}의 핵심은 <b>${p.novel}</b>이라는 점입니다. 특히 ${p.audience}처럼 해당 상황을 자주 겪는 사람에게 활용도가 높을 가능성이 있습니다.</p>
+  <h2>어떤 상황에서 유용할까?</h2>
+  <div class="blogImage">AI 상황 이미지<br>${p.visual}</div>
+  <p>${p.problem} 이런 반복 작업을 줄이고 싶은 경우가 대표적입니다. 단순히 ‘신기한 제품’인지보다 내가 실제로 자주 겪는 불편을 해결하는지 먼저 보는 편이 좋습니다.</p>
+  <h2>구매 전에 장점과 아쉬운 점</h2>
+  <div class="proscons"><div class="pc"><b>추천 포인트</b><div>✓ ${p.novel}<br>✓ ${p.audience}에게 활용 가능<br>✓ 반복되는 불편을 줄이는 목적이 분명함</div></div><div class="pc"><b>확인할 점</b><div>• 실제 옵션·크기·사양 확인 필요<br>• 사용 빈도가 낮다면 꼭 필요하지 않을 수 있음<br>• 구매 전 최신 리뷰와 판매 상태 확인</div></div></div>
+  <h2>가격은 어느 정도?</h2>
+  <p>작성 화면 기준 토스쇼핑 판매가는 <b>${fmt(p.price)}</b>이며 표시 할인율은 <b>${p.discount}%</b>입니다. 쇼핑 가격과 재고는 수시로 바뀔 수 있으므로 실제 구매 시점에는 링크에서 최신 정보를 다시 확인하는 것이 좋습니다.</p>
+  <div class="blogImage">기능 요약 / 구매판단 카드<br>${k.slice(0,3).join(' · ')}</div>
+  <h2>정리</h2>
+  <p>${p.name}은 모든 사람에게 필요한 제품이라기보다 <b>${p.audience}</b> 중에서 ${p.problem.replace('는데','는 상황을 자주 겪는 사람')}에게 더 잘 맞는 제품입니다. 기능이 내 사용 상황과 맞는지 확인한 뒤 가격과 옵션을 비교해 결정하는 것을 추천합니다.</p>
+  <div class="cta">최신 상품 정보와 가격은 쉐어링크에서 확인</div>`,
+  text:`${title}
+
+※ 이 글에는 토스쇼핑 쉐어링크가 포함될 수 있으며, 구매 발생 시 일정 수수료를 제공받을 수 있습니다.
+
+${p.problem} 이런 상황을 겪다 보면 단순한 작업도 생각보다 시간이 오래 걸립니다. 그래서 관련 제품을 찾아보다가 ${p.name}처럼 불편을 줄이는 방식의 제품을 확인하게 됐습니다.
+
+[어떤 제품인가?]
+${p.name}의 핵심은 ${p.novel}이라는 점입니다. 특히 ${p.audience}처럼 해당 상황을 자주 겪는 사람에게 활용도가 높을 가능성이 있습니다.
+
+[어떤 상황에서 유용할까?]
+단순히 신기한 제품인지보다 내가 실제로 자주 겪는 불편을 해결하는지 먼저 보는 편이 좋습니다.
+
+[구매 전에 확인할 점]
+추천 포인트: ${p.novel}
+추천 대상: ${p.audience}
+확인할 점: 실제 옵션·크기·사양, 최신 리뷰, 사용 빈도
+
+[가격]
+작성 화면 기준 토스쇼핑 판매가는 ${fmt(p.price)}, 표시 할인율은 ${p.discount}%입니다. 가격과 재고는 바뀔 수 있으므로 구매 시점에 최신 정보를 확인해 주세요.
+
+[정리]
+${p.name}은 모든 사람에게 필요한 제품이라기보다 실제 사용 상황과 기능이 맞는 사람에게 유용한 제품입니다. 구매 전 최신 가격과 옵션을 확인해 결정하는 것을 추천합니다.`
+ };
+}
+function renderBlog(){
+ const p=selected, titles=blogTitleList(p), keys=blogKeywordList(p);
+ $('#blogTitles').innerHTML=titles.map((t,i)=>`<div class="blogTitle ${blogTitleIndex===i?'active':''}" onclick="blogTitleIndex=${i};renderBlog()"><span style="color:#9299a3;margin-right:7px">${i+1}</span>${t}</div>`).join('');
+ $('#blogKeywords').innerHTML=keys.map(k=>`<span class="keyword"># ${k}</span>`).join('');
+ $('#blogPreview').innerHTML=blogBody(p).html;
+ $('#blogTypeBadge').textContent=$('#blogType') ? $('#blogType').value : '구매가이드형';
+}
+function cycleBlogTitles(){blogSeed++;blogTitleIndex=0;renderBlog();toast('블로그 제목 5안을 새로 만들었습니다')}
+async function copyBlog(){try{await navigator.clipboard.writeText(blogBody(selected).text);toast('블로그 본문을 복사했습니다')}catch(e){toast('브라우저 복사 권한을 확인해주세요')}}
+
+function generateAll(){renderThreads();renderInstagram();renderBlog();toast('Threads + Instagram + Blog 패키지를 생성했습니다');show('threads')}
 function show(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===id));history.replaceState(null,'',`?view=${id}`)}
 $$('.nav button').forEach(b=>b.onclick=()=>show(b.dataset.view));
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
-renderProductLists();renderLab();renderThreads();renderInstagram();$('#pubProduct').textContent=selected.name;
-const q=new URLSearchParams(location.search).get('view');if(['dashboard','discover','lab','threads','instagram','publish'].includes(q))show(q);
+renderProductLists();renderLab();renderThreads();renderInstagram();renderBlog();$('#pubProduct').textContent=selected.name;
+const q=new URLSearchParams(location.search).get('view');if(['dashboard','discover','lab','threads','instagram','blog','publish'].includes(q))show(q);
 </script>
 </body>
 </html>
