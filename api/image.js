@@ -31,7 +31,7 @@ export async function POST(req){
   'Avoid inventing the exact look of the real listed product, manufacturer logos, specifications, performance evidence, comparisons or claims. Depict the usage context and only generic safe visual cues.',
   'Keep the lower-left region legible for a small separate product-name overlay. Authentic credible visual, not exaggerated or misleading.',
   purpose==='instagram'?'Designed as one Instagram carousel cover background.':'Designed as one scroll-stopping Threads hook image background.'
- ].join('\\n');
+ ].join('\n');
  const controller=new AbortController();
  const timeout=setTimeout(()=>controller.abort(),135000);
  try{
