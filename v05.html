@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111318">
-<title>ViralPick v0.8.0 Prototype</title>
+<title>ViralPick v0.8.1 Prototype</title>
 <style>
 :root{
   --bg:#f5f6f8;--panel:#fff;--ink:#15171b;--muted:#727985;--line:#e6e8ec;
@@ -419,7 +419,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
  .hookImagePanel .imageGrid3 .hookChoice{flex:0 0 clamp(184px,47%,242px);min-width:184px}
 }
 
-/* v0.8.0 immersive hook image editor */
+/* v0.8.1 immersive hook image editor */
 .hookMaker{display:grid;gap:10px;background:#f8fafc;border:1px solid #e4e8ed;padding:13px;border-radius:14px;margin-bottom:15px}
 .hookEditLabel{display:grid;gap:7px;font-size:11px;font-weight:900;color:#384354}
 #hookHeadline{width:100%;min-height:70px;resize:vertical;border:1px solid #d9dfe8;border-radius:10px;background:white;padding:12px;font-family:inherit;font-size:14px;line-height:1.5;color:#12171e}
@@ -430,7 +430,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 .hookMakerInfo{font-size:10px;color:#687583;line-height:1.55;margin:0}
 @media(max-width:650px){.hookMakerTools{display:grid;grid-template-columns:1fr}.hookMakerTools .btn{width:100%}.hookMakerTools label{min-width:0}#hookHeadline{font-size:16px}}
 
-/* v0.8.0 AI photo candidates and durable local history */
+/* v0.8.1 AI photo candidates and durable local history */
 .photoHistory{display:grid;gap:9px;margin:0 0 13px}
 .photoHistory .historyHead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .photoHistory .historyHead b{font-size:12px;color:#232a35}
@@ -1680,14 +1680,105 @@ function changeInstagramDiversity(v){
  if(!['stable','balanced','creative'].includes(v))return;
  instagramDiversity=v;coverIndex=0;instaCardIndex=0;renderInstagram();
 }
+
+const instagramThumbCache={key:null,refs:[],images:[]};
+let instagramTouchStartPoint=null,instagramMouseStartPoint=null;
+function instagramVisualRefs(){
+ const media=currentMedia();
+ return [media.scene?.image||null,media.product?.image||null,...[2,3,4,5].map(slide=>carouselImageForSlide(slide)?.image||null)];
+}
+function instagramThumbKey(){
+ const p=selected;
+ return JSON.stringify([p.id,p.name,p.problem,p.novel,p.visual,p.price,coverIndex,getInstagramCoverHeadline(),hookPhotoStyle]);
+}
+function instagramThumbImage(slide){
+ const source=buildContentCanvas('Instagram',slide,coverIndex);
+ const thumbnail=document.createElement('canvas');thumbnail.width=180;thumbnail.height=225;
+ const ctx=thumbnail.getContext('2d');
+ if(!ctx)throw new Error('미리보기 캔버스 미지원');
+ ctx.drawImage(source,0,0,180,225);
+ return thumbnail.toDataURL('image/jpeg',.76);
+}
+function renderInstagramThumbGallery(cards){
+ const root=$('#cardThumbs');if(!root)return;
+ const refs=instagramVisualRefs(),key=instagramThumbKey();
+ const unchanged=instagramThumbCache.key===key&&instagramThumbCache.images.length===5&&refs.length===instagramThumbCache.refs.length&&refs.every((x,i)=>x===instagramThumbCache.refs[i]);
+ if(!unchanged){
+  const images=cards.map((card,i)=>{try{return instagramThumbImage(i)}catch(e){return ''}});
+  instagramThumbCache.key=key;instagramThumbCache.refs=refs;instagramThumbCache.images=images;
+  root.innerHTML=cards.map((card,i)=>{
+   const label=(i+1)+'. '+card.short;
+   return '<button type="button" class="cardThumb" onclick="goInstagramSlide('+i+')" aria-pressed="false" aria-label="'+cleanMarkup(label)+' 미리보기 열기">'+
+    (images[i]?'<img loading="lazy" draggable="false" alt="'+cleanMarkup(label)+'" src="'+images[i]+'">':'<div class="thumbFallback">'+(i+1)+'</div>')+
+    '<span>'+cleanMarkup(label)+'</span></button>';
+  }).join('');
+ }
+ updateInstagramThumbSelection();
+}
+function updateInstagramThumbSelection(){
+ const root=$('#cardThumbs');if(!root)return;
+ root.querySelectorAll('.cardThumb').forEach((button,i)=>{
+  const active=i===instaCardIndex;
+  button.classList.toggle('active',active);
+  button.setAttribute('aria-pressed',String(active));
+  if(active)button.setAttribute('aria-current','true');else button.removeAttribute('aria-current');
+ });
+}
+function renderInstagramSlide(cards=instaCards(selected)){
+ const frame=$('#instaCard');if(!frame)return;
+ try{
+  const png=buildContentCanvas('Instagram',instaCardIndex,coverIndex).toDataURL('image/png');
+  frame.innerHTML='<img src="'+png+'" draggable="false" alt="Instagram '+(instaCardIndex+1)+'번 카드 실제 출력 미리보기" style="display:block;width:100%;height:100%;object-fit:contain">';
+ }catch(e){frame.innerHTML=cards[instaCardIndex]?.html||'<p>이미지를 표시할 수 없습니다.</p>'}
+ const badge=$('#cardIndexBadge');if(badge)badge.textContent=(instaCardIndex+1)+' / 5';
+ const dots=$('#instagramSlideDots');if(dots)dots.textContent=[0,1,2,3,4].map(i=>i===instaCardIndex?'●':'○').join(' ');
+ const prev=$('#instagramPrev'),next=$('#instagramNext');
+ if(prev)prev.disabled=instaCardIndex===0;
+ if(next)next.disabled=instaCardIndex===4;
+ updateInstagramThumbSelection();renderCarouselArtStatus();
+}
+function goInstagramSlide(index){
+ const next=Math.min(4,Math.max(0,Number(index)));
+ if(!Number.isFinite(next)||next===instaCardIndex)return;
+ instaCardIndex=next;renderInstagramSlide();
+}
+function instagramSwipeDelta(dx,dy){
+ if(Math.abs(dx)<45||Math.abs(dx)<Math.abs(dy)*1.2)return;
+ goInstagramSlide(instaCardIndex+(dx<0?1:-1));
+}
+function instagramTouchStart(e){
+ if(!e.touches||e.touches.length!==1||e.target?.closest?.('button')){instagramTouchStartPoint=null;return}
+ const p=e.touches[0];instagramTouchStartPoint={x:p.clientX,y:p.clientY};
+}
+function instagramTouchEnd(e){
+ const start=instagramTouchStartPoint;instagramTouchStartPoint=null;
+ if(!start||!e.changedTouches?.length)return;
+ const p=e.changedTouches[0];instagramSwipeDelta(p.clientX-start.x,p.clientY-start.y);
+}
+function instagramTouchCancel(){instagramTouchStartPoint=null}
+function instagramPointerDown(e){
+ if(e.pointerType!=='mouse'||e.button!==0||e.target?.closest?.('button')){instagramMouseStartPoint=null;return}
+ instagramMouseStartPoint={x:e.clientX,y:e.clientY};
+}
+function instagramPointerUp(e){
+ const start=instagramMouseStartPoint;instagramMouseStartPoint=null;
+ if(!start||e.pointerType!=='mouse')return;
+ instagramSwipeDelta(e.clientX-start.x,e.clientY-start.y);
+}
+function instagramSliderKeydown(e){
+ if(e.key==='ArrowLeft'){e.preventDefault();goInstagramSlide(instaCardIndex-1)}
+ if(e.key==='ArrowRight'){e.preventDefault();goInstagramSlide(instaCardIndex+1)}
+}
+
 function renderInstagram(){ const p=selected, hooks=coverHooks(p), cls=['scene1','dark','yellow','pink'];
  const editor=$('#instagramHookHeadline');
  if(editor&&editor.value!==getInstagramCoverHeadline())editor.value=getInstagramCoverHeadline();
  $('#coverGrid').innerHTML=hooks.map((h,i)=>`<div class="visual ${cls[i]} ${coverIndex===i?'selected':''}" onclick="rememberPhotoLayout('Instagram',${i})"><div class="ghost">${i===0?p.visual:'콘텐츠 표지 비주얼'}</div><div class="copy">${cleanMarkup(getInstagramCoverHeadline(i)).replace(/\n/g,'<br>')}<span class="sub">${cleanMarkup(p.name)}</span></div></div>`).join('');
- const cards=instaCards(p); $('#cardThumbs').innerHTML=cards.map((c,i)=>`<div class="cardThumb ${instaCardIndex===i?'active':''}" onclick="instaCardIndex=${i};renderInstagram()">${i+1}. ${c.short}</div>`).join(''); try{
- const png=buildContentCanvas('Instagram',instaCardIndex,coverIndex).toDataURL('image/png');
- $('#instaCard').innerHTML='<img src="'+png+'" alt="다운로드할 Instagram 카드 실제 미리보기" style="display:block;width:100%;height:100%;object-fit:contain">';
- }catch(e){$('#instaCard').innerHTML=cards[instaCardIndex].html;} $('#cardIndexBadge').textContent=(instaCardIndex+1)+' / 5'; $('.dots').textContent=[0,1,2,3,4].map(i=>i===instaCardIndex?'●':'○').join(' '); $('#instaCaption').value=getCurrentInstagramCaption();$('#instagramDiversity').value=instagramDiversity;renderInstagramDupStatus();renderCarouselArtStatus(); }
+ const cards=instaCards(p);
+ renderInstagramThumbGallery(cards);
+ renderInstagramSlide(cards);
+ $('#instaCaption').value=getCurrentInstagramCaption();$('#instagramDiversity').value=instagramDiversity;renderInstagramDupStatus();
+}
 function instaCards(p){ const cover=cleanMarkup(getInstagramCoverHeadline()).replace(/\n/g,'<br>'); return [
  {short:'후킹 표지',html:`<div class="bg scene1"></div><div class="content"><div><div class="num">01 / 05</div><h3>${cover}</h3><p>${p.name}</p></div><div class="cta">넘겨서 보기 →</div></div>`},
  {short:'문제 공감',html:`<div class="bg scene2"></div><div class="content"><div><div class="num">02 / 05</div><h3>은근 반복되는<br>이 불편</h3><p>${p.problem}</p></div><div class="productBox">${p.visual}<br><span style="font-size:10px;font-weight:700">이미지 연동 전 시안</span></div></div>`},
