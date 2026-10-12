@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111318">
-<title>ViralPick v0.8.1 Prototype</title>
+<title>ViralPick v0.8.2 Prototype</title>
 <style>
 :root{
   --bg:#f5f6f8;--panel:#fff;--ink:#15171b;--muted:#727985;--line:#e6e8ec;
@@ -419,7 +419,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
  .hookImagePanel .imageGrid3 .hookChoice{flex:0 0 clamp(184px,47%,242px);min-width:184px}
 }
 
-/* v0.8.1 immersive hook image editor */
+/* v0.8.2 immersive hook image editor */
 .hookMaker{display:grid;gap:10px;background:#f8fafc;border:1px solid #e4e8ed;padding:13px;border-radius:14px;margin-bottom:15px}
 .hookEditLabel{display:grid;gap:7px;font-size:11px;font-weight:900;color:#384354}
 #hookHeadline{width:100%;min-height:70px;resize:vertical;border:1px solid #d9dfe8;border-radius:10px;background:white;padding:12px;font-family:inherit;font-size:14px;line-height:1.5;color:#12171e}
@@ -430,7 +430,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 .hookMakerInfo{font-size:10px;color:#687583;line-height:1.55;margin:0}
 @media(max-width:650px){.hookMakerTools{display:grid;grid-template-columns:1fr}.hookMakerTools .btn{width:100%}.hookMakerTools label{min-width:0}#hookHeadline{font-size:16px}}
 
-/* v0.8.1 AI photo candidates and durable local history */
+/* v0.8.2 AI photo candidates and durable local history */
 .photoHistory{display:grid;gap:9px;margin:0 0 13px}
 .photoHistory .historyHead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .photoHistory .historyHead b{font-size:12px;color:#232a35}
@@ -466,7 +466,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 #carouselArtStatus{margin:10px 0 0;font-size:11px;color:#687482;line-height:1.55;overflow-wrap:anywhere}
 @media(max-width:650px){.carouselImageToolsRow{display:grid;grid-template-columns:1fr}.carouselImageToolsRow .btn{min-width:0;width:100%}}
 
-/* v0.8.1 touch-friendly Instagram carousel and real image thumbnail rail */
+/* v0.8.2 touch-friendly Instagram carousel and real image thumbnail rail */
 .instagramCarouselViewer{width:100%;min-width:0;display:grid;gap:12px}
 .instaSwipeFrame{position:relative;width:100%;max-width:500px;margin:0 auto;touch-action:pan-y;user-select:none;-webkit-user-select:none;outline-offset:5px}
 .instaSwipeFrame:focus-visible{outline:3px solid #4263eb;border-radius:20px}
@@ -501,13 +501,40 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
  .instagramCarouselViewer .cardThumb span{font-size:9px;min-height:26px}
 }
 @media(prefers-reduced-motion:reduce){.instaCard>img{animation:none}}
+
+/* v0.8.2 one-tap secure server connector */
+.serverConnectButton{border:1px solid #e3e7eb;background:#fff;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:7px;color:#334155;min-height:43px;padding:10px 13px;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s}
+.serverConnectButton.connected{color:#08754c;background:#e6f7ee;border-color:#acdabc}
+.serverConnectButton.connecting{color:#926000;background:#fff6df;border-color:#f1d59e}
+.serverConnectButton:focus-visible{outline:3px solid #4263eb;outline-offset:2px}
+.desktopConnectionBar{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-bottom:10px}
+.desktopConnectionHint{font-size:11px;color:#7e8792}
+.quickConnectionOverlay[hidden]{display:none!important}
+.quickConnectionOverlay{position:fixed;inset:0;z-index:280;background:rgba(9,12,19,.6);padding:16px;display:grid;place-items:center;overscroll-behavior:contain;overflow:auto}
+.quickConnectionDialog{width:min(100%,480px);background:#fff;border-radius:20px;box-shadow:0 25px 90px rgba(0,0,0,.25);max-height:calc(100dvh - 35px);overflow:auto}
+.quickConnectionHeader{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #e8ebef;padding:20px 20px 14px}
+.quickConnectionKicker{font-size:11px;font-weight:850;color:#167349}
+.quickConnectionHeader h2{font-size:23px;margin:7px 0 5px;letter-spacing:-.7px}
+.quickConnectionHeader p{font-size:12px;line-height:1.5;color:#657080;margin:0}
+.quickConnectionBody{padding:19px 20px;display:grid;gap:14px}
+.quickConnectionBody>label:not(.rememberConnection){display:grid;gap:7px;font-size:12px;font-weight:900;color:#394452}
+.quickConnectionBody input[type="password"],.quickConnectionBody input[type="url"]{width:100%;min-height:44px;padding:11px 12px;border:1px solid #d7dee6;border-radius:10px;background:#fff;font-size:13px}
+.rememberConnection{display:flex;gap:11px;align-items:flex-start;cursor:pointer;padding:12px;border:1px solid #dce5ee;border-radius:12px;background:#f6f9fc}
+.rememberConnection input{width:20px;height:20px;margin:1px 0 0;flex-shrink:0;accent-color:#0b7a53}
+.rememberConnection span{display:grid;gap:5px}.rememberConnection b{font-size:12px;color:#253244}.rememberConnection small{font-size:11px;line-height:1.55;color:#687584}
+.quickConnectionFeedback{font-size:12px;line-height:1.5;color:#586a7b;background:#f4f6f9;padding:10px 12px;border-radius:10px;margin:0;overflow-wrap:anywhere}
+.quickConnectionFeedback.error{color:#a53d29;background:#fff0ed}
+.quickConnectionFooter{padding:12px 20px 19px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:flex-end}
+.quickForgetButton{margin-right:auto;border:0;background:none;color:#ab3c40;font-size:11px;font-weight:800;cursor:pointer;padding:10px 0}
+@media(max-width:930px){.desktopConnectionBar{display:none}.mobileTop .mobileConnect{margin-left:auto;flex-shrink:0;font-size:11px;min-height:40px;padding:9px 10px}}
+@media(max-width:370px){.mobileTop .mobileConnect{font-size:10px;padding:9px 8px}.mobileTopBrand{font-size:17px}}
 </style>
 </head>
 <body>
 <header class="mobileTop" aria-label="모바일 상단 메뉴">
  <button class="mobileMenuButton" id="mobileOpenButton" type="button" onclick="openMobileMenu()" aria-label="전체 메뉴 열기" aria-controls="siteSidebar" aria-expanded="false">☰</button>
  <div><div class="mobileTopBrand">ViralPick</div><span class="mobileTopSub" id="mobileCurrentView">대시보드</span></div>
- <button class="btn topJump" onclick="show('discover')" type="button">상품 찾기 ↗</button>
+ <button class="serverConnectButton mobileConnect" id="mobileServerConnect" type="button" onclick="quickConnectFromHeader()" aria-label="서버 연결하기">● 서버 연결하기</button>
 </header>
 <div class="mobileBackdrop" id="mobileBackdrop" onclick="closeMobileMenu()" aria-hidden="true"></div>
 <div class="app">
@@ -530,6 +557,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 </aside>
 
 <main class="main">
+<div class="desktopConnectionBar"><span class="desktopConnectionHint">AI 이미지 생성 서버</span><button class="serverConnectButton" id="desktopServerConnect" type="button" onclick="quickConnectFromHeader()" aria-label="서버 연결하기">● 서버 연결하기</button></div>
 <section id="dashboard" class="view active">
   <div class="top"><div><span class="badge green">Prototype</span><h1>오늘 만들 콘텐츠를 빠르게 고르기</h1><p>상품 발굴 → Threads·Instagram 제작 및 예약 → 성과 분석 → 반응이 좋은 상품의 Blog 확장으로 이어집니다.</p></div><div class="btnrow"><button class="btn" onclick="location.href='index.html'">v0.4 검수 페이지</button><button class="btn primary" onclick="show('discover')">상품 발굴 시작</button></div></div>
   <div class="grid5">
@@ -553,8 +581,8 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
   <div class="panel" style="margin-top:0"><div class="panelHead"><h2>서버 API 연결</h2><span class="badge orange" id="apiHealth">연결 전</span></div>
    <div class="pad">
     <div class="field"><label>Vercel 백엔드 URL (GitHub Pages 주소가 아닙니다)</label><input id="apiBase" type="url" placeholder="https://viralpick-review.vercel.app" spellcheck="false"></div>
-    <div class="field"><label>개인 연결 암호 (서버의 VIRALPICK_ACCESS_KEY 값)</label><input id="apiAccess" type="password" autocomplete="off" placeholder="현재 브라우저 탭에서만 사용"></div>
-    <div class="btnrow"><button class="btn primary" onclick="checkBackendStatus()">서버 연결 확인</button><button class="btn" onclick="clearBackendAccess()">암호 지우기</button></div>
+    <div class="field"><label>개인 연결 암호 (서버의 VIRALPICK_ACCESS_KEY 값)</label><input id="apiAccess" type="password" autocomplete="off" placeholder="연결 암호 (기억하기 선택 가능)" oninput="markBackendDisconnected()"></div>
+    <div class="btnrow"><button class="btn primary" type="button" onclick="checkBackendStatus()">서버 연결 확인</button><button class="btn" type="button" onclick="openQuickConnection()">암호 기억하기·연결 관리</button><button class="btn" type="button" onclick="clearBackendAccess()">저장된 암호 삭제</button></div>
     <div class="aiNote" id="apiResult" style="margin-top:11px">Vercel 프로젝트 생성은 확인됐습니다. 이제 서버의 연결 암호와 OpenAI API 키를 Vercel 환경변수에 등록한 뒤 연결을 확인하세요. 배포 보호 설정에 따라 외부 호출이 차단될 수 있습니다.</div>
     <p class="queueHint">API 키는 여기에 입력하지 마세요. OpenAI·토스 토큰은 Vercel 환경변수에만 저장합니다. Vercel 배포 보호 기능이 모든 접속을 차단하면 GitHub Pages에서 API를 호출할 수 없습니다. 서버 보안 설정을 확인하세요.</p>
    </div>
@@ -853,6 +881,24 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
     <div class="reserveWarning" id="reserveWarning" aria-live="polite">※ 현재는 실제 SNS 게시가 아닌 브라우저에 저장되는 모의 예약입니다.</div>
   </div>
   <div class="reservationFooter"><button type="button" class="btn" onclick="closeReservation()">취소</button><button type="button" class="btn primary" id="confirmReserveBtn" onclick="confirmReservation()" disabled>예약 큐에 등록</button></div>
+ </section>
+</div>
+<div class="quickConnectionOverlay" id="quickConnectionOverlay" hidden role="presentation" onclick="if(event.target===this)closeQuickConnection()">
+ <section class="quickConnectionDialog" role="dialog" aria-modal="true" aria-labelledby="quickConnectionHeading">
+  <div class="quickConnectionHeader"><div><span class="quickConnectionKicker">ViralPick · 보안 연결</span><h2 id="quickConnectionHeading">서버 연결하기</h2><p>연결 페이지로 이동하지 않고 바로 연결할 수 있습니다.</p></div><button type="button" class="reservationClose" onclick="closeQuickConnection()" aria-label="서버 연결 창 닫기">✕</button></div>
+  <form id="quickConnectionForm" onsubmit="event.preventDefault();void connectFromQuickPanel()">
+   <div class="quickConnectionBody">
+    <label>서버 주소<input type="url" id="quickServerUrl" required placeholder="https://viralpick-review.vercel.app" autocomplete="url" oninput="markBackendDisconnected()"></label>
+    <label>연결 암호<input type="password" id="quickServerPassword" required minlength="16" autocomplete="current-password" placeholder="VIRALPICK_ACCESS_KEY (16자 이상)" oninput="markBackendDisconnected()"></label>
+    <label class="rememberConnection"><input type="checkbox" id="quickRememberAccess"><span><b>암호 기억하기</b><small>이 브라우저에 암호화해 저장합니다. 공유 기기에서는 선택하지 마세요.</small></span></label>
+    <p class="quickConnectionFeedback" id="quickConnectionFeedback" aria-live="polite">저장된 암호가 있으면 다음 방문부터 상단 버튼 한 번으로 연결할 수 있습니다.</p>
+   </div>
+   <div class="quickConnectionFooter">
+    <button class="quickForgetButton" type="button" onclick="forgetConnectionSecret()">저장 암호 삭제</button>
+    <button class="btn" type="button" onclick="closeQuickConnection()">취소</button>
+    <button class="btn primary" type="submit" id="quickConnectSubmit">서버 연결</button>
+   </div>
+  </form>
  </section>
 </div>
 <div class="reservationOverlay" id="queueDetailOverlay" hidden role="presentation" onclick="if(event.target===this)closeQueueDetail()">
