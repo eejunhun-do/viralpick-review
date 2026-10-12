@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111318">
-<title>ViralPick v0.7.4 Prototype</title>
+<title>ViralPick v0.7.5 Prototype</title>
 <style>
 :root{
   --bg:#f5f6f8;--panel:#fff;--ink:#15171b;--muted:#727985;--line:#e6e8ec;
@@ -419,7 +419,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
  .hookImagePanel .imageGrid3 .hookChoice{flex:0 0 clamp(184px,47%,242px);min-width:184px}
 }
 
-/* v0.7.4 immersive hook image editor */
+/* v0.7.5 immersive hook image editor */
 .hookMaker{display:grid;gap:10px;background:#f8fafc;border:1px solid #e4e8ed;padding:13px;border-radius:14px;margin-bottom:15px}
 .hookEditLabel{display:grid;gap:7px;font-size:11px;font-weight:900;color:#384354}
 #hookHeadline{width:100%;min-height:70px;resize:vertical;border:1px solid #d9dfe8;border-radius:10px;background:white;padding:12px;font-family:inherit;font-size:14px;line-height:1.5;color:#12171e}
@@ -430,7 +430,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 .hookMakerInfo{font-size:10px;color:#687583;line-height:1.55;margin:0}
 @media(max-width:650px){.hookMakerTools{display:grid;grid-template-columns:1fr}.hookMakerTools .btn{width:100%}.hookMakerTools label{min-width:0}#hookHeadline{font-size:16px}}
 
-/* v0.7.4 AI photo candidates and durable local history */
+/* v0.7.5 AI photo candidates and durable local history */
 .photoHistory{display:grid;gap:9px;margin:0 0 13px}
 .photoHistory .historyHead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .photoHistory .historyHead b{font-size:12px;color:#232a35}
@@ -454,6 +454,11 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 .photoLayoutsHeader b{font-size:11px}.photoLayoutsHeader span{font-size:10px;color:#7d8693}
 @media(min-width:931px){.hookImagePanel .photoHistory .historyChoice img{max-height:210px}}
 @media(max-width:650px){.photoHistory .historyChoice img{max-height:230px}.photoHistory .historyChoice{min-height:44px}}
+
+.reserveCheckActions{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:8px 0 0}
+.reserveCheckActions .btn{font-weight:900;font-size:12px}
+.reserveCheckActions>span{font-size:11px;color:#7a8190;line-height:1.5}
+.instagramHookMaker{margin-top:15px}
 </style>
 </head>
 <body>
@@ -606,6 +611,12 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
   <div class="panel"><div class="panelHead"><h2>첫 장 표지 4안</h2><span class="badge green">1080 × 1350</span></div><div class="pad">
   <div class="copySettings"><label>표지·캡션 문구 스타일 <select id="instagramDiversity" onchange="changeInstagramDiversity(this.value)"><option value="stable">담백형</option><option value="balanced" selected>균형형</option><option value="creative">실험형</option></select></label><span class="copyHint">상품별 문제·발견·정보·구매판단 방향을 선택하세요</span></div>
   <div id="instagramPhotoHistory" class="photoHistory"></div>
+  <div class="hookMaker instagramHookMaker">
+    <label class="hookEditLabel">이미지에 넣을 후킹 문구
+      <textarea id="instagramHookHeadline" rows="2" maxlength="120" oninput="editInstagramCoverHeadline(this.value)" placeholder="첫 장에 표시할 후킹 문구를 입력하세요" aria-label="Instagram 표지 후킹 문구 편집"></textarea>
+    </label>
+    <div class="hookMakerTools"><span class="hookMakerInfo">선택한 표지 시안의 문구가 1번 카드 및 최종 ZIP에 반영됩니다.</span><button type="button" class="btn" onclick="resetInstagramCoverHeadline()">선택 문구로 되돌리기</button></div>
+  </div>
   <div class="coverGrid" id="coverGrid"></div><div class="similarityNotice" id="instaDupStatus" aria-live="polite"></div>
 </div></div>
   <div class="twocol">
@@ -769,6 +780,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
     <label class="reserveApproval"><input type="checkbox" id="reserveApproved" onchange="updateReservationButton()"><span>본문·후킹 이미지 또는 카드 5장 내용과 제휴 고지를 검수했습니다.</span></label>
     <label class="reserveApproval"><input type="checkbox" id="reserveProductCheck" onchange="updateReservationButton()"><span>실제 판매 페이지에서 최신 가격·옵션·품절 여부를 직접 확인했습니다.</span></label>
     <label class="reserveApproval"><input type="checkbox" id="reserveLinkCheck" onchange="updateReservationButton()"><span>게시에 사용할 제휴 링크와 고지 문구를 직접 확인했습니다.</span></label>
+    <div class="reserveCheckActions"><button type="button" class="btn" id="reserveCheckAllBtn" onclick="toggleAllReservationChecks()" aria-pressed="false">✓ 모두 동의하기</button><span>위 3가지 사항을 실제로 확인한 뒤 선택해 주세요.</span></div>
   </div>
     <div class="reserveWarning" id="reserveWarning" aria-live="polite">※ 현재는 실제 SNS 게시가 아닌 브라우저에 저장되는 모의 예약입니다.</div>
   </div>
@@ -1470,16 +1482,45 @@ function coverHooks(p){
  const tone={stable:0,balanced:1,creative:2}[instagramDiversity]??1;
  return order.map((g,j)=>profile.hooks[g][(tone+coverSeed+j)%3]);
 }
+const instagramCoverHeadlineEdits={};
+let instagramCoverEditTimer=null;
+function instagramCoverHeadlineKey(index=coverIndex){return selected.id+':'+coverSeed+':'+instagramDiversity+':'+index}
+function getInstagramCoverHeadline(index=coverIndex){
+ const key=instagramCoverHeadlineKey(index);
+ return Object.prototype.hasOwnProperty.call(instagramCoverHeadlineEdits,key)
+  ?instagramCoverHeadlineEdits[key]:coverHooks(selected)[index].replace(/<br\s*\/?\s*>/gi,' ');
+}
+function saveInstagramCoverHeadlineEdits(){
+ try{localStorage.setItem('viralpickInstagramCoverText',JSON.stringify(Object.entries(instagramCoverHeadlineEdits).slice(-100)))}catch(e){}
+}
+function loadInstagramCoverHeadlineEdits(){
+ try{const saved=JSON.parse(localStorage.getItem('viralpickInstagramCoverText')||'[]');
+ if(Array.isArray(saved))for(const entry of saved){if(Array.isArray(entry)&&typeof entry[0]==='string'&&typeof entry[1]==='string')instagramCoverHeadlineEdits[entry[0]]=entry[1].slice(0,120)}
+ }catch(e){}
+}
+function editInstagramCoverHeadline(value){
+ instagramCoverHeadlineEdits[instagramCoverHeadlineKey()]=String(value||'').slice(0,120);
+ saveInstagramCoverHeadlineEdits();
+ if(instagramCoverEditTimer)clearTimeout(instagramCoverEditTimer);
+ instagramCoverEditTimer=setTimeout(()=>{instagramCoverEditTimer=null;renderInstagram()},160);
+}
+function resetInstagramCoverHeadline(){
+ delete instagramCoverHeadlineEdits[instagramCoverHeadlineKey()];
+ saveInstagramCoverHeadlineEdits();renderInstagram();
+}
 function changeInstagramDiversity(v){
  if(!['stable','balanced','creative'].includes(v))return;
  instagramDiversity=v;coverIndex=0;instaCardIndex=0;renderInstagram();
 }
-function renderInstagram(){ const p=selected, hooks=coverHooks(p), cls=['scene1','dark','yellow','pink']; $('#coverGrid').innerHTML=hooks.map((h,i)=>`<div class="visual ${cls[i]} ${coverIndex===i?'selected':''}" onclick="rememberPhotoLayout('Instagram',${i})"><div class="ghost">${i===0?p.visual:'콘텐츠 표지 비주얼'}</div><div class="copy">${h}<span class="sub">${p.name}</span></div></div>`).join('');
+function renderInstagram(){ const p=selected, hooks=coverHooks(p), cls=['scene1','dark','yellow','pink'];
+ const editor=$('#instagramHookHeadline');
+ if(editor&&document.activeElement!==editor)editor.value=getInstagramCoverHeadline();
+ $('#coverGrid').innerHTML=hooks.map((h,i)=>`<div class="visual ${cls[i]} ${coverIndex===i?'selected':''}" onclick="rememberPhotoLayout('Instagram',${i})"><div class="ghost">${i===0?p.visual:'콘텐츠 표지 비주얼'}</div><div class="copy">${cleanMarkup(getInstagramCoverHeadline(i)).replace(/\\n/g,'<br>')}<span class="sub">${cleanMarkup(p.name)}</span></div></div>`).join('');
  const cards=instaCards(p); $('#cardThumbs').innerHTML=cards.map((c,i)=>`<div class="cardThumb ${instaCardIndex===i?'active':''}" onclick="instaCardIndex=${i};renderInstagram()">${i+1}. ${c.short}</div>`).join(''); try{
  const png=buildContentCanvas('Instagram',instaCardIndex,coverIndex).toDataURL('image/png');
  $('#instaCard').innerHTML='<img src="'+png+'" alt="다운로드할 Instagram 카드 실제 미리보기" style="display:block;width:100%;height:100%;object-fit:contain">';
  }catch(e){$('#instaCard').innerHTML=cards[instaCardIndex].html;} $('#cardIndexBadge').textContent=(instaCardIndex+1)+' / 5'; $('.dots').textContent=[0,1,2,3,4].map(i=>i===instaCardIndex?'●':'○').join(' '); $('#instaCaption').value=getCurrentInstagramCaption();$('#instagramDiversity').value=instagramDiversity;renderInstagramDupStatus(); }
-function instaCards(p){ const cover=coverHooks(p)[coverIndex]; return [
+function instaCards(p){ const cover=cleanMarkup(getInstagramCoverHeadline()).replace(/\n/g,'<br>'); return [
  {short:'후킹 표지',html:`<div class="bg scene1"></div><div class="content"><div><div class="num">01 / 05</div><h3>${cover}</h3><p>${p.name}</p></div><div class="cta">넘겨서 보기 →</div></div>`},
  {short:'문제 공감',html:`<div class="bg scene2"></div><div class="content"><div><div class="num">02 / 05</div><h3>은근 반복되는<br>이 불편</h3><p>${p.problem}</p></div><div class="productBox">${p.visual}<br><span style="font-size:10px;font-weight:700">이미지 연동 전 시안</span></div></div>`},
  {short:'상품 등장',html:`<div class="bg" style="background:#f7f8fa"></div><div class="content"><div><div class="num">03 / 05</div><h3>그래서<br>찾아본 게 이거</h3></div><div class="productBox">실제 상품 사진<br>미연결</div><p>${p.name}</p></div>`},
@@ -1703,7 +1744,7 @@ function buildContentCanvas(platform,slide=0,variant=0){
   return canvas;
  }
  if(platform==='Instagram'&&slide===0){
-  drawFullBleedCover(ctx,p,coverHooks(p)[coverIndex].replace(/<br>/g,' '),variant);
+  drawFullBleedCover(ctx,p,getInstagramCoverHeadline(),variant);
   return canvas;
  }
  const grad=ctx.createLinearGradient(0,0,1080,1350);
@@ -2162,6 +2203,7 @@ function openReservation(platform){
    visualHeadline:platform==='Threads'?getHookHeadline():null,
    backgroundStyle:hookPhotoStyle,
    coverVariant:platform==='Instagram'?coverIndex+1:null,
+   coverHeadline:platform==='Instagram'?getInstagramCoverHeadline():null,
    cards,
    productPrice:p.price,
    productDiscount:p.discount,
@@ -2188,7 +2230,17 @@ function openReservation(platform){
  $('#reserveDate').focus();
 }
 function updateReservationButton(){
- $('#confirmReserveBtn').disabled=!(pendingReservation&&$('#reserveApproved').checked&&$('#reserveProductCheck').checked&&$('#reserveLinkCheck').checked);
+ const checks=['reserveApproved','reserveProductCheck','reserveLinkCheck'].map(id=>$('#'+id));
+ const all=checks.every(box=>box.checked);
+ $('#confirmReserveBtn').disabled=!(pendingReservation&&all);
+ const toggle=$('#reserveCheckAllBtn');
+ if(toggle){toggle.textContent=all?'✓ 모두 선택 해제':'✓ 모두 동의하기';toggle.setAttribute('aria-pressed',String(all))}
+}
+function toggleAllReservationChecks(){
+ const checks=['reserveApproved','reserveProductCheck','reserveLinkCheck'].map(id=>$('#'+id));
+ const next=!checks.every(box=>box.checked);
+ checks.forEach(box=>{box.checked=next});
+ updateReservationButton();
 }
 function closeReservation(){
  const modal=$('#reservationOverlay');if(!modal||modal.hidden)return;
@@ -2263,7 +2315,7 @@ function show(id){
 }
 $$('.nav button').forEach(b=>b.onclick=()=>show(b.dataset.view));
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
-loadPostingSettings();restoreManualProducts();setDefaultScheduleFields();try{$('#apiBase').value=localStorage.getItem('viralpickBackendUrl')||(location.hostname.endsWith('.vercel.app')?location.origin:'https://viralpick-review.vercel.app')}catch(e){$('#apiBase').value='https://viralpick-review.vercel.app'}renderProductLists();renderLab();renderThreads();renderInstagram();renderAnalytics();renderBlogRecommendations();renderPostingSettings();syncProductInputs();renderPhotoHistories();void restorePhotoHistory(selected.id);
+loadPostingSettings();restoreManualProducts();loadInstagramCoverHeadlineEdits();setDefaultScheduleFields();try{$('#apiBase').value=localStorage.getItem('viralpickBackendUrl')||(location.hostname.endsWith('.vercel.app')?location.origin:'https://viralpick-review.vercel.app')}catch(e){$('#apiBase').value='https://viralpick-review.vercel.app'}renderProductLists();renderLab();renderThreads();renderInstagram();renderAnalytics();renderBlogRecommendations();renderPostingSettings();syncProductInputs();renderPhotoHistories();void restorePhotoHistory(selected.id);
 const q=new URLSearchParams(location.search).get('view');if(['dashboard','discover','integrations','lab','threads','instagram','analytics','blog','scheduler'].includes(q))show(q);
 </script>
 </body>
