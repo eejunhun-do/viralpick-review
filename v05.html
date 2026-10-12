@@ -718,7 +718,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 </section>
 
 <section id="threads" class="view">
-  <div class="top"><div><span class="badge blue">Threads</span><h1>글 + 후킹 이미지 1~2장</h1><p>글이 메인이고 이미지는 스크롤을 멈추게 하는 역할. 너무 광고처럼 보이지 않게 구성합니다.</p></div><div class="btnrow"><button class="btn singleOnlyThreads" onclick="cycleThread()">후킹 6안 새로 만들기</button><button class="btn" onclick="copyThread()">선택 본문 복사</button><button class="btn singleOnlyThreads" onclick="show('integrations')">사진 업로드</button><button class="btn green" id="threadsPrimaryDownload" onclick="downloadThreadPNG()">선택 이미지 PNG 저장</button><button class="btn primary" onclick="openReservation('Threads')">📅 최종 검수 후 예약</button></div></div>
+  <div class="top"><div><span class="badge blue">Threads</span><h1>공감형 글 · 추천템 콘텐츠 만들기</h1><p>단일 상품 후기형부터 여러 상품을 소개하는 공감 스토리형까지 제작합니다. 글이 메인이며 이미지는 후킹을 돕습니다.</p></div><div class="btnrow"><button class="btn singleOnlyThreads" onclick="cycleThread()">후킹 6안 새로 만들기</button><button class="btn" onclick="copyThread()">선택 본문 복사</button><button class="btn singleOnlyThreads" onclick="show('integrations')">사진 업로드</button><button class="btn green" id="threadsPrimaryDownload" onclick="downloadThreadPNG()">선택 이미지 PNG 저장</button><button class="btn primary" onclick="openReservation('Threads')">📅 최종 검수 후 예약</button></div></div>
 <div class="multiStudioPanel" id="multiStudioThreads">
  <div class="multiStudioTop"><div><strong>콘텐츠 제작 방식</strong><small>기존 단일 상품 제작과 여러 상품 모음형을 전환할 수 있습니다.</small></div>
  <div class="multiModeTabs" role="group" aria-label="Threads 제작 방식">
@@ -815,7 +815,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 </section>
 
 <section id="instagram" class="view">
-  <div class="top"><div><span class="badge orange">Instagram Carousel</span><h1>5장 카드형 콘텐츠 만들기</h1><p>첫 장은 후킹, 2장은 문제, 3장은 상품, 4장은 장점, 5장은 CTA로 구성합니다.</p></div><div class="btnrow"><button class="btn singleOnlyInstagram" onclick="cycleCover()">표지 4안 재생성</button><button class="btn singleOnlyInstagram" id="instagramGenerateButton" onclick="requestAiScene('instagram')">✨ AI 실사 표지 2장 생성</button><button class="btn green" id="igZipBtn" onclick="downloadInstagramZIP()">카드 5장 ZIP 저장</button><button class="btn primary" onclick="openReservation('Instagram')">📅 최종 검수 후 예약</button></div></div>
+  <div class="top"><div><span class="badge orange">Instagram Carousel</span><h1>Instagram 캐러셀 만들기</h1><p>단일 상품은 기존 5장 구성으로, 모음형은 선택 상품 수와 스토리 카드에 맞춰 장수가 자동 조정됩니다.</p></div><div class="btnrow"><button class="btn singleOnlyInstagram" onclick="cycleCover()">표지 4안 재생성</button><button class="btn singleOnlyInstagram" id="instagramGenerateButton" onclick="requestAiScene('instagram')">✨ AI 실사 표지 2장 생성</button><button class="btn green" id="igZipBtn" onclick="downloadInstagramZIP()">카드 5장 ZIP 저장</button><button class="btn primary" onclick="openReservation('Instagram')">📅 최종 검수 후 예약</button></div></div>
 <div class="multiStudioPanel" id="multiStudioInstagram">
  <div class="multiStudioTop"><div><strong>콘텐츠 제작 방식</strong><small>기존 단일 상품 제작과 여러 상품 모음형을 전환할 수 있습니다.</small></div>
  <div class="multiModeTabs" role="group" aria-label="Instagram 제작 방식">
@@ -2249,8 +2249,8 @@ function multiCaptionDefault(platform){
   ?'일상에서 귀찮았던 순간이 있다면, 그 불편을 덜 방법부터 찾아보게 되지.'
   :'일상 속에서 반복되는 번거로움이 있다면, 해결 방법부터 찾아보게 됩니다.';
  const transition=isThreads
-  ?'이럴 때 비교해 볼 만한 제품을 모아봤어. 직접 써본 후기는 아니니까 실제 사양은 확인해 줘.'
-  :'이럴 때 살펴볼 만한 제품들을 모았습니다. 직접 사용한 후기가 아니며 제품별 실제 사양은 확인이 필요합니다.';
+  ?'이런 불편이 있을 때 비교해 볼 만한 물건을 모아봤어. 내 상황에 맞는지는 직접 확인해 봐.'
+  :'이런 상황에 참고할 만한 제품들을 모았습니다. 각 제품의 실제 사양과 사용 조건을 확인해 주세요.';
  const ending=isThreads
   ?'그중 어떤 불편이 제일 공감돼? 가격·옵션·재고는 변할 수 있으니 구매 전 다시 확인해 봐.'
   :'가장 공감되는 불편은 무엇인가요? 가격·옵션·재고는 달라질 수 있으니 구매 전에 확인해 주세요.';
@@ -3060,13 +3060,13 @@ function drawMultiContentCanvas(ctx,platform,slide){
   multiDrawText(ctx,cardTitle,105,310,864,195,{size:73,min:45,lines:3,color:scheme.ink});
   ctx.fillStyle=scheme.accent;ctx.fillRect(108,545,95,8);
   const text=getMultiStory(platform);
-  const paragraphs=text.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  const paragraphs=text.split(/\n+/).map(s=>s.trim()).filter(Boolean).slice(0,3);
   let y=619;
   for(const [i,line] of paragraphs.entries()){
    if(y>1030)break;
-   y=multiDrawText(ctx,line,109,y,858,Math.min(148,1100-y),{
-    size:46,min:31,lines:3,color:i===0?scheme.ink:'#526376'
-   })+22;
+   y=multiDrawText(ctx,line,109,y,858,Math.min(138,1100-y),{
+    size:42,min:29,lines:3,color:i===0?scheme.ink:'#526376'
+   })+18;
   }
   multiDrawText(ctx,'어떤 상품이 이런 상황에 맞을까요?  →',89,1219,906,76,{size:37,min:29,lines:2,color:scheme.ink});
  }else if(card.kind==='summary'){
