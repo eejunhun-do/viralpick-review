@@ -1287,6 +1287,163 @@ function renderMediaPreview(){
    '<span style="font-size:10px;color:#73808b">'+(item?cleanMarkup(item.kind==='ai'?'GPT Image 2로 생성':'직접 업로드'):'파일 미등록')+'</span></div>';
  }).join('');
 }
+
+/* v0.8.2: explicitly opted-in, browser-local encrypted access vault. */
+const CONNECTION_VAULT_NAME='viralpick-connection-vault',CONNECTION_VAULT_STORE='secrets',CONNECTION_VAULT_ID='backend-access-v1';
+let backendConnectionState='disconnected',backendConnectionBusy=false,rememberedAccessEnabled=false;
+let connectionRestoreTask=Promise.resolve();
+function showBackendState(state,message=''){
+ backendConnectionState=state;
+ const copy={connected:'● 연결됨',connecting:'● 연결 중…',disconnected:'● 서버 연결하기'};
+ for(const id of ['mobileServerConnect','desktopServerConnect']){
+  const button=$('#'+id);if(!button)continue;
+  button.textContent=copy[state]||copy.disconnected;
+  button.classList.toggle('connected',state==='connected');
+  button.classList.toggle('connecting',state==='connecting');
+  button.setAttribute('aria-label',state==='connected'?'서버 연결됨 · 연결 관리 열기':state==='connecting'?'서버 연결 확인 중':'서버 연결하기');
+  button.disabled=state==='connecting';
+ }
+ const health=$('#apiHealth');
+ if(health){
+  health.textContent=state==='connected'?'연결됨':state==='connecting'?'연결 확인 중…':'연결 필요';
+  health.classList.toggle('green',state==='connected');
+  health.classList.toggle('orange',state==='connecting');
+ }
+ if(message){const result=$('#apiResult');if(result)result.textContent=message}
+}
+function markBackendDisconnected(){
+ if(backendConnectionState!=='disconnected')showBackendState('disconnected');
+}
+function setQuickConnectionMessage(message,isError=false){
+ const el=$('#quickConnectionFeedback');if(!el)return;
+ el.textContent=message;el.classList.toggle('error',!!isError);
+}
+function openQuickConnection(message=''){
+ const url=$('#quickServerUrl'),password=$('#quickServerPassword'),remember=$('#quickRememberAccess');
+ if(url)url.value=$('#apiBase')?.value||'https://viralpick-review.vercel.app';
+ if(password)password.value=$('#apiAccess')?.value||'';
+ if(remember)remember.checked=rememberedAccessEnabled;
+ setQuickConnectionMessage(message||'암호 기억하기를 선택하고 연결하면 다음 방문부터 상단 버튼 한 번으로 연결할 수 있습니다.');
+ const overlay=$('#quickConnectionOverlay');if(overlay)overlay.hidden=false;
+ (password?.value?.length>=16?$('#quickConnectSubmit'):password)?.focus();
+}
+function closeQuickConnection(){
+ const overlay=$('#quickConnectionOverlay');if(overlay)overlay.hidden=true;
+}
+function openConnectionVault(){
+ return new Promise((resolve,reject)=>{
+  if(!window.indexedDB) return reject(new Error('브라우저 저장소를 사용할 수 없습니다.'));
+  const req=window.indexedDB.open(CONNECTION_VAULT_NAME,1);
+  req.onupgradeneeded=()=>{
+   if(!req.result.objectStoreNames.contains(CONNECTION_VAULT_STORE)){
+    req.result.createObjectStore(CONNECTION_VAULT_STORE,{keyPath:'id'});
+   }
+  };
+  req.onsuccess=()=>resolve(req.result);
+  req.onerror=()=>reject(req.error||new Error('암호 보관함을 열 수 없습니다.'));
+  req.onblocked=()=>reject(new Error('다른 탭이 암호 보관함을 사용 중입니다.'));
+ });
+}
+async function readConnectionVault(){
+ const db=await openConnectionVault();
+ try{
+  return await new Promise((resolve,reject)=>{
+   const tx=db.transaction(CONNECTION_VAULT_STORE,'readonly');
+   const request=tx.objectStore(CONNECTION_VAULT_STORE).get(CONNECTION_VAULT_ID);
+   request.onsuccess=()=>resolve(request.result||null);
+   request.onerror=()=>reject(request.error||new Error('저장 암호 조회 실패'));
+   tx.onerror=()=>reject(tx.error||new Error('저장 암호 조회 오류'));
+  });
+ }finally{db.close()}
+}
+async function saveConnectionVault(record){
+ const db=await openConnectionVault();
+ try{
+  await new Promise((resolve,reject)=>{
+   const tx=db.transaction(CONNECTION_VAULT_STORE,'readwrite');
+   tx.objectStore(CONNECTION_VAULT_STORE).put(record);
+   tx.oncomplete=()=>resolve(true);
+   tx.onerror=()=>reject(tx.error||new Error('암호 기억하기 저장 실패'));
+   tx.onabort=()=>reject(tx.error||new Error('암호 기억하기가 중단됐습니다.'));
+  });
+ }finally{db.close()}
+}
+async function deleteConnectionVault(){
+ const db=await openConnectionVault();
+ try{
+  await new Promise((resolve,reject)=>{
+   const tx=db.transaction(CONNECTION_VAULT_STORE,'readwrite');
+   tx.objectStore(CONNECTION_VAULT_STORE).delete(CONNECTION_VAULT_ID);
+   tx.oncomplete=()=>resolve(true);
+   tx.onerror=()=>reject(tx.error||new Error('저장 암호 삭제 실패'));
+   tx.onabort=()=>reject(tx.error||new Error('암호 삭제 중단'));
+  });
+ }finally{db.close()}
+}
+async function saveRememberedAccess(access,serverUrl){
+ if(!window.crypto?.subtle||!window.indexedDB)throw new Error('이 브라우저에서는 안전한 암호 저장을 사용할 수 없습니다.');
+ const key=await window.crypto.subtle.generateKey({name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+ const iv=window.crypto.getRandomValues(new Uint8Array(12));
+ const payload=new TextEncoder().encode(JSON.stringify({access,serverUrl}));
+ const encrypted=await window.crypto.subtle.encrypt({name:'AES-GCM',iv},key,payload);
+ await saveConnectionVault({id:CONNECTION_VAULT_ID,key,iv:Array.from(iv),cipher:Array.from(new Uint8Array(encrypted))});
+ rememberedAccessEnabled=true;
+}
+async function loadRememberedAccess(){
+ try{
+  if(!window.crypto?.subtle||!window.indexedDB)return;
+  const item=await readConnectionVault();if(!item)return;
+  const plain=await window.crypto.subtle.decrypt({name:'AES-GCM',iv:new Uint8Array(item.iv)},item.key,new Uint8Array(item.cipher));
+  const saved=JSON.parse(new TextDecoder().decode(plain));
+  if(typeof saved.access!=='string'||saved.access.length<16||!/^https:\/\/[\w.-]+(?::\d+)?$/.test(saved.serverUrl||''))return;
+  const access=$('#apiAccess'),base=$('#apiBase');
+  if(access&&!access.value)access.value=saved.access;
+  if(base&&!base.value)base.value=saved.serverUrl;
+  rememberedAccessEnabled=true;
+  const checkbox=$('#quickRememberAccess');if(checkbox)checkbox.checked=true;
+ }catch(e){
+  rememberedAccessEnabled=false;
+  // Don't expose credentials or plaintext in status/error messages.
+  setQuickConnectionMessage('저장된 암호를 읽지 못했습니다. 암호를 다시 입력해 주세요.',true);
+ }
+}
+async function quickConnectFromHeader(){
+ await connectionRestoreTask;
+ if(backendConnectionBusy)return;
+ if(backendConnectionState==='connected'){openQuickConnection('서버에 연결되어 있습니다. 저장 암호를 관리하거나 연결을 다시 확인할 수 있습니다.');return}
+ const existing=$('#apiAccess')?.value||'';
+ if(existing.length<16){openQuickConnection();return}
+ await checkBackendStatus({fromHeader:true});
+}
+async function connectFromQuickPanel(){
+ await connectionRestoreTask;
+ const base=$('#quickServerUrl')?.value?.trim()||'',password=$('#quickServerPassword')?.value||'';
+ const wantRemember=!!$('#quickRememberAccess')?.checked;
+ if(!/^https:\/\/[\w.-]+(?::\d+)?$/.test(base.replace(/\/$/,''))){
+  setQuickConnectionMessage('정확한 https:// 서버 주소를 입력해 주세요.',true);return;
+ }
+ if(password.length<16){
+  setQuickConnectionMessage('연결 암호는 16자 이상 입력해 주세요.',true);return;
+ }
+ $('#apiBase').value=base.replace(/\/$/,'');
+ $('#apiAccess').value=password;
+ await checkBackendStatus({fromHeader:true,remember:wantRemember});
+}
+async function forgetConnectionSecret(){
+ try{
+  await deleteConnectionVault();
+  rememberedAccessEnabled=false;
+  if($('#quickRememberAccess'))$('#quickRememberAccess').checked=false;
+  if($('#apiAccess'))$('#apiAccess').value='';
+  if($('#quickServerPassword'))$('#quickServerPassword').value='';
+  showBackendState('disconnected');
+  setQuickConnectionMessage('저장된 암호를 삭제했습니다. 다시 연결하려면 암호를 입력하세요.');
+  toast('저장된 서버 연결 암호를 삭제했습니다.');
+ }catch(e){
+  setQuickConnectionMessage('암호 삭제 실패: '+e.message,true);
+ }
+}
+
 function persistBackendUrl(){
  const el=$('#apiBase');if(!el)return '';
  let addr=el.value.trim().replace(/\/$/,'');
@@ -1313,19 +1470,39 @@ async function backendRequest(path,options={}){
   return data;
  }finally{clearTimeout(timeout)}
 }
-async function checkBackendStatus(){
- $('#apiHealth').textContent='연결 중…';
+async function checkBackendStatus({fromHeader=false,remember=undefined}={}){
+ if(backendConnectionBusy)return false;
+ backendConnectionBusy=true;
+ showBackendState('connecting');
+ const submit=$('#quickConnectSubmit');if(submit){submit.disabled=true;submit.textContent='연결 확인 중…'}
  try{
   const data=await backendRequest('/api/status');
-  $('#apiHealth').textContent='서버 연결 성공';
-  $('#apiResult').textContent='보호된 서버 연결 정상 · GPT Image 2: '+(data.imageReady?'사용 준비':'API 키 설정 필요')+' / 토스: '+(data.tossConfigured?'서버 명세 설정됨':'승인 명세 설정 필요');
-  $('#tossHealth').textContent=data.tossConfigured?'서버 설정 있음':'토스 연동 대기';
- }catch(e){$('#apiHealth').textContent='연결 필요';$('#apiResult').textContent=e.message}
+  const note='보호된 서버 연결 정상 · GPT Image 2: '+(data.imageReady?'사용 준비':'API 키 설정 필요')+' / 토스: '+(data.tossConfigured?'서버 명세 설정됨':'승인 명세 설정 필요');
+  showBackendState('connected',note);
+  const toss=$('#tossHealth');if(toss)toss.textContent=data.tossConfigured?'서버 설정 있음':'토스 연동 대기';
+  let reminder='';
+  if(remember===true){
+   try{await saveRememberedAccess($('#apiAccess').value,persistBackendUrl());reminder=' 암호도 이 브라우저에 암호화해 기억했습니다.'}
+   catch(e){reminder=' (연결 성공, 암호 기억하기 실패: '+e.message+')';rememberedAccessEnabled=false}
+  }else if(remember===false){
+   try{await deleteConnectionVault();rememberedAccessEnabled=false}
+   catch(e){reminder=' (저장 암호 삭제 실패: '+e.message+')'}
+  }
+  closeQuickConnection();
+  if(fromHeader)toast('서버 연결 성공!'+reminder);
+  if(reminder.includes('실패')){openQuickConnection('서버는 연결됐습니다.'+reminder);setQuickConnectionMessage('서버는 연결됐습니다.'+reminder,true)}
+  return true;
+ }catch(e){
+  showBackendState('disconnected','서버 연결 실패: '+e.message);
+  if(fromHeader)openQuickConnection('연결에 실패했습니다: '+e.message);
+  setQuickConnectionMessage('연결에 실패했습니다: '+e.message,true);
+  return false;
+ }finally{
+  backendConnectionBusy=false;
+  if(submit){submit.disabled=false;submit.textContent='서버 연결'}
+ }
 }
-function clearBackendAccess(){
- const input=$('#apiAccess');if(input)input.value='';
- $('#apiHealth').textContent='암호 입력 필요';toast('현재 탭의 연결 암호 입력을 지웠습니다.');
-}
+async function clearBackendAccess(){await forgetConnectionSecret()}
 async function fetchTossProducts(){
  const root=$('#importedProducts');root.textContent='조회 중…';
  try{
@@ -2652,6 +2829,7 @@ function show(id){
 $$('.nav button').forEach(b=>b.onclick=()=>show(b.dataset.view));
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
 loadPostingSettings();restoreManualProducts();loadInstagramCoverHeadlineEdits();setDefaultScheduleFields();try{$('#apiBase').value=localStorage.getItem('viralpickBackendUrl')||(location.hostname.endsWith('.vercel.app')?location.origin:'https://viralpick-review.vercel.app')}catch(e){$('#apiBase').value='https://viralpick-review.vercel.app'}renderProductLists();renderLab();renderThreads();renderInstagram();renderAnalytics();renderBlogRecommendations();renderPostingSettings();syncProductInputs();renderPhotoHistories();void restorePhotoHistory(selected.id);
+connectionRestoreTask=loadRememberedAccess();
 const q=new URLSearchParams(location.search).get('view');if(['dashboard','discover','integrations','lab','threads','instagram','analytics','blog','scheduler'].includes(q))show(q);
 </script>
 </body>
