@@ -3316,14 +3316,20 @@ function openReservation(platform){
  reserveReturnFocus=document.activeElement;
  const p=selected;
  const text=platform==='Threads'?getCurrentThreadText():getCurrentInstagramCaption();
- const desc=platform==='Threads'
- ? '본문 '+(threadCopyIndex+1)+'안 · 후킹 이미지 '+(threadImageIndex+1)+'안'
- : '표지 '+(coverIndex+1)+'안 · Instagram 카드 5장 · 최종 캡션';
- const cards=platform==='Instagram'?instaCards(p).map((card,i)=>({index:i+1,label:card.short,html:card.html})):[];
+ const many=isMultiMode(platform),group=multiSelectedProducts(),slideCount=many?multiSlideCount():5;
+ const desc=many
+  ?'모음형 '+multiStudio.template+' · 상품 '+group.length+'개 · 카드 '+slideCount+'장 · 최종 문구'
+  :platform==='Threads'
+   ?'본문 '+(threadCopyIndex+1)+'안 · 후킹 이미지 '+(threadImageIndex+1)+'안'
+   :'표지 '+(coverIndex+1)+'안 · Instagram 카드 5장 · 최종 캡션';
+ const cards=platform==='Instagram'?instaCards(p).map((card,i)=>({index:i+1,label:card.short,html:card.html})):many?multiCardDescriptors().map((card,i)=>({index:i+1,label:card.short})):[];
  pendingReservation={
-  platform,productId:p.id,product:p.name,price:p.price,discount:p.discount,
+  platform,productId:p.id,product:many?'추천 상품 '+group.length+'개':p.name,price:p.price,discount:p.discount,
   snapshot:{
-   text,description:desc,contentType:p.type,
+   text,description:desc,contentType:many?'다중 상품 '+multiStudio.template:p.type,
+   collection:many?{template:multiStudio.template,headline:multiTitle(),summary:multiSummaryText(),cardCount:slideCount,
+    products:group.map(item=>({id:item.id,name:item.name,source:item.source,displayedPrice:item.price,
+     note:multiItemNote(item),editedImageIncluded:!!multiMediaFor(item)}))}:null,
    bodyVariant:platform==='Threads'?threadCopyIndex+1:null,
    imageVariant:platform==='Threads'?threadImageIndex+1:null,
    visualHeadline:platform==='Threads'?getHookHeadline():null,
@@ -3336,10 +3342,11 @@ function openReservation(platform){
    selectedAt:new Date().toISOString()
   }
  };
+ if(many&&group.length<2){toast('모음형 게시물은 상품 2개 이상이 필요합니다.');return}
  if(!String(text||'').trim()){toast('최종 게시글이 비어 있습니다. 본문을 먼저 작성해주세요.');return}
  const when=new Date(Date.now()+9*3600000+2*3600000).toISOString();
  $('#reservePlatform').textContent=platform;
- $('#reserveProduct').textContent=p.name;
+ $('#reserveProduct').textContent=many?'추천 상품 '+group.length+'개':p.name;
  $('#reserveSelection').textContent=desc;
  $('#reserveText').value=text;
  $('#reserveDate').min=kstNow().date;
@@ -3348,7 +3355,8 @@ function openReservation(platform){
  $('#reserveApproved').checked=false;
  $('#reserveProductCheck').checked=false;
  $('#reserveLinkCheck').checked=false;
- $('#reserveWarning').textContent='※ 실제 자동게시가 아닌 브라우저 저장용 모의 예약입니다. 최신 가격·재고·제휴 링크는 실제 API와 연결되지 않아 직접 확인해야 합니다.';
+ $('#reserveWarning').textContent=(many?'※ 모음형 카드는 권한이 확인된 편집 이미지만 합성합니다. 토스 원본 이미지 가공은 금지됩니다. ':'')+
+  '실제 자동게시가 아닌 브라우저 저장용 모의 예약입니다. 각 상품의 가격·재고·이미지 사용권·제휴 링크를 직접 검수해 주세요.';
  $('#reserveWarning').classList.remove('error');
  updateReservationButton();
  $('#reservationOverlay').hidden=false;
