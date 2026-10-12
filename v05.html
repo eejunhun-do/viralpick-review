@@ -924,6 +924,15 @@ let customThreadEdits={}, customInstagramCaptions={}, pendingReservation=null, r
 let perfScenario=0;
 const $=q=>document.querySelector(q), $$=q=>[...document.querySelectorAll(q)];
 const fmt=n=>Number(n).toLocaleString('ko-KR')+'원';
+// 상품명 끝 받침에 따라 은/는, 을/를 등 조사를 자동 선택.
+function withProductJosa(name,withFinal,withoutFinal){
+ const s=String(name||'').trim();
+ const hits=s.match(/[가-힣]/g);
+ if(!hits?.length)return s+withoutFinal;
+ const code=hits[hits.length-1].charCodeAt(0);
+ return s+((code-0xac00)%28?withFinal:withoutFinal);
+}
+const affiliateDisclosure='※ 이 게시물은 토스쇼핑 쉐어링크 활동의 일환으로, 구매 발생 시 일정 수수료를 제공받을 수 있습니다.';
 
 
 const liveMedia=new Map();
