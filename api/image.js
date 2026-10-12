@@ -11,16 +11,27 @@ export async function POST(req){
  const scene=String(data.scene||'').trim().slice(0,500);
  const purpose=data.purpose==='instagram'?'instagram':'threads';
  if(!product||scene.length<5)return json(req,{ok:false,message:'상품명 및 장면 설명을 입력해 주세요.'},400);
+ const style=['warm-editorial','clean-minimal','bold-contrast'].includes(data.style)?data.style:'warm-editorial';
+ const artDirection={
+  'warm-editorial':'Bright warm home interior, natural sunlight, premium lifestyle editorial photography, inviting cream and wood colors, gentle shadows.',
+  'clean-minimal':'Crisp contemporary home environment, clean geometry, neutral daylight, refined modern commercial photography.',
+  'bold-contrast':'Cinematic but approachable lifestyle photography, deliberate strong subject silhouette, high clarity and striking photographic depth.'
+ }[style];
+ const hook=String(data.hook||'').trim().slice(0,160);
  const prompt=[
-  'Create one high-quality Korean social media lifestyle scene illustration for a shopping content creator.',
-  'Vertical 4:5 composition, clean naturally lit editorial photography style, usable as a background in a graphic card.',
-  'Scene: '+scene+'. Category context: '+product+'.',
-  'Show an authentic everyday problem situation and relevant environment.',
-  'Do not fabricate specific exact product branding, model-specific features, comparisons, performance claims or prices.',
-  'No words, captions, letters, numbers, banners, logos, watermarks or people identifiable as real individuals.',
-  'Leave the top third visually simple for later overlay text. Professional, attractive, realistic but not misleading.',
-  purpose==='instagram'?'Suitable for Instagram carousel.':'Suitable for a Threads hook image.'
- ].join('\n');
+  'Create a high quality PHOTOREALISTIC VERTICAL 4:5 lifestyle photo to be used as the entire background of a Korean social media hook poster.',
+  'The entire frame is one immersive believable scene, NOT a predesigned poster and NOT a card, layout or collage.',
+  'Scene: '+scene+'. General product/use-case category: '+product+'.',
+  'Narrative intent (DO NOT print these words): '+(hook||'show why this everyday problem matters')+'.',
+  'Composition is crucial: reserve the upper 35 percent as naturally bright, gently textured, uncluttered background such as a sunlit cream wall, for large BLACK AND BURNT-ORANGE KOREAN HEADLINE TYPE that our separate renderer will place later.',
+  'Place the recognizable human activity, context and any tools prominently across the middle and lower two thirds. A compelling photographic story with useful subject scale, close perspective, realistic hands, beautiful spatial depth and premium commercial lighting.',
+  'The photography must continue seamlessly behind the future headline; NO big empty color rectangles, no inset frames, no horizontal image strips, no cutout panels, no decorative text boxes.',
+  artDirection,
+  'Do NOT generate any writing whatsoever: NO Korean, English, text, letters, symbols, prices, watermark, brand, labels or logos. The exact Korean headline will be overlaid by the app later.',
+  'Avoid inventing the exact look of the real listed product, manufacturer logos, specifications, performance evidence, comparisons or claims. Depict the usage context and only generic safe visual cues.',
+  'Keep the lower-left region legible for a small separate product-name overlay. Authentic credible visual, not exaggerated or misleading.',
+  purpose==='instagram'?'Designed as one Instagram carousel cover background.':'Designed as one scroll-stopping Threads hook image background.'
+ ].join('\\n');
  const controller=new AbortController();
  const timeout=setTimeout(()=>controller.abort(),135000);
  try{
