@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111318">
-<title>ViralPick v0.7.2 Prototype</title>
+<title>ViralPick v0.7.3 Prototype</title>
 <style>
 :root{
   --bg:#f5f6f8;--panel:#fff;--ink:#15171b;--muted:#727985;--line:#e6e8ec;
@@ -419,7 +419,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
  .hookImagePanel .imageGrid3 .hookChoice{flex:0 0 clamp(184px,47%,242px);min-width:184px}
 }
 
-/* v0.7.2 immersive hook image editor */
+/* v0.7.3 immersive hook image editor */
 .hookMaker{display:grid;gap:10px;background:#f8fafc;border:1px solid #e4e8ed;padding:13px;border-radius:14px;margin-bottom:15px}
 .hookEditLabel{display:grid;gap:7px;font-size:11px;font-weight:900;color:#384354}
 #hookHeadline{width:100%;min-height:70px;resize:vertical;border:1px solid #d9dfe8;border-radius:10px;background:white;padding:12px;font-family:inherit;font-size:14px;line-height:1.5;color:#12171e}
@@ -429,6 +429,31 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 .hookMakerTools .btn{flex:1;min-width:170px}
 .hookMakerInfo{font-size:10px;color:#687583;line-height:1.55;margin:0}
 @media(max-width:650px){.hookMakerTools{display:grid;grid-template-columns:1fr}.hookMakerTools .btn{width:100%}.hookMakerTools label{min-width:0}#hookHeadline{font-size:16px}}
+
+/* v0.7.3 AI photo candidates and durable local history */
+.photoHistory{display:grid;gap:9px;margin:0 0 13px}
+.photoHistory .historyHead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.photoHistory .historyHead b{font-size:12px;color:#232a35}
+.photoHistory .historyHead small{font-size:10px;color:#7e8997}
+.photoHistory .historyGroup{border:1px solid #e4e8ed;border-radius:12px;background:#fafbfd;padding:11px;display:grid;gap:9px}
+.photoHistory .historyGroup.active{border-color:#c5d5e6;background:#f6f9fc}
+.photoHistory .historyMeta{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:10px;color:#627181}
+.photoHistory .historyMeta .historyTitle{font-weight:900;color:#303c4a}
+.photoHistory .historyChoices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.photoHistory .historyChoice{display:grid;gap:5px;padding:6px;border:2px solid #e0e5ec;background:#fff;border-radius:13px;cursor:pointer;min-width:0;text-align:left}
+.photoHistory .historyChoice.active{border-color:#1c2636;box-shadow:0 0 0 2px rgba(39,57,77,.08)}
+.photoHistory .historyChoice img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:8px;display:block;max-height:280px}
+.photoHistory .historyChoice span{font-size:11px;font-weight:800;color:#364354;padding:3px 5px}
+.photoHistory .historyChoice:focus-visible{outline:3px solid #4263eb;outline-offset:2px}
+.photoHistory .historyActions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.photoHistory .historyDelete{background:#fff;border:1px solid #dde3eb;color:#a04448;border-radius:9px;padding:8px 11px;font-size:10px;cursor:pointer;min-height:36px}
+.photoHistory .historyEmpty{background:#f7f9fc;border:1px dashed #d8e0ea;border-radius:12px;padding:13px;font-size:11px;line-height:1.55;color:#697787}
+.photoHistory .historyStatus{font-size:10px;line-height:1.5;color:#777f89}
+.photoHistory .historyStatus.warn{color:#ac4d1b}
+.photoLayoutsHeader{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:12px 0 8px}
+.photoLayoutsHeader b{font-size:11px}.photoLayoutsHeader span{font-size:10px;color:#7d8693}
+@media(min-width:931px){.hookImagePanel .photoHistory .historyChoice img{max-height:210px}}
+@media(max-width:650px){.photoHistory .historyChoice img{max-height:230px}.photoHistory .historyChoice{min-height:44px}}
 </style>
 </head>
 <body>
@@ -518,7 +543,8 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
    <div class="field" style="margin-top:15px"><label>AI 상황 이미지 프롬프트 (상품 실물/로고를 임의로 재현하지 않음)</label><textarea id="scenePrompt" rows="2" maxlength="500" placeholder="예: 오전 햇살이 비치는 작은 거실에서 선반 수평을 확인하는 장면"></textarea></div>
    <div class="btnrow"><button class="btn primary" id="generateSceneButton" onclick="requestAiScene()">GPT Image 2 상황 이미지 생성</button><button class="btn" onclick="show('threads')">Threads 확인</button><button class="btn" onclick="show('instagram')">Instagram 확인</button></div>
    <div id="assetPreview" class="mediaPreviewGrid"></div>
-   <div class="aiNote" style="margin-top:12px">상황 이미지는 AI가 생성할 수 있지만 제품의 정확한 외형은 임의로 만들어서는 안 됩니다. 실제 상품 사진은 별도로 업로드해 3번째 상품 카드에 합성합니다. 이미지 파일은 브라우저 메모리에 남으며 새로고침 후에는 다시 업로드해야 합니다.</div>
+   <div id="integrationPhotoHistory" class="photoHistory" style="margin-top:13px"></div>
+   <div class="aiNote" style="margin-top:12px">상황 이미지는 AI가 생성할 수 있지만 제품의 정확한 외형은 임의로 만들어서는 안 됩니다. 실제 상품 사진은 별도로 업로드해 3번째 상품 카드에 합성합니다. AI 생성 사진은 이 브라우저의 IndexedDB에 상품별 최근 3세트까지 저장됩니다. 저장한 기록은 같은 브라우저에서 다시 접속할 때 복원되며, 기기가 다르면 동기화되지 않습니다.</div>
   </div>
  </div>
 </section>
@@ -559,10 +585,12 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
   <label class="hookEditLabel">이미지에 넣을 후킹 문구<textarea id="hookHeadline" rows="2" maxlength="120" oninput="editHookHeadline(this.value)" aria-label="후킹 이미지 제목 직접 편집" placeholder="예: 디지털 수평계 써본 사람 체감 차이 있어?"></textarea></label>
   <div class="hookMakerTools"><label>사진 분위기
    <select id="hookPhotoStyle" onchange="changeHookPhotoStyle(this.value)"><option value="warm-editorial">따뜻한 실사 · 추천</option><option value="clean-minimal">깔끔한 생활 사진</option><option value="bold-contrast">강한 대비 실사</option></select></label>
-   <button class="btn primary" id="threadGenerateButton" onclick="requestAiScene('threads')">✨ AI 실사 배경 생성</button>
+   <button class="btn primary" id="threadGenerateButton" onclick="requestAiScene('threads')">✨ AI 실사 배경 2장 생성</button>
   </div>
-  <p class="hookMakerInfo">GPT Image 2로 <b>실사 배경 1장</b>을 생성하고, 그 사진 위에 직접 수정 가능한 한국어 후킹 문구를 올려 3가지 구도로 표시합니다. 생성 1회마다 API 요금이 발생할 수 있습니다.</p>
+  <p class="hookMakerInfo">GPT Image 2로 <b>실사 배경 2장</b>을 생성하고, 그 사진 위에 직접 수정 가능한 한국어 후킹 문구를 올려 3가지 구도로 표시합니다. 생성 1회마다 API 요금이 발생할 수 있습니다.</p>
  </div>
+ <div id="threadPhotoHistory" class="photoHistory"></div>
+ <div class="photoLayoutsHeader"><b>선택한 사진의 후킹 레이아웃 3안</b><span>레이아웃 선택 후 PNG 저장</span></div>
  <div class="imageGrid3" id="threadImages"></div>
 </div><p class="hookSwipeHint">← 좌우로 넘겨 3가지 구도를 비교하세요 →</p></div>
     </div>
@@ -574,9 +602,10 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 </section>
 
 <section id="instagram" class="view">
-  <div class="top"><div><span class="badge orange">Instagram Carousel</span><h1>5장 카드형 콘텐츠 만들기</h1><p>첫 장은 후킹, 2장은 문제, 3장은 상품, 4장은 장점, 5장은 CTA로 구성합니다.</p></div><div class="btnrow"><button class="btn" onclick="cycleCover()">표지 4안 재생성</button><button class="btn" id="instagramGenerateButton" onclick="requestAiScene('instagram')">✨ AI 실사 표지 생성</button><button class="btn green" id="igZipBtn" onclick="downloadInstagramZIP()">카드 5장 ZIP 저장</button><button class="btn primary" onclick="openReservation('Instagram')">📅 최종 검수 후 예약</button></div></div>
+  <div class="top"><div><span class="badge orange">Instagram Carousel</span><h1>5장 카드형 콘텐츠 만들기</h1><p>첫 장은 후킹, 2장은 문제, 3장은 상품, 4장은 장점, 5장은 CTA로 구성합니다.</p></div><div class="btnrow"><button class="btn" onclick="cycleCover()">표지 4안 재생성</button><button class="btn" id="instagramGenerateButton" onclick="requestAiScene('instagram')">✨ AI 실사 표지 2장 생성</button><button class="btn green" id="igZipBtn" onclick="downloadInstagramZIP()">카드 5장 ZIP 저장</button><button class="btn primary" onclick="openReservation('Instagram')">📅 최종 검수 후 예약</button></div></div>
   <div class="panel"><div class="panelHead"><h2>첫 장 표지 4안</h2><span class="badge green">1080 × 1350</span></div><div class="pad">
   <div class="copySettings"><label>표지·캡션 문구 스타일 <select id="instagramDiversity" onchange="changeInstagramDiversity(this.value)"><option value="stable">담백형</option><option value="balanced" selected>균형형</option><option value="creative">실험형</option></select></label><span class="copyHint">상품별 문제·발견·정보·구매판단 방향을 선택하세요</span></div>
+  <div id="instagramPhotoHistory" class="photoHistory"></div>
   <div class="coverGrid" id="coverGrid"></div><div class="similarityNotice" id="instaDupStatus" aria-live="polite"></div>
 </div></div>
   <div class="twocol">
