@@ -1244,48 +1244,133 @@ function drawLiveAsset(ctx,slot,x,y,w,h){
  ctx.drawImage(img,x+(w-dw)/2,y+(h-dh)/2,dw,dh);
  ctx.restore();return true;
 }
+
+const hookHeadlineEdits={};
+let hookPhotoStyle='warm-editorial',hookPreviewTimer=null;
+function hookEditKey(){return selected.id+':'+threadSeed+':'+threadDiversity+':'+threadCopyIndex}
+function getHookHeadline(){
+ const key=hookEditKey();
+ return Object.prototype.hasOwnProperty.call(hookHeadlineEdits,key)?hookHeadlineEdits[key]:threadHooks(selected)[threadCopyIndex];
+}
+function editHookHeadline(value){
+ hookHeadlineEdits[hookEditKey()]=String(value||'').slice(0,120);
+ if(hookPreviewTimer)clearTimeout(hookPreviewTimer);
+ hookPreviewTimer=setTimeout(()=>{hookPreviewTimer=null;refreshHookPreviews()},180);
+}
+function changeHookPhotoStyle(value){
+ if(['warm-editorial','clean-minimal','bold-contrast'].includes(value))hookPhotoStyle=value;
+}
+function pickHeadlineParts(headline){
+ const clean=String(headline||'').trim().replace(/\s+/g,' ');
+ if(!clean)return ['상품의 새로운 활용법','확인해 보세요'];
+ const focus=clean.match(/^(.+?)\s+(체감\s+차이\s+(?:있어|있나요|있을까)\??)$/);
+ if(focus)return [focus[1],focus[2]];
+ const chunks=clean.split(' ');
+ if(chunks.length<3)return [clean,''];
+ const tailSize=chunks.length>=8?3:chunks.length>=5?2:1;
+ const tail=chunks.slice(-tailSize).join(' ');
+ return [chunks.slice(0,-tailSize).join(' '),tail];
+}
+function fitPosterType(ctx,text,maxWidth,maxHeight,initial=84,minimum=34,limit=3){
+ for(let size=initial;size>=minimum;size-=2){
+  ctx.font='900 '+size+'px "Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+  const rows=canvasWrap(ctx,text,maxWidth,100);
+  const lineHeight=Math.ceil(size*1.18);
+  if(rows.length<=limit&&rows.length*lineHeight<=maxHeight)return {size,lineHeight,lines:rows};
+ }
+ ctx.font='900 '+minimum+'px "Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+ const lines=canvasWrap(ctx,text,maxWidth,100);
+ return {size:minimum,lineHeight:Math.ceil(minimum*1.18),lines:lines.slice(0,limit)};
+}
+function posterText(ctx,text,x,y,width,height,{size=90,min=40,color='#16191d',limit=3}={}){
+ const layout=fitPosterType(ctx,text,width,height,size,min,limit);
+ ctx.textAlign='left';ctx.textBaseline='top';ctx.fillStyle=color;
+ ctx.font='900 '+layout.size+'px "Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+ layout.lines.forEach((line,i)=>ctx.fillText(line,x,y+i*layout.lineHeight));
+ return y+layout.lines.length*layout.lineHeight;
+}
+function drawPosterPhoto(ctx,p,variant=0){
+ const media=currentMedia();
+ const item=media.scene||media.product;
+ const img=item?.image;
+ if(img&&img.naturalWidth&&img.naturalHeight){
+  const scale=Math.max(1080/img.naturalWidth,1350/img.naturalHeight);
+  const dw=img.naturalWidth*scale,dh=img.naturalHeight*scale;
+  const ox=(1080-dw)*.5;
+  const oy=(1350-dh)*.48;
+  ctx.drawImage(img,ox,oy,dw,dh);
+  return true;
+ }
+ const palette=designPalette(variant);
+ const g=ctx.createLinearGradient(0,0,750,1350);
+ g.addColorStop(0,'#f7efe4');g.addColorStop(1,palette.mid);
+ ctx.fillStyle=g;ctx.fillRect(0,0,1080,1350);
+ ctx.globalAlpha=.11;ctx.fillStyle='#fff';ctx.fillRect(0,0,1080,500);ctx.globalAlpha=1;
+ drawProductGlyph(ctx,p.id,540,930,1.65,palette);
+ return false;
+}
+function drawFullBleedCover(ctx,p,headline,variant=0){
+ // Image content covers the complete 4:5 card; the headline is overlaid on the photo.
+ const withPhoto=drawPosterPhoto(ctx,p,variant);
+ const overlay=ctx.createLinearGradient(0,0,0,815);
+ if(variant%3===2){
+  overlay.addColorStop(0,'rgba(253,247,234,.92)');
+  overlay.addColorStop(.43,'rgba(251,245,233,.72)');
+  overlay.addColorStop(1,'rgba(250,242,229,0)');
+ }else{
+  overlay.addColorStop(0,'rgba(255,252,245,.93)');
+  overlay.addColorStop(.4,'rgba(255,250,238,.64)');
+  overlay.addColorStop(1,'rgba(255,250,238,0)');
+ }
+ ctx.fillStyle=overlay;ctx.fillRect(0,0,1080,815);
+ const [main,accent]=pickHeadlineParts(headline);
+ let headlineY=variant%3===1?118:142;
+ const x=72,available=936;
+ const firstEnd=posterText(ctx,main,x,headlineY,available,245,{size:91,min:48,color:'#14171c',limit:3});
+ if(accent){
+  const secondY=firstEnd+10;
+  const color=variant%3===2?'#a94218':'#bf4b0e';
+  const secondEnd=posterText(ctx,accent,x,secondY,available,185,{size:103,min:51,color,limit:2});
+  ctx.strokeStyle=variant%3===2?'rgba(177,73,28,.49)':'rgba(226,131,61,.45)';
+  ctx.lineWidth=13;ctx.lineCap='round';ctx.beginPath();
+  ctx.moveTo(x+15,Math.min(650,secondEnd+12));
+  ctx.quadraticCurveTo(420,Math.min(625,secondEnd-2),Math.min(805,x+available-100),Math.min(655,secondEnd+13));
+  ctx.stroke();
+ }
+ if(variant===1){
+  // A restrained editorial accent — never an app/debug label.
+  ctx.strokeStyle='#bc4b10';ctx.lineWidth=9;ctx.lineCap='round';
+  for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(80+i*35,92-i*7);ctx.lineTo(72+i*35,62-i*8);ctx.stroke();}
+ }
+ const lower=ctx.createLinearGradient(0,1120,0,1350);
+ lower.addColorStop(0,'rgba(252,248,241,0)');
+ lower.addColorStop(1,'rgba(255,252,246,.94)');
+ ctx.fillStyle=lower;ctx.fillRect(0,1120,1080,230);
+ ctx.fillStyle='#bd4e14';ctx.fillRect(70,1244,9,62);
+ posterText(ctx,p.name,102,1247,900,73,{size:43,min:27,color:'#191d22',limit:1});
+ return withPhoto;
+}
 function buildContentCanvas(platform,slide=0,variant=0){
  const p=selected,pal=designPalette(variant);
  const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1350;
  const ctx=canvas.getContext('2d');if(!ctx)throw new Error('캔버스 렌더링을 지원하지 않습니다.');
+ if(platform==='Threads'){
+  drawFullBleedCover(ctx,p,getHookHeadline(),variant);
+  return canvas;
+ }
+ if(platform==='Instagram'&&slide===0){
+  drawFullBleedCover(ctx,p,coverHooks(p)[coverIndex].replace(/<br>/g,' '),variant);
+  return canvas;
+ }
  const grad=ctx.createLinearGradient(0,0,1080,1350);
- grad.addColorStop(0,pal.light);grad.addColorStop(1,pal.mid);ctx.fillStyle=grad;ctx.fillRect(0,0,1080,1350);
+ grad.addColorStop(0,pal.light);grad.addColorStop(1,pal.mid);
+ ctx.fillStyle=grad;ctx.fillRect(0,0,1080,1350);
  ctx.globalAlpha=.08;ctx.fillStyle=pal.accent;
  ctx.beginPath();ctx.ellipse(860,300,410,410,0,0,Math.PI*2);ctx.fill();
- ctx.beginPath();ctx.ellipse(120,1190,330,330,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
- roundedFill(ctx,63,60,954,1230,45,'rgba(255,255,255,.56)');
+ ctx.beginPath();ctx.ellipse(120,1190,330,330,0,0,Math.PI*2);ctx.fill();
+ ctx.globalAlpha=1;roundedFill(ctx,63,60,954,1230,45,'rgba(255,255,255,.56)');
  const x=112,max=856;
- if(platform==='Threads'){
-  const hook=threadHooks(p)[threadCopyIndex];
-  // These are final consumer-facing graphics; do not bake internal labels into the image.
-  // Variants use different real layouts, not just a different background palette.
-  const drawHero=(px,py,pw,ph,scale=0.88)=>{
-   roundedFill(ctx,px,py,pw,ph,34,'rgba(255,255,255,.74)');
-   const used=drawLiveAsset(ctx,'scene',px,py,pw,ph)||
-              drawLiveAsset(ctx,'product',px,py,pw,ph);
-   if(!used)drawProductGlyph(ctx,p.id,px+pw/2,py+ph/2,scale,pal);
-  };
-  if(variant%3===0){
-   const bottom=canvasParagraph(ctx,hook,x,140,max,81,99,4,pal.ink,900);
-   const top=Math.min(665,Math.max(460,bottom+40));
-   drawHero(84,top,912,1205-top,1.15);
-  }else if(variant%3===1){
-   drawHero(82,92,916,1138,1.6);
-   roundedFill(ctx,100,810,880,360,36,'rgba(255,255,255,.90)');
-   canvasParagraph(ctx,hook,132,851,810,74,91,4,pal.ink,900);
-  }else{
-   drawHero(82,92,916,770,1.5);
-   roundedFill(ctx,96,881,888,290,32,'rgba(255,255,255,.78)');
-   canvasParagraph(ctx,hook,126,909,828,70,85,3,pal.ink,900);
-  }
- }else if(slide===0){
-  const hook=coverHooks(p)[coverIndex].replace(/<br>/g,' ');
-  canvasParagraph(ctx,'생활에서 발견한 작은 변화',x,210,max,38,52,2,pal.ink,700);
-  canvasParagraph(ctx,hook,x,310,max,76,94,6,pal.ink,900);
-  roundedFill(ctx,125,890,830,200,30,'rgba(255,255,255,.54)');
-  if(!drawLiveAsset(ctx,'scene',125,890,830,200))drawProductGlyph(ctx,p.id,800,985,.29,pal);
-  canvasParagraph(ctx,p.name,x,1105,max,42,54,2,pal.accent,900);
- }else if(slide===1){
+ if(slide===1){
   canvasParagraph(ctx,'02  문제 상황',x,228,max,44,60,2,pal.accent,900);
   canvasParagraph(ctx,getHookProfile(p).pain,x,330,max,68,88,6,pal.ink,900);
   roundedFill(ctx,x,800,856,250,27,'rgba(255,255,255,.66)');
@@ -1294,9 +1379,7 @@ function buildContentCanvas(platform,slide=0,variant=0){
   canvasParagraph(ctx,'03  제품 살펴보기',x,215,max,44,58,2,pal.accent,900);
   canvasParagraph(ctx,p.name,x,315,max,66,85,4,pal.ink,900);
   roundedFill(ctx,x,660,856,360,34,'rgba(255,255,255,.75)');
-  const hasProductPhoto=drawLiveAsset(ctx,'product',x,660,856,360);
-  if(!hasProductPhoto)drawProductGlyph(ctx,p.id,540,825,.59,pal);
-  // Product-image source/status is shown in the editor, not on the published graphic.
+  if(!drawLiveAsset(ctx,'product',x,660,856,360))drawProductGlyph(ctx,p.id,540,825,.59,pal);
  }else if(slide===3){
   canvasParagraph(ctx,'04  확인할 기능',x,215,max,44,58,2,pal.accent,900);
   canvasParagraph(ctx,p.novel,x,330,max,62,81,7,pal.ink,900);
@@ -1309,7 +1392,6 @@ function buildContentCanvas(platform,slide=0,variant=0){
   canvasParagraph(ctx,'✓ 사용 빈도와 용도 확인\n✓ 실제 옵션·리뷰 확인\n✓ 최신 가격·재고 확인',x+36,720,785,36,84,6,pal.ink,800);
   canvasParagraph(ctx,'예시 가격: '+fmt(p.price),x,1060,max,40,52,2,pal.accent,900);
  }
-
  return canvas;
 }
 async function pngBlob(canvas){
