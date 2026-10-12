@@ -1793,6 +1793,253 @@ function productCard(p){
   <div class="score"><div><div style="font-size:9px;color:#7b838e;margin-bottom:5px">바이럴 점수 ${p.viral?'시연용':'실측 데이터 없음'}</div><div class="bar"><i style="width:${Number(p.viral)||0}%"></i></div></div><b>${p.viral||'–'}</b></div>
  </div>`;
 }
+
+/* v0.9.0 shared multi-product studio: browser-private, content output rights aware. */
+const multiStudio={
+ modes:{Threads:'single',Instagram:'single'},template:'editorial',
+ selectedIds:[],headline:'일상에서 유용한 추천템 모음',summary:'필요한 기능을 비교하고, 구매 전 최신 가격·재고·옵션을 확인해 보세요.',
+ notes:{},captions:{Threads:'',Instagram:''},revision:0
+};
+const multiEditableAssets=new Map();
+let multiSaveWarning='',multiTypingTimer=null,multiAssetLoadGeneration=0;
+const MULTI_STUDIO_KEY='viralpick-multi-studio-v1',MULTI_MAX_PRODUCTS=16;
+function isMultiMode(platform){return multiStudio.modes[platform]==='multi'}
+function multiSelectedProducts(){return multiStudio.selectedIds.map(id=>products.find(p=>p.id===id)).filter(Boolean)}
+function multiGroupSize(){return ({editorial:2,price:1,grid:4})[multiStudio.template]||2}
+function multiCardDescriptors(){
+ const items=multiSelectedProducts(),groups=[];
+ if(items.length<2)return [];
+ const size=multiGroupSize();
+ for(let i=0;i<items.length;i+=size){
+  const group=items.slice(i,i+size);
+  groups.push({kind:'products',short:(groups.length+2)+'. '+group.map(p=>p.name).join(' · ').slice(0,38),items:group});
+ }
+ return [{kind:'cover',short:'1. 추천 표지',items},...groups,{kind:'summary',short:(groups.length+2)+'. 한눈에 정리',items}];
+}
+function multiSlideCount(){return multiCardDescriptors().length}
+function multiTitle(){return multiStudio.headline.trim()||'선택한 상품 추천 모음'}
+function multiSummaryText(){return multiStudio.summary.trim()||'구매 전 최신 가격·재고·옵션을 확인해 보세요.'}
+function multiItemNote(p){
+ return (multiStudio.notes[String(p.id)]||'').trim()||('확인할 점: '+String(p.novel||'상세 사양과 이용 조건을 확인해 보세요.').trim());
+}
+function multiItemPrice(p){
+ return p.source==='sample'?'예시 '+fmt(p.price):p.price>0?'조회 당시 '+fmt(p.price):'가격 확인 필요';
+}
+function persistMultiStudio(){
+ try{
+  localStorage.setItem(MULTI_STUDIO_KEY,JSON.stringify({
+   modes:multiStudio.modes,template:multiStudio.template,selectedIds:multiStudio.selectedIds,
+   headline:multiStudio.headline,summary:multiStudio.summary,
+   notes:multiStudio.notes,captions:multiStudio.captions
+  }));
+  multiSaveWarning='';
+ }catch(e){multiSaveWarning='설정 저장 실패: 브라우저 공간을 확인해 주세요.'}
+ const status=multiSaveWarning||'선택·문구는 이 브라우저에 자동 저장합니다. 권한을 확인한 업로드 이미지는 IndexedDB에 저장됩니다.';
+ for(const name of ['Threads','Instagram']){const el=$('#multiPersistStatus'+name);if(el)el.textContent=status}
+}
+function loadMultiStudio(){
+ try{
+  const obj=JSON.parse(localStorage.getItem(MULTI_STUDIO_KEY)||'null');
+  if(!obj||typeof obj!=='object')return;
+  for(const platform of ['Threads','Instagram'])if(['single','multi'].includes(obj.modes?.[platform]))multiStudio.modes[platform]=obj.modes[platform];
+  if(['editorial','price','grid'].includes(obj.template))multiStudio.template=obj.template;
+  if(Array.isArray(obj.selectedIds))multiStudio.selectedIds=[...new Set(obj.selectedIds.filter(x=>Number.isSafeInteger(x)&&x>0))].slice(0,MULTI_MAX_PRODUCTS);
+  if(typeof obj.headline==='string')multiStudio.headline=obj.headline.slice(0,95);
+  if(typeof obj.summary==='string')multiStudio.summary=obj.summary.slice(0,210);
+  if(obj.notes&&typeof obj.notes==='object')multiStudio.notes=Object.fromEntries(Object.entries(obj.notes).slice(0,60).map(([k,v])=>[k,String(v).slice(0,220)]));
+  if(obj.captions&&typeof obj.captions==='object')for(const platform of ['Threads','Instagram'])if(typeof obj.captions[platform]==='string')multiStudio.captions[platform]=obj.captions[platform].slice(0,6500);
+ }catch(e){multiSaveWarning='이전 편집 데이터를 불러오지 못했습니다.'}
+}
+function changeMultiMode(platform,mode){
+ if(!['Threads','Instagram'].includes(platform)||!['single','multi'].includes(mode))return;
+ if(mode==='multi'&&multiSelectedProducts().length<2){
+  const chosen=[selected.id,...products.filter(p=>p.id!==selected.id).map(p=>p.id)].slice(0,2);
+  multiStudio.selectedIds=[...new Set([...multiStudio.selectedIds,...chosen])].slice(0,MULTI_MAX_PRODUCTS);
+ }
+ multiStudio.modes[platform]=mode;
+ instaCardIndex=0;multiStudio.revision++;
+ persistMultiStudio();renderMultiStudios();
+ if(platform==='Threads')renderThreads();else renderInstagram();
+ if(mode==='multi')void restoreMultiEditableAssets();
+}
+function changeMultiTemplate(template){
+ if(!['editorial','price','grid'].includes(template))return;
+ multiStudio.template=template;multiStudio.revision++;
+ instaCardIndex=0;persistMultiStudio();renderMultiStudios();refreshMultiOutputs();
+}
+function toggleMultiProduct(id,checked){
+ id=Number(id);
+ if(!products.some(p=>p.id===id))return;
+ const ids=multiStudio.selectedIds.filter(item=>item!==id);
+ if(checked){
+  if(ids.length>=MULTI_MAX_PRODUCTS){toast('한 번에 최대 16개 상품까지 선택할 수 있습니다.');renderMultiStudios();return}
+  ids.push(id);
+ }
+ multiStudio.selectedIds=ids;multiStudio.revision++;instaCardIndex=0;
+ persistMultiStudio();renderMultiStudios();refreshMultiOutputs();void restoreMultiEditableAssets();
+}
+function moveMultiProduct(id,direction){
+ const index=multiStudio.selectedIds.indexOf(Number(id)),other=index+Number(direction);
+ if(index<0||other<0||other>=multiStudio.selectedIds.length)return;
+ const tmp=multiStudio.selectedIds[index];
+ multiStudio.selectedIds[index]=multiStudio.selectedIds[other];multiStudio.selectedIds[other]=tmp;
+ multiStudio.revision++;persistMultiStudio();renderMultiStudios();refreshMultiOutputs();
+}
+function editMultiNote(id,text){
+ multiStudio.notes[String(id)]=String(text||'').slice(0,220);
+ multiStudio.revision++;persistMultiStudio();scheduleMultiPreview();
+}
+function editMultiHeadline(text){
+ multiStudio.headline=String(text||'').slice(0,95);
+ multiStudio.revision++;persistMultiStudio();scheduleMultiPreview();
+}
+function editMultiSummary(text){
+ multiStudio.summary=String(text||'').slice(0,210);
+ multiStudio.revision++;persistMultiStudio();scheduleMultiPreview();
+}
+function editMultiCaption(platform,text){
+ if(!['Threads','Instagram'].includes(platform))return;
+ multiStudio.captions[platform]=String(text||'').slice(0,6500);
+ persistMultiStudio();
+ if(platform==='Threads')renderThreadDupStatus();else renderInstagramDupStatus();
+}
+function scheduleMultiPreview(){
+ if(multiTypingTimer)clearTimeout(multiTypingTimer);
+ multiTypingTimer=setTimeout(()=>{multiTypingTimer=null;refreshMultiOutputs()},300);
+}
+function multiMediaFor(p){
+ const licensed=multiEditableAssets.get(p.id);
+ if(licensed?.kind==='licensed-upload'&&licensed.image?.naturalWidth)return licensed.image;
+ // Earlier manual upload may be reused only after a separate license attestation.
+ return null;
+}
+function multiProductRow(p,i){
+ const licensed=multiEditableAssets.get(p.id);
+ const src=licensed?.data||((p.source==='toss'&&/^https:\/\//.test(p.imageUrl||''))?p.imageUrl:null);
+ const note=multiItemNote(p),name=cleanMarkup(p.name);
+ const photo=src?'<img src="'+cleanMarkup(src)+'" alt="'+name+' '+(licensed?'편집 허가 이미지':'토스 원본 미리보기')+'" loading="lazy">':'<span aria-label="등록된 사진 없음">▧</span>';
+ const link=p.source==='toss'&&/^https:\/\//.test(p.imageUrl||'')?'<a href="'+cleanMarkup(p.imageUrl)+'" rel="noopener noreferrer" target="_blank">토스 원본 별도 보기</a>':'';
+ return '<div class="multiItemRow">'+
+  '<div class="multiItemPicture">'+photo+'</div>'+
+  '<div class="multiItemInfo">'+
+   '<div class="multiItemTitle"><div><b>'+(i+1)+'. '+name+'</b><small>'+cleanMarkup(multiItemPrice(p))+'</small></div><div class="multiItemControls">'+
+    '<button type="button" onclick="moveMultiProduct('+p.id+',-1)" aria-label="상품 순서 위로" '+(i===0?'disabled':'')+'>↑</button>'+
+    '<button type="button" onclick="moveMultiProduct('+p.id+',1)" aria-label="상품 순서 아래로" '+(i===multiSelectedProducts().length-1?'disabled':'')+'>↓</button>'+
+    '<button type="button" onclick="toggleMultiProduct('+p.id+',false)" aria-label="상품 제거">✕</button></div></div>'+
+   '<label style="font-size:11px;font-weight:850;color:#657484">카드에 넣을 설명<textarea maxlength="220" oninput="editMultiNote('+p.id+',this.value)" aria-label="'+name+' 설명">'+cleanMarkup(note)+'</textarea></label>'+
+   '<div class="multiItemPhotoControls"><label>편집 허가 사진 업로드 <input type="file" accept="image/png,image/jpeg,image/webp" onchange="uploadMultiLicensedPhoto(event,'+p.id+')"></label>'+
+   (licensed?'<button type="button" onclick="removeMultiLicensedPhoto('+p.id+')">업로드 사진 제거</button>':'')+link+'</div>'+
+   '<p class="multiItemRights">'+(licensed?'✓ 상업적 SNS 게시·수정 사용 권한 확인 이미지':'토스 API 이미지는 미리보기로만 노출하고 제작 이미지에는 자동 합성하지 않습니다.')+'</p>'+
+  '</div></div>';
+}
+function renderMultiProductPicker(query=undefined){
+ for(const platform of ['Threads','Instagram']){
+  const input=$('#multiStudio'+platform+' .multiProductSearch');if(!input)continue;
+  if(typeof query==='string'&&document.activeElement===input)input.value=query;
+  const q=(document.activeElement===input?input.value:typeof query==='string'?query:input.value||'').trim().toLowerCase();
+  const filtered=products.filter(p=>p.name.toLowerCase().includes(q)).slice(0,100);
+  const target=$('#multiProductPicker'+platform);if(!target)continue;
+  target.innerHTML=filtered.map(p=>{
+   const checked=multiStudio.selectedIds.includes(p.id);
+   return '<label class="multiProductOption"><input type="checkbox" '+(checked?'checked':'')+
+    ' onchange="toggleMultiProduct('+p.id+',this.checked)"><span><b>'+cleanMarkup(p.name)+'</b><small>'+cleanMarkup(multiItemPrice(p))+(p.source==='toss'?' · 토스 원본 편집 불가':'')+'</small></span></label>';
+  }).join('')||'<p class="multiHelperText">검색 결과가 없습니다.</p>';
+ }
+}
+function renderMultiStudios(){
+ const count=multiSlideCount();
+ for(const platform of ['Threads','Instagram']){
+  const root=$('#multiStudio'+platform);if(!root)continue;
+  const enabled=isMultiMode(platform);
+  const section=$('#'+platform.toLowerCase());
+  section?.classList.toggle('multiEnabled',enabled);
+  const config=$('#multiConfig'+platform);if(config)config.hidden=!enabled;
+  root.querySelectorAll('[data-multimode]').forEach(button=>{
+   const active=button.dataset.multimode===(enabled?'multi':'single');
+   button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));
+  });
+  const select=root.querySelector('.multiTemplateSelect');if(select)select.value=multiStudio.template;
+  const headline=root.querySelector('.multiHeadlineInput');if(headline&&document.activeElement!==headline)headline.value=multiStudio.headline;
+  const summary=root.querySelector('.multiSummaryInput');if(summary&&document.activeElement!==summary)summary.value=multiStudio.summary;
+  const label=$('#multiCount'+platform);
+  if(label)label.textContent=multiSelectedProducts().length+'개 상품 · '+(count?count+'장 자동 구성':'상품을 2개 이상 선택하세요')+' · '+(platform==='Instagram'?'최대 20장':'이미지 ZIP');
+  const selectedRoot=$('#multiSelectedItems'+platform);
+  if(selectedRoot)selectedRoot.innerHTML=multiSelectedProducts().map(multiProductRow).join('')||'<p class="multiHelperText">상품을 2개 이상 선택하세요.</p>';
+ }
+ renderMultiProductPicker();
+ const result=$('#multiThreadsResult');if(result)result.hidden=!isMultiMode('Threads');
+ const threadBtn=$('#threadsPrimaryDownload');if(threadBtn)threadBtn.textContent=isMultiMode('Threads')?'모든 카드 ZIP 저장':'선택 이미지 PNG 저장';
+ const zip=$('#igZipBtn');if(zip)zip.textContent=isMultiMode('Instagram')?'모음형 '+count+'장 ZIP 저장':'카드 5장 ZIP 저장';
+ persistMultiStudio();
+}
+async function uploadMultiLicensedPhoto(event,id){
+ const input=event?.target,file=input?.files?.[0];
+ if(!file)return;
+ id=Number(id);
+ if(!products.some(p=>p.id===id)){if(input)input.value='';return}
+ if(!window.confirm('이 사진을 직접 촬영했거나, 권리자로부터 상업적 홍보 및 크롭·텍스트 합성·수정 허락을 받았습니까? 토스 API에서 받은 원본 사진은 업로드하면 안 됩니다.')){
+  if(input)input.value='';return;
+ }
+ try{
+  if(file.size>3*1024*1024)throw new Error('장기 보관할 사진은 3MB 이하로 등록해 주세요.');
+  const picture=await readImageFile(file);
+  const obj={data:picture.data,image:picture.image,kind:'licensed-upload'};
+  let record=getPhotoHistory(id)||await readPhotoRecord(id).catch(()=>null)||{productId:id,groups:[],activeId:null};
+  const updated={...record,productId:id,multiLicensedImage:{data:picture.data,grantedAt:new Date().toISOString(),kind:'licensed-upload'},updatedAt:new Date().toISOString()};
+  await writePhotoRecord(updated);
+  photoHistories.set(id,updated);multiEditableAssets.set(id,obj);
+  multiStudio.revision++;renderMultiStudios();refreshMultiOutputs();
+  toast('편집 허가 사진을 저장했습니다. 카드 이미지에 반영했습니다.');
+ }catch(e){toast('사진 등록 실패: '+e.message)}
+ if(input)input.value='';
+}
+async function removeMultiLicensedPhoto(id){
+ id=Number(id);
+ try{
+  let rec=getPhotoHistory(id)||await readPhotoRecord(id);
+  if(rec?.multiLicensedImage){
+   const updated={...rec};delete updated.multiLicensedImage;
+   await writePhotoRecord(updated);photoHistories.set(id,updated);
+  }
+  multiEditableAssets.delete(id);multiStudio.revision++;renderMultiStudios();refreshMultiOutputs();
+ }catch(e){toast('사진 제거 실패: '+e.message)}
+}
+async function restoreMultiEditableAssets(){
+ const generation=++multiAssetLoadGeneration;
+ const ids=multiSelectedProducts().map(p=>p.id);
+ for(const id of ids){
+  if(multiEditableAssets.has(id))continue;
+  const saved=getPhotoHistory(id)||await readPhotoRecord(id).catch(()=>null);
+  if(generation!==multiAssetLoadGeneration)return;
+  const data=saved?.multiLicensedImage?.data;
+  if(!safeDataImage(data))continue;
+  try{
+   const image=await photoImageObject(data);
+   if(generation!==multiAssetLoadGeneration)return;
+   multiEditableAssets.set(id,{...image,kind:'licensed-upload'});
+  }catch(e){}
+ }
+ if(generation===multiAssetLoadGeneration){multiStudio.revision++;renderMultiStudios();refreshMultiOutputs()}
+}
+function multiCaptionDefault(platform){
+ const items=multiSelectedProducts(),isThreads=platform==='Threads';
+ if(items.length<2)return '먼저 추천할 상품을 2개 이상 선택해 주세요.';
+ const lines=items.map((p,i)=>(i+1)+'. '+p.name+' — '+multiItemNote(p).slice(0,76));
+ return [
+  multiTitle(),'',
+  isThreads?'궁금했던 생활템 몇 개를 모아봤어. 필요한 상황에 맞는지 비교해 보자.':'생활 속에서 궁금했던 상품들을 한 번에 모아봤습니다.',
+  '',...lines,'',
+  isThreads?'가격과 옵션, 재고는 변할 수 있으니 구매 전에 다시 확인해 봐.':'가격·옵션·재고는 변경될 수 있으니 구매 전에 최신 정보를 확인해 주세요.',
+  multiSummaryText(),'',
+  affiliateDisclosure
+ ].join('\n');
+}
+function getMultiCaption(platform){return multiStudio.captions[platform]||multiCaptionDefault(platform)}
+function refreshMultiOutputs(){
+ if(isMultiMode('Threads'))renderMultiThreads();
+ if(isMultiMode('Instagram'))renderMultiInstagram();
+}
+
 function renderProductLists(){ $('#dashProducts').innerHTML=products.map(productCard).join(''); $('#discoverProducts').innerHTML=products.map(productCard).join(''); }
 function selectProduct(id){
  selected=products.find(p=>p.id===id)||products[0];
