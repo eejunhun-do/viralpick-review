@@ -956,9 +956,10 @@ async function restorePhotoHistory(productId){
  }
  try{
   const rec=await readPhotoRecord(productId);
-  if(rec)photoHistories.set(productId,rec);
+  if(rec&&!photoHistories.has(productId))photoHistories.set(productId,rec);
   if(selected.id!==productId||turn!==restoreSequence)return;
-  const active=historyGroups(rec).find(g=>g.id===rec?.activeId)||historyGroups(rec)[0];
+  const loaded=getPhotoHistory(productId)||rec;
+  const active=historyGroups(loaded).find(g=>g.id===loaded?.activeId)||historyGroups(loaded)[0];
   if(active){
    try{await applyHistoryChoice(productId,active.id,active.selectedIndex??0,{persist:false})}
    catch(e){photoSavingWarning='저장된 이미지 복원 오류: '+e.message}
@@ -1010,7 +1011,7 @@ function syncProductInputs(){
   scenePrompt:p.visual||''
  })){const e=$('#'+id);if(e)e.value=v||''}
  if($('#liveProductStatus'))$('#liveProductStatus').textContent=({sample:'시연용 샘플',manual:'직접 입력',toss:'토스 API 수신'}[p.source]||'시연용 샘플');
- renderMediaPreview();
+ renderMediaPreview();renderPhotoHistories();
 }
 function renderMediaPreview(){
  const root=$('#assetPreview');if(!root)return;
@@ -1089,6 +1090,31 @@ function useRemoteProduct(index){
  products.push(p);selectProduct(id);show('integrations');
  toast('상품을 가져왔습니다. 확인된 기능을 입력하고 상품 사진의 사용 권한을 확인하세요.');
 }
+function persistManualProducts(){
+ try{
+  const manual=products.filter(p=>p.source==='manual').slice(-30).map(p=>({
+   id:p.id,source:'manual',name:p.name,price:p.price,old:p.price,discount:0,
+   problem:p.problem,novel:p.novel,audience:p.audience,visual:p.visual,
+   viral:0,thread:0,insta:0,blog:0,ad:0,type:'직접 입력',
+   reason:'사용자가 직접 확인하고 입력한 상품'
+  }));
+  localStorage.setItem('viralpickManualProducts',JSON.stringify(manual));
+ }catch(e){toast('상품 기본정보를 브라우저에 저장하지 못했습니다.')}
+}
+function restoreManualProducts(){
+ try{
+  const parsed=JSON.parse(localStorage.getItem('viralpickManualProducts')||'[]');
+  if(!Array.isArray(parsed))return;
+  for(const item of parsed.slice(-30)){
+   if(item.source!=='manual'||!Number.isInteger(item.id)||item.id<11||products.some(p=>p.id===item.id))continue;
+   products.push({...item,
+    name:trimText(item.name,120),price:Number(item.price)||0,
+    problem:trimText(item.problem,220),novel:trimText(item.novel,220),
+    audience:trimText(item.audience,150),visual:trimText(item.visual,220)
+   });
+  }
+ }catch(e){}
+}
 function saveManualProduct(){
  const p={
   name:trimText($('#manualName').value,120),
@@ -1106,7 +1132,9 @@ function saveManualProduct(){
   products.push({...p,id,old:p.price,discount:0,viral:0,thread:0,insta:0,blog:0,ad:0,type:'직접 입력',reason:'사용자가 직접 확인하고 입력한 상품',source:'manual'});
   selected=products[products.length-1];
  }
+ if(selected.source==='manual')persistManualProducts();
  renderProductLists();renderLab();renderThreads();renderInstagram();syncProductInputs();
+ renderPhotoHistories();void restorePhotoHistory(selected.id);
  toast('실제 입력 상품을 콘텐츠 제작 대상으로 설정했습니다.');show('lab');
 }
 async function readImageFile(file){
@@ -1142,14 +1170,17 @@ function clearAsset(slot){
 }
 
 async function requestAiScene(purpose='instagram'){
+ if(sceneGenerationBusy)return;
  const targetId=selected.id;
  const inThreads=purpose==='threads';
  const onInstagram=purpose==='instagram'&&$('#instagram')?.classList.contains('active');
  const button=inThreads?$('#threadGenerateButton'):onInstagram?$('#instagramGenerateButton'):$('#generateSceneButton');
  if(button?.disabled)return;
- if(!window.confirm('GPT Image 2로 실사 배경 1장을 생성합니다. 실제 API 이용 요금이 발생할 수 있습니다. 진행할까요?'))return;
- const originalLabel=button?.textContent||'AI 이미지 생성';
- if(button){button.disabled=true;button.textContent='실사 사진 생성 중…'}
+ if(!window.confirm('GPT Image 2로 실사 사진 2장을 생성합니다. 이미지 2장에 대한 API 이용 요금이 발생할 수 있습니다. 진행할까요?'))return;
+ sceneGenerationBusy=true;
+ const allButtons=['threadGenerateButton','instagramGenerateButton','generateSceneButton'].map(id=>$('#'+id)).filter(Boolean);
+ const labels=allButtons.map(b=>b.textContent);
+ allButtons.forEach(b=>{b.disabled=true;b.textContent='AI 사진 2장 생성 중…'});
  const hints={
   1:'A person carefully installing floating wooden shelves in a bright cozy modern living room, using a generic laser level tool casting a straight horizontal red guide line, plants, warm wooden surfaces, beautiful natural daylight. Human activity and laser level prominent in the lower two thirds; clear bright cream wall on top for headline.',
   2:'A person cleaning crumbs from gaps between car seats with a small cordless handheld cleaner, realistic sunlit car interior, hands and vehicle seats prominent, authentic dust and interior details. Upper portion naturally uncluttered and bright for headline.',
@@ -1158,19 +1189,22 @@ async function requestAiScene(purpose='instagram'){
  const source=$('#scenePrompt')?.value?.trim()||selected.visual||'';
  const scene=(hints[selected.id]?hints[selected.id]+' Additional user context: '+source:source).slice(0,500);
  const hook=inThreads?getHookHeadline():coverHooks(selected)[coverIndex];
+ const style=hookPhotoStyle;
  try{
   const data=await backendRequest('/api/image',{
-   method:'POST',
-   body:JSON.stringify({product:selected.name,scene,purpose,hook,style:hookPhotoStyle})
+   method:'POST',body:JSON.stringify({product:selected.name,scene,purpose,hook,style})
   });
-  if(selected.id!==targetId){toast('작업 중 상품이 바뀌어 이미지를 적용하지 않았습니다.');return}
-  await setMediaSlot('scene',data.image,'ai');
-  toast('AI 실사 배경을 반영했습니다. 후킹 문구와 3가지 레이아웃을 비교해보세요.');
+  const images=Array.isArray(data.images)?data.images:(data.image?[data.image]:[]);
+  if(images.length!==2)throw new Error('서버에서 이미지 2장을 받지 못했습니다. Vercel에 최신 코드가 배포됐는지 확인하세요.');
+  const saved=await savePhotoBatch(targetId,images,{purpose,hook,style});
+  if(selected.id!==targetId){toast('원래 상품의 사진 기록에 2장을 저장했습니다.');return}
+  toast(saved.saved?'AI 사진 2장을 생성하고 기록에 저장했습니다. 원하는 사진을 선택하세요.':'사진 2장 생성 완료. 다만 저장에 실패해 기록을 보존하지 못했습니다.');
  }catch(e){
-  toast('AI 사진 생성 실패: '+e.message);
+  toast('AI 사진 2장 생성 실패: '+e.message);
   const result=$('#apiResult');if(result)result.textContent='이미지 생성 요청: '+e.message;
  }finally{
-  if(button){button.disabled=false;button.textContent=originalLabel}
+  sceneGenerationBusy=false;
+  allButtons.forEach((b,i)=>{b.disabled=false;b.textContent=labels[i]});
  }
 }
 function productCard(p){
@@ -1185,7 +1219,11 @@ function productCard(p){
  </div>`;
 }
 function renderProductLists(){ $('#dashProducts').innerHTML=products.map(productCard).join(''); $('#discoverProducts').innerHTML=products.map(productCard).join(''); }
-function selectProduct(id){ selected=products.find(p=>p.id===id)||products[0]; renderProductLists(); renderLab(); renderThreads(); renderInstagram();syncProductInputs(); show('lab'); }
+function selectProduct(id){
+ selected=products.find(p=>p.id===id)||products[0];
+ renderProductLists();renderLab();renderThreads();renderInstagram();syncProductInputs();
+ renderPhotoHistories();show('lab');void restorePhotoHistory(selected.id);
+}
 function renderLab(){ const p=selected; $('#labType').textContent=p.type; $('#labName').textContent=p.name; $('#labPrice').textContent=fmt(p.price); $('#labReason').textContent=p.reason; $('#viralScore').textContent=p.viral; $('#threadScore').textContent=p.thread; $('#instaScore').textContent=p.insta; $('#adScore').textContent=p.ad+'%'; $('#analysisText').innerHTML=`<b>추천 유형: ${cleanMarkup(p.type)}</b><br><br>문제 상황: ${cleanMarkup(p.problem)}<br>신기/해결 포인트: ${cleanMarkup(p.novel)}<br>주요 타깃: ${cleanMarkup(p.audience)}<br>추천 시각: ${cleanMarkup(p.visual)}`; }
 
 const hookKinds=['공감형','발견형','문제해결형','정보형','질문형','구매판단형'];
@@ -2176,7 +2214,7 @@ function show(id){
 }
 $$('.nav button').forEach(b=>b.onclick=()=>show(b.dataset.view));
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
-loadPostingSettings();setDefaultScheduleFields();try{$('#apiBase').value=localStorage.getItem('viralpickBackendUrl')||(location.hostname.endsWith('.vercel.app')?location.origin:'https://viralpick-review.vercel.app')}catch(e){$('#apiBase').value='https://viralpick-review.vercel.app'}renderProductLists();renderLab();renderThreads();renderInstagram();renderAnalytics();renderBlogRecommendations();renderPostingSettings();syncProductInputs();
+loadPostingSettings();restoreManualProducts();setDefaultScheduleFields();try{$('#apiBase').value=localStorage.getItem('viralpickBackendUrl')||(location.hostname.endsWith('.vercel.app')?location.origin:'https://viralpick-review.vercel.app')}catch(e){$('#apiBase').value='https://viralpick-review.vercel.app'}renderProductLists();renderLab();renderThreads();renderInstagram();renderAnalytics();renderBlogRecommendations();renderPostingSettings();syncProductInputs();renderPhotoHistories();void restorePhotoHistory(selected.id);
 const q=new URLSearchParams(location.search).get('view');if(['dashboard','discover','integrations','lab','threads','instagram','analytics','blog','scheduler'].includes(q))show(q);
 </script>
 </body>
