@@ -801,6 +801,203 @@ const fmt=n=>Number(n).toLocaleString('ko-KR')+'원';
 
 
 const liveMedia=new Map();
+
+/* Durable private-browser AI-image history. Never store API keys in IndexedDB. */
+const photoHistories=new Map();
+let photoSavingWarning='',sceneGenerationBusy=false,restoreSequence=0;
+const PHOTO_DB_NAME='viralpick-ai-photo-history', PHOTO_DB_STORE='productHistory', PHOTO_DB_VERSION=1;
+function openPhotoDB(){
+ return new Promise((resolve,reject)=>{
+  if(!window.indexedDB){reject(new Error('브라우저에서 IndexedDB를 사용할 수 없습니다.'));return}
+  const req=window.indexedDB.open(PHOTO_DB_NAME,PHOTO_DB_VERSION);
+  req.onupgradeneeded=()=>{
+   const db=req.result;
+   if(!db.objectStoreNames.contains(PHOTO_DB_STORE))db.createObjectStore(PHOTO_DB_STORE,{keyPath:'productId'});
+  };
+  req.onsuccess=()=>resolve(req.result);
+  req.onerror=()=>reject(req.error||new Error('사진 기록 DB 열기 실패'));
+  req.onblocked=()=>reject(new Error('다른 탭에서 사진 저장소가 사용 중입니다.'));
+ });
+}
+async function readPhotoRecord(productId){
+ const db=await openPhotoDB();
+ try{return await new Promise((resolve,reject)=>{
+  const tx=db.transaction(PHOTO_DB_STORE,'readonly'),req=tx.objectStore(PHOTO_DB_STORE).get(productId);
+  req.onsuccess=()=>resolve(req.result||null);
+  req.onerror=()=>reject(req.error||new Error('사진 기록 읽기 실패'));
+  tx.onerror=()=>reject(tx.error||new Error('사진 기록 읽기 오류'));
+ })}finally{db.close()}
+}
+async function writePhotoRecord(record){
+ const db=await openPhotoDB();
+ try{return await new Promise((resolve,reject)=>{
+  const tx=db.transaction(PHOTO_DB_STORE,'readwrite');
+  tx.objectStore(PHOTO_DB_STORE).put(record);
+  tx.oncomplete=()=>resolve(true);
+  tx.onerror=()=>reject(tx.error||new Error('사진 저장 실패'));
+  tx.onabort=()=>reject(tx.error||new Error('사진 저장 취소'));
+ })}finally{db.close()}
+}
+function getPhotoHistory(productId=selected.id){return photoHistories.get(productId)||null}
+function historyGroups(record){return Array.isArray(record?.groups)?record.groups:[]}
+function photoHistoryDate(time){
+ const d=new Date(time);
+ return Number.isFinite(d.getTime())?d.toLocaleString('ko-KR',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'생성 기록';
+}
+function renderPhotoHistories(){
+ const record=getPhotoHistory(),groups=historyGroups(record);
+ const locations=['threadPhotoHistory','instagramPhotoHistory','integrationPhotoHistory'];
+ const status=photoSavingWarning?'<div class="historyStatus warn">'+cleanMarkup(photoSavingWarning)+'</div>':
+   '<div class="historyStatus">이 브라우저에 상품별 최근 3회 생성 기록을 보관합니다. 다른 브라우저·기기와는 동기화되지 않습니다.</div>';
+ let markup='';
+ if(!groups.length){
+  markup='<div class="historyEmpty">아직 저장된 AI 사진이 없습니다. 「AI 실사 배경 2장 생성」을 눌러 후보를 만들면 자동 저장됩니다.</div>'+status;
+ }else{
+  const cards=groups.map((group,rank)=>{
+   const images=Array.isArray(group.images)?group.images:[];
+   const active=group.id===record.activeId;
+   const choices=images.map((img,i)=>{
+    if(!safeDataImage(img.data))return '';
+    const selectedCandidate=active&&i===group.selectedIndex;
+    const label='사진 '+(i+1)+(selectedCandidate?' · 선택됨':'');
+    return '<button type="button" class="historyChoice '+(selectedCandidate?'active':'')+
+      '" onclick="choosePhotoHistory('+selected.id+','+JSON.stringify(group.id)+','+i+')"'+
+      ' aria-pressed="'+selectedCandidate+'" aria-label="'+cleanMarkup(label)+'">'+
+      '<img loading="lazy" src="'+img.data+'" alt="'+cleanMarkup(label)+'"><span>'+cleanMarkup(label)+'</span></button>';
+   }).join('');
+   return '<div class="historyGroup '+(active?'active':'')+'">'+
+    '<div class="historyMeta"><span class="historyTitle">'+(rank===0?'최근 생성':'이전 생성 '+rank)+(active?' · 사용 중':'')+'</span>'+
+    '<span>'+cleanMarkup(photoHistoryDate(group.createdAt))+' · '+cleanMarkup(group.style||'AI 실사')+'</span></div>'+
+    '<div class="historyChoices">'+choices+'</div>'+
+    '<div class="historyActions"><button class="historyDelete" type="button" onclick="deletePhotoHistory('+selected.id+','+JSON.stringify(group.id)+')">이 생성 기록 삭제</button></div>'+
+   '</div>';
+  }).join('');
+  markup='<div class="historyHead"><b>AI 사진 선택 · 최근 '+groups.length+'회 기록</b><small>원하는 사진을 눌러 후킹 레이아웃에 적용</small></div>'+cards+status;
+ }
+ for(const id of locations){const root=$('#'+id);if(root)root.innerHTML=markup}
+}
+async function photoImageObject(data){
+ if(!safeDataImage(data))throw new Error('저장된 이미지 형식이 올바르지 않습니다.');
+ const image=new Image();
+ await new Promise((resolve,reject)=>{
+  image.onload=()=>resolve();
+  image.onerror=()=>reject(new Error('이미지 파일을 열 수 없습니다.'));
+  image.src=data;
+ });
+ return {data,image,kind:'ai'};
+}
+async function applyHistoryChoice(productId,groupId,index,{persist=true,notify=false}={}){
+ const rec=getPhotoHistory(productId);
+ const group=historyGroups(rec).find(g=>g.id===groupId);
+ if(!group||!group.images?.[index])throw new Error('선택한 사진 기록을 찾을 수 없습니다.');
+ // Load the image before mutating selection: a corrupt image cannot replace a working one.
+ const media=await photoImageObject(group.images[index].data);
+ if(selected.id!==productId)return false;
+ group.selectedIndex=index;
+ rec.activeId=group.id;
+ rec.updatedAt=new Date().toISOString();
+ const live=liveMedia.get(productId)||{};
+ live.scene=media;
+ liveMedia.set(productId,live);
+ renderPhotoHistories();
+ renderMediaPreview();
+ renderThreads();
+ renderInstagram();
+ if(persist){
+  try{await writePhotoRecord(rec);photoSavingWarning='';}
+  catch(e){photoSavingWarning='사진 선택 상태를 저장하지 못했습니다: '+e.message}
+  renderPhotoHistories();
+ }
+ if(notify)toast('사진 '+(index+1)+'을 선택했습니다. 후킹 이미지와 Instagram 표지에 적용됐습니다.');
+ return true;
+}
+async function choosePhotoHistory(productId,groupId,index){
+ try{await applyHistoryChoice(productId,groupId,index,{persist:true,notify:true})}
+ catch(e){toast('사진 선택 오류: '+e.message)}
+}
+async function savePhotoBatch(productId,images,meta={}){
+ if(!Array.isArray(images)||images.length!==2||!images.every(safeDataImage)){
+  throw new Error('AI 사진 2장의 이미지 데이터가 모두 필요합니다.');
+ }
+ // Verify both images can be read before treating the pair as a completed batch.
+ await Promise.all(images.map(photoImageObject));
+ const prev=getPhotoHistory(productId)||{productId,groups:[],activeId:null};
+ const now=new Date().toISOString();
+ const group={
+  id:'generated-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),
+  createdAt:now,style:meta.style||hookPhotoStyle,purpose:meta.purpose||'threads',
+  hook:meta.hook||'',images:images.map(data=>({data,createdAt:now})),
+  selectedIndex:0
+ };
+ const next={...prev,productId,groups:[group,...historyGroups(prev)].slice(0,3),activeId:group.id,updatedAt:now};
+ photoHistories.set(productId,next);
+ const applied=await applyHistoryChoice(productId,group.id,0,{persist:false});
+ try{
+  await writePhotoRecord(next);
+  photoSavingWarning='';
+ }catch(e){
+  photoSavingWarning='자동 저장에 실패했습니다. 현재 화면에서는 사진을 사용할 수 있지만 다시 열면 사라질 수 있습니다. 브라우저 저장 공간을 확인하세요. ('+e.message+')';
+  toast('사진이 생성됐지만 기록 저장에 실패했습니다. 저장 공간을 확인하세요.');
+ }
+ renderPhotoHistories();
+ return {group,applied,saved:!photoSavingWarning};
+}
+async function restorePhotoHistory(productId){
+ const turn=++restoreSequence;
+ // Cached records can be re-applied immediately when switching products.
+ if(photoHistories.has(productId)){
+  const rec=photoHistories.get(productId);
+  const active=historyGroups(rec).find(g=>g.id===rec.activeId)||historyGroups(rec)[0];
+  if(active&&selected.id===productId){
+   try{await applyHistoryChoice(productId,active.id,active.selectedIndex??0,{persist:false})}
+   catch(e){photoSavingWarning='저장된 이미지 복원 오류: '+e.message;renderPhotoHistories()}
+  }else if(selected.id===productId)renderPhotoHistories();
+  return;
+ }
+ try{
+  const rec=await readPhotoRecord(productId);
+  if(rec)photoHistories.set(productId,rec);
+  if(selected.id!==productId||turn!==restoreSequence)return;
+  const active=historyGroups(rec).find(g=>g.id===rec?.activeId)||historyGroups(rec)[0];
+  if(active){
+   try{await applyHistoryChoice(productId,active.id,active.selectedIndex??0,{persist:false})}
+   catch(e){photoSavingWarning='저장된 이미지 복원 오류: '+e.message}
+  }
+  renderPhotoHistories();
+ }catch(e){
+  if(selected.id!==productId)return;
+  photoSavingWarning='사진 기록을 불러올 수 없습니다. 브라우저 저장 권한을 확인하세요. ('+e.message+')';
+  renderPhotoHistories();
+ }
+}
+async function deletePhotoHistory(productId,groupId){
+ const rec=getPhotoHistory(productId);
+ if(!rec)return;
+ const group=historyGroups(rec).find(g=>g.id===groupId);
+ if(!group)return;
+ if(!window.confirm('이 생성 세트의 사진을 삭제할까요? 삭제한 기록은 복구할 수 없습니다.'))return;
+ rec.groups=rec.groups.filter(g=>g.id!==groupId);
+ if(rec.activeId===groupId)rec.activeId=rec.groups[0]?.id||null;
+ rec.updatedAt=new Date().toISOString();
+ try{await writePhotoRecord(rec);photoSavingWarning=''}catch(e){
+  photoSavingWarning='삭제 변경사항이 저장되지 않았습니다: '+e.message;
+  toast('기록 삭제를 저장하지 못했습니다.');renderPhotoHistories();return;
+ }
+ if(selected.id!==productId)return;
+ if(!rec.groups.length){
+  const assets=currentMedia();
+  if(assets.scene?.kind==='ai')delete assets.scene;
+  liveMedia.set(productId,assets);
+  renderMediaPreview();renderThreads();renderInstagram();
+ }else{
+  const next=rec.groups.find(g=>g.id===rec.activeId)||rec.groups[0];
+  try{await applyHistoryChoice(productId,next.id,next.selectedIndex??0,{persist:false})}
+  catch(e){photoSavingWarning='다음 이미지 복원 오류: '+e.message}
+ }
+ renderPhotoHistories();
+ toast('생성 기록을 삭제했습니다.');
+}
+
 let remoteProducts=[];
 function currentMedia(){return liveMedia.get(selected.id)||{}}
 function trimText(value,max=160){return String(value||'').replace(/[<>\u0000-\u001f]/g,' ').trim().slice(0,max)}
