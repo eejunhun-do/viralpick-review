@@ -723,9 +723,9 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 
 <script>
 const products=[
- {id:1,name:'디지털 레이저 수평계',price:18900,old:32900,discount:42,viral:92,thread:94,insta:88,blog:91,ad:21,type:'신기템형',reason:'가구 조립 때 반복되는 수평 확인 문제를 해결하고 레이저·디지털 숫자 표시가 시각적으로 이해하기 쉬움.',problem:'가구 조립할 때 수평 안 맞아서 다시 맞추는 게 은근 스트레스인데',novel:'갖다 대면 각도가 숫자로 바로 뜨고 레이저 선까지 나옴',audience:'DIY·셀프 인테리어 관심층',visual:'삐뚤어진 선반과 조립 중인 작업대'},
- {id:2,name:'무선 핸디 청소기',price:29900,old:45900,discount:35,viral:87,thread:90,insta:91,blog:88,ad:24,type:'문제해결형',reason:'차량·책상 틈새 청소라는 불편이 명확하고 전후 상황을 카드로 보여주기 쉬움.',problem:'차에 과자 부스러기 떨어지면 구석구석 닦는 게 너무 귀찮았는데',novel:'크기가 작아서 차에 두고 필요할 때 바로 꺼내 쓰기 편해 보임',audience:'운전자·자취생',visual:'자동차 좌석 틈의 과자 부스러기'},
- {id:3,name:'반려동물 발 세정컵',price:12900,old:19900,discount:35,viral:84,thread:86,insta:93,blog:86,ad:18,type:'생활개선형',reason:'산책 후 발 닦기라는 반복 불편이 공감대를 만들고 반려동물 카테고리는 이미지 친화도가 높음.',problem:'산책하고 들어올 때마다 발 하나씩 닦는 게 생각보다 오래 걸리는데',novel:'컵 안쪽 실리콘이 발 주변을 한 번에 씻어주는 구조임',audience:'반려견 보호자',visual:'산책 후 흙 묻은 강아지 발'}
+ {source:'sample',id:1,name:'디지털 레이저 수평계',price:18900,old:32900,discount:42,viral:92,thread:94,insta:88,blog:91,ad:21,type:'신기템형',reason:'가구 조립 때 반복되는 수평 확인 문제를 해결하고 레이저·디지털 숫자 표시가 시각적으로 이해하기 쉬움.',problem:'가구 조립할 때 수평 안 맞아서 다시 맞추는 게 은근 스트레스인데',novel:'갖다 대면 각도가 숫자로 바로 뜨고 레이저 선까지 나옴',audience:'DIY·셀프 인테리어 관심층',visual:'삐뚤어진 선반과 조립 중인 작업대'},
+ {source:'sample',id:2,name:'무선 핸디 청소기',price:29900,old:45900,discount:35,viral:87,thread:90,insta:91,blog:88,ad:24,type:'문제해결형',reason:'차량·책상 틈새 청소라는 불편이 명확하고 전후 상황을 카드로 보여주기 쉬움.',problem:'차에 과자 부스러기 떨어지면 구석구석 닦는 게 너무 귀찮았는데',novel:'크기가 작아서 차에 두고 필요할 때 바로 꺼내 쓰기 편해 보임',audience:'운전자·자취생',visual:'자동차 좌석 틈의 과자 부스러기'},
+ {source:'sample',id:3,name:'반려동물 발 세정컵',price:12900,old:19900,discount:35,viral:84,thread:86,insta:93,blog:86,ad:18,type:'생활개선형',reason:'산책 후 발 닦기라는 반복 불편이 공감대를 만들고 반려동물 카테고리는 이미지 친화도가 높음.',problem:'산책하고 들어올 때마다 발 하나씩 닦는 게 생각보다 오래 걸리는데',novel:'컵 안쪽 실리콘이 발 주변을 한 번에 씻어주는 구조임',audience:'반려견 보호자',visual:'산책 후 흙 묻은 강아지 발'}
 ];
 let selected=products[0], threadCopyIndex=0, threadImageIndex=0, coverIndex=0, instaCardIndex=0, threadSeed=0, coverSeed=0, blogTitleIndex=0, blogSeed=0;
 let postingSettings={
@@ -897,12 +897,15 @@ async function requestAiScene(){
  finally{button.disabled=false;button.textContent='GPT Image 2 상황 이미지 생성'}
 }
 function productCard(p){
+ const img=liveMedia.get(p.id)?.product?.data;
+ const picture=img&&safeDataImage(img)?img:(p.imageUrl&&/^https:\/\//.test(p.imageUrl)?p.imageUrl:null);
+ const thumb=picture?'<img alt="상품 사진" src="'+cleanMarkup(picture)+'" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">':'상품 사진<br>미등록';
  return `<div class="product ${p.id===selected.id?'selected':''}" onclick="selectProduct(${p.id})">
-  <div class="prodTop"><div class="thumb">상품 원본<br>이미지</div><div><span class="badge ${p.id===1?'orange':'green'}">${p.type}</span><h3>${p.name}</h3><div class="old">${fmt(p.old)}</div><div class="price">${fmt(p.price)}</div></div></div>
-  <div class="meta"><span class="badge red">${p.discount}% 할인</span><span class="badge blue">Threads ${p.thread}</span><span class="badge green">Instagram ${p.insta}</span></div>
-  <div class="reason">${p.reason}</div>
-  <div class="score"><div><div style="font-size:9px;color:#7b838e;margin-bottom:5px">바이럴 점수</div><div class="bar"><i style="width:${p.viral}%"></i></div></div><b>${p.viral}</b></div>
- </div>`
+  <div class="prodTop"><div class="thumb">${thumb}</div><div><span class="badge ${p.source==='sample'?'orange':'green'}">${cleanMarkup(p.type)}</span><h3>${cleanMarkup(p.name)}</h3><div class="old">${p.old!==p.price?fmt(p.old):''}</div><div class="price">${fmt(p.price)}</div></div></div>
+  <div class="meta"><span class="badge blue">${p.source==='manual'?'직접 입력':p.source==='toss'?'API 수신 · 검수 필요':'시연용 샘플'}</span><span class="badge">SNS 분석: ${p.source?'데이터 수집 전':'샘플'}</span></div>
+  <div class="reason">${cleanMarkup(p.reason)}</div>
+  <div class="score"><div><div style="font-size:9px;color:#7b838e;margin-bottom:5px">바이럴 점수 ${p.viral?'시연용':'실측 데이터 없음'}</div><div class="bar"><i style="width:${Number(p.viral)||0}%"></i></div></div><b>${p.viral||'–'}</b></div>
+ </div>`;
 }
 function renderProductLists(){ $('#dashProducts').innerHTML=products.map(productCard).join(''); $('#discoverProducts').innerHTML=products.map(productCard).join(''); }
 function selectProduct(id){ selected=products.find(p=>p.id===id)||products[0]; renderProductLists(); renderLab(); renderThreads(); renderInstagram();syncProductInputs(); show('lab'); }
@@ -1186,6 +1189,21 @@ function drawProductGlyph(ctx,productId,cx,cy,scale,palette){
  }
  ctx.restore();
 }
+
+function drawLiveAsset(ctx,slot,x,y,w,h){
+ const asset=currentMedia()[slot],img=asset&&asset.image;
+ if(!img||!img.naturalWidth||!img.naturalHeight)return false;
+ const ratio=Math.max(w/img.naturalWidth,h/img.naturalHeight);
+ const dw=img.naturalWidth*ratio,dh=img.naturalHeight*ratio;
+ ctx.save();
+ ctx.beginPath();
+ if(typeof ctx.roundRect==='function')ctx.roundRect(x,y,w,h,26);
+ else ctx.rect(x,y,w,h);
+ ctx.clip();
+ ctx.fillStyle='#fff';ctx.fillRect(x,y,w,h);
+ ctx.drawImage(img,x+(w-dw)/2,y+(h-dh)/2,dw,dh);
+ ctx.restore();return true;
+}
 function buildContentCanvas(platform,slide=0,variant=0){
  const p=selected,pal=designPalette(variant);
  const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1350;
@@ -1205,26 +1223,27 @@ function buildContentCanvas(platform,slide=0,variant=0){
   canvasParagraph(ctx,'문제 해결 · 생활 속 발견',x,214,max,36,49,2,pal.ink,700);
   const y=canvasParagraph(ctx,hook,x,295,max,73,92,5,pal.ink,900);
   roundedFill(ctx,112,Math.max(720,y+48),856,330,35,'rgba(255,255,255,.60)');
-  drawProductGlyph(ctx,p.id,540,Math.max(885,y+205),.50,pal);
+  if(!drawLiveAsset(ctx,'scene',112,Math.max(720,y+48),856,330)&&!drawLiveAsset(ctx,'product',112,Math.max(720,y+48),856,330))drawProductGlyph(ctx,p.id,540,Math.max(885,y+205),.50,pal);
   canvasParagraph(ctx,p.name,x,1120,max,40,50,2,pal.accent,900);
  }else if(slide===0){
   const hook=coverHooks(p)[coverIndex].replace(/<br>/g,' ');
   canvasParagraph(ctx,'생활에서 발견한 작은 변화',x,210,max,38,52,2,pal.ink,700);
   canvasParagraph(ctx,hook,x,310,max,76,94,6,pal.ink,900);
   roundedFill(ctx,125,890,830,200,30,'rgba(255,255,255,.54)');
-  drawProductGlyph(ctx,p.id,800,985,.29,pal);
+  if(!drawLiveAsset(ctx,'scene',125,890,830,200))drawProductGlyph(ctx,p.id,800,985,.29,pal);
   canvasParagraph(ctx,p.name,x,1105,max,42,54,2,pal.accent,900);
  }else if(slide===1){
   canvasParagraph(ctx,'02  문제 상황',x,228,max,44,60,2,pal.accent,900);
   canvasParagraph(ctx,getHookProfile(p).pain,x,330,max,68,88,6,pal.ink,900);
   roundedFill(ctx,x,800,856,250,27,'rgba(255,255,255,.66)');
-  canvasParagraph(ctx,'이 불편을 어떻게 줄일 수 있을까요?',x+42,860,770,39,53,3,pal.ink,800);
+  if(!drawLiveAsset(ctx,'scene',x,800,856,250))canvasParagraph(ctx,'이 불편을 어떻게 줄일 수 있을까요?',x+42,860,770,39,53,3,pal.ink,800);
  }else if(slide===2){
   canvasParagraph(ctx,'03  제품 살펴보기',x,215,max,44,58,2,pal.accent,900);
   canvasParagraph(ctx,p.name,x,315,max,66,85,4,pal.ink,900);
   roundedFill(ctx,x,660,856,360,34,'rgba(255,255,255,.75)');
-  drawProductGlyph(ctx,p.id,540,825,.59,pal);
-  canvasParagraph(ctx,'제품 일러스트 시안 · 실물 사진 미연결',x,1070,max,30,42,2,pal.accent,700);
+  const hasProductPhoto=drawLiveAsset(ctx,'product',x,660,856,360);
+  if(!hasProductPhoto)drawProductGlyph(ctx,p.id,540,825,.59,pal);
+  canvasParagraph(ctx,hasProductPhoto?'사용자 등록 상품 사진':'제품 일러스트 시안 · 상품 사진 미연결',x,1070,max,30,42,2,pal.accent,700);
  }else if(slide===3){
   canvasParagraph(ctx,'04  확인할 기능',x,215,max,44,58,2,pal.accent,900);
   canvasParagraph(ctx,p.novel,x,330,max,62,81,7,pal.ink,900);
@@ -1238,7 +1257,7 @@ function buildContentCanvas(platform,slide=0,variant=0){
   canvasParagraph(ctx,'예시 가격: '+fmt(p.price),x,1060,max,40,52,2,pal.accent,900);
  }
  ctx.fillStyle=pal.ink;ctx.fillRect(x,1190,max,2);
- canvasParagraph(ctx,'ViralPick  ·  텍스트 그래픽 시안  ·  AI/실물 사진 미포함',x,1215,max,24,35,2,pal.ink,600);
+ canvasParagraph(ctx,'ViralPick  ·  '+(currentMedia().scene?'상황 이미지 합성':'그래픽 시안')+'  ·  '+(currentMedia().product?'등록 상품 사진 사용':'제품 이미지 미확인'),x,1215,max,22,34,2,pal.ink,600);
  return canvas;
 }
 async function pngBlob(canvas){
