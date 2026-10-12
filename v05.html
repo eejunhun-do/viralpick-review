@@ -574,7 +574,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 </section>
 
 <section id="instagram" class="view">
-  <div class="top"><div><span class="badge orange">Instagram Carousel</span><h1>5장 카드형 콘텐츠 만들기</h1><p>첫 장은 후킹, 2장은 문제, 3장은 상품, 4장은 장점, 5장은 CTA로 구성합니다.</p></div><div class="btnrow"><button class="btn" onclick="cycleCover()">표지 4안 재생성</button><button class="btn" onclick="requestAiScene('instagram')">✨ AI 실사 표지 생성</button><button class="btn green" id="igZipBtn" onclick="downloadInstagramZIP()">카드 5장 ZIP 저장</button><button class="btn primary" onclick="openReservation('Instagram')">📅 최종 검수 후 예약</button></div></div>
+  <div class="top"><div><span class="badge orange">Instagram Carousel</span><h1>5장 카드형 콘텐츠 만들기</h1><p>첫 장은 후킹, 2장은 문제, 3장은 상품, 4장은 장점, 5장은 CTA로 구성합니다.</p></div><div class="btnrow"><button class="btn" onclick="cycleCover()">표지 4안 재생성</button><button class="btn" id="instagramGenerateButton" onclick="requestAiScene('instagram')">✨ AI 실사 표지 생성</button><button class="btn green" id="igZipBtn" onclick="downloadInstagramZIP()">카드 5장 ZIP 저장</button><button class="btn primary" onclick="openReservation('Instagram')">📅 최종 검수 후 예약</button></div></div>
   <div class="panel"><div class="panelHead"><h2>첫 장 표지 4안</h2><span class="badge green">1080 × 1350</span></div><div class="pad">
   <div class="copySettings"><label>표지·캡션 문구 스타일 <select id="instagramDiversity" onchange="changeInstagramDiversity(this.value)"><option value="stable">담백형</option><option value="balanced" selected>균형형</option><option value="creative">실험형</option></select></label><span class="copyHint">상품별 문제·발견·정보·구매판단 방향을 선택하세요</span></div>
   <div class="coverGrid" id="coverGrid"></div><div class="similarityNotice" id="instaDupStatus" aria-live="polite"></div>
@@ -914,19 +914,38 @@ function clearAsset(slot){
  const file=$('#'+(slot==='product'?'productImageInput':'sceneImageInput'));if(file)file.value='';
  toast('해당 이미지를 현재 작업에서 지웠습니다.');
 }
-async function requestAiScene(){
- const button=$('#generateSceneButton'),targetId=selected.id;
- if(button.disabled)return;
- if(!window.confirm('GPT Image 2 API 호출은 실제 이용 요금이 발생할 수 있습니다. 상황 이미지 1장을 생성할까요?'))return;
- button.disabled=true;button.textContent='GPT Image 2 생성 중…';
+
+async function requestAiScene(purpose='instagram'){
+ const targetId=selected.id;
+ const inThreads=purpose==='threads';
+ const onInstagram=purpose==='instagram'&&$('#instagram')?.classList.contains('active');
+ const button=inThreads?$('#threadGenerateButton'):onInstagram?$('#instagramGenerateButton'):$('#generateSceneButton');
+ if(button?.disabled)return;
+ if(!window.confirm('GPT Image 2로 실사 배경 1장을 생성합니다. 실제 API 이용 요금이 발생할 수 있습니다. 진행할까요?'))return;
+ const originalLabel=button?.textContent||'AI 이미지 생성';
+ if(button){button.disabled=true;button.textContent='실사 사진 생성 중…'}
+ const hints={
+  1:'A person carefully installing floating wooden shelves in a bright cozy modern living room, using a generic laser level tool casting a straight horizontal red guide line, plants, warm wooden surfaces, beautiful natural daylight. Human activity and laser level prominent in the lower two thirds; clear bright cream wall on top for headline.',
+  2:'A person cleaning crumbs from gaps between car seats with a small cordless handheld cleaner, realistic sunlit car interior, hands and vehicle seats prominent, authentic dust and interior details. Upper portion naturally uncluttered and bright for headline.',
+  3:'A pet guardian gently washing muddy dog paws after a walk using a generic washable cup at a bright home entryway, dog calm and comfortable, warm natural daylight. Upper portion uncluttered and bright for headline.'
+ };
+ const source=$('#scenePrompt')?.value?.trim()||selected.visual||'';
+ const scene=(hints[selected.id]?hints[selected.id]+' Additional user context: '+source:source).slice(0,500);
+ const hook=inThreads?getHookHeadline():coverHooks(selected)[coverIndex];
  try{
-  const scene=trimText($('#scenePrompt').value,500);
-  const data=await backendRequest('/api/image',{method:'POST',body:JSON.stringify({product:selected.name,scene,purpose:'instagram'})});
-  if(selected.id!==targetId){toast('다른 상품을 선택해 결과를 반영하지 않았습니다.');return}
+  const data=await backendRequest('/api/image',{
+   method:'POST',
+   body:JSON.stringify({product:selected.name,scene,purpose,hook,style:hookPhotoStyle})
+  });
+  if(selected.id!==targetId){toast('작업 중 상품이 바뀌어 이미지를 적용하지 않았습니다.');return}
   await setMediaSlot('scene',data.image,'ai');
-  toast('실제 AI 상황 이미지를 생성해 카드에 연결했습니다.');
- }catch(e){toast('생성 실패: '+e.message);$('#apiResult').textContent='이미지 생성 요청: '+e.message}
- finally{button.disabled=false;button.textContent='GPT Image 2 상황 이미지 생성'}
+  toast('AI 실사 배경을 반영했습니다. 후킹 문구와 3가지 레이아웃을 비교해보세요.');
+ }catch(e){
+  toast('AI 사진 생성 실패: '+e.message);
+  const result=$('#apiResult');if(result)result.textContent='이미지 생성 요청: '+e.message;
+ }finally{
+  if(button){button.disabled=false;button.textContent=originalLabel}
+ }
 }
 function productCard(p){
  const img=liveMedia.get(p.id)?.product?.data;
@@ -1107,9 +1126,11 @@ function renderThreads(){
  $('#threadTypeBadge').textContent=p.type;
  $('#threadDiversity').value=threadDiversity;
  $('#threadTabs').innerHTML=b.map((x,i)=>`<div class="copyTab ${threadCopyIndex===i?'active':''}" onclick="threadCopyIndex=${i};renderThreads()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'){threadCopyIndex=${i};renderThreads()}"><span class="hookKind">${hookKinds[i]}</span><b>${hs[i]}</b></div>`).join('');
- $('#threadImages').innerHTML=threadVisuals(p);
+ $('#hookHeadline').value=getHookHeadline();
+ $('#hookPhotoStyle').value=hookPhotoStyle;
  $('#threadFinalText').value=getCurrentThreadText();
  const i=threadImageIndex;
+ $('#threadImages').innerHTML=threadVisuals(p);
  try{
    const png=buildContentCanvas('Threads',0,i).toDataURL('image/png');
    $('#threadFinalImage').innerHTML='<img src="'+png+'" alt="선택한 Threads 이미지 출력 미리보기" style="width:min(100%,360px);display:block;aspect-ratio:4/5;object-fit:contain;border-radius:15px;border:1px solid #e7e9ed">';
@@ -1117,6 +1138,17 @@ function renderThreads(){
    $('#threadFinalImage').innerHTML=`<div style="max-width:360px"><div class="visual ${cls[i]}"><div class="ghost">${p.visual}</div><div class="copy">${hs[threadCopyIndex]}<span class="sub">${p.name}</span></div></div></div>`;
  }
  renderThreadDupStatus();
+}
+
+function refreshHookPreviews(){
+ const root=$('#threadImages'),preview=$('#threadFinalImage');
+ if(!root||!preview)return;
+ const p=selected;
+ root.innerHTML=threadVisuals(p);
+ try{
+  const png=buildContentCanvas('Threads',0,threadImageIndex).toDataURL('image/png');
+  preview.innerHTML='<img src="'+png+'" alt="선택한 1080×1350 후킹 이미지 최종 미리보기" style="width:min(100%,450px);display:block;aspect-ratio:4/5;object-fit:contain;border-radius:15px;border:1px solid #e7e9ed">';
+ }catch(e){toast('후킹 이미지 미리보기 오류: '+e.message)}
 }
 function cycleThread(){threadSeed++;threadCopyIndex=0;threadImageIndex=0;renderThreads();toast('상품별 후킹 6안을 새로 구성했습니다')}
 async function copyThread(){ try{await navigator.clipboard.writeText(getCurrentThreadText());toast('Threads 본문을 복사했습니다')}catch(e){toast('브라우저 복사 권한을 확인해주세요')} }
@@ -1815,6 +1847,8 @@ function openReservation(platform){
    text,description:desc,contentType:p.type,
    bodyVariant:platform==='Threads'?threadCopyIndex+1:null,
    imageVariant:platform==='Threads'?threadImageIndex+1:null,
+   visualHeadline:platform==='Threads'?getHookHeadline():null,
+   backgroundStyle:hookPhotoStyle,
    coverVariant:platform==='Instagram'?coverIndex+1:null,
    cards,
    productPrice:p.price,
