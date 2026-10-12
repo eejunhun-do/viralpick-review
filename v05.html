@@ -459,6 +459,12 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 .reserveCheckActions .btn{font-weight:900;font-size:12px}
 .reserveCheckActions>span{font-size:11px;color:#7a8190;line-height:1.5}
 .instagramHookMaker{margin-top:15px}
+
+.carouselImageTools{border:1px solid #e1e6ed;border-radius:13px;background:#f8fafc;padding:12px;margin-bottom:14px}
+.carouselImageToolsRow{display:flex;flex-wrap:wrap;gap:8px}
+.carouselImageToolsRow .btn{flex:1;min-width:170px;min-height:40px}
+#carouselArtStatus{margin:10px 0 0;font-size:11px;color:#687482;line-height:1.55;overflow-wrap:anywhere}
+@media(max-width:650px){.carouselImageToolsRow{display:grid;grid-template-columns:1fr}.carouselImageToolsRow .btn{min-width:0;width:100%}}
 </style>
 </head>
 <body>
@@ -620,13 +626,21 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
   <div class="coverGrid" id="coverGrid"></div><div class="similarityNotice" id="instaDupStatus" aria-live="polite"></div>
 </div></div>
   <div class="twocol">
-    <div class="panel"><div class="panelHead"><h2>5장 캐러셀</h2><span class="badge" id="cardIndexBadge">1 / 5</span></div><div class="pad"><div class="carousel"><div class="thumbRail" id="cardThumbs"></div><div><div class="instaCard" id="instaCard"></div><div class="dots">● ○ ○ ○ ○</div></div></div></div></div>
+    <div class="panel"><div class="panelHead"><h2>5장 캐러셀</h2><span class="badge" id="cardIndexBadge">1 / 5</span></div><div class="pad">
+      <div class="carouselImageTools">
+        <div class="carouselImageToolsRow">
+          <button type="button" class="btn primary" id="carouselBatchBtn" onclick="generateCarouselImages()">✨ 2~5번 전용 실사 4장 생성</button>
+          <button type="button" class="btn" id="carouselSingleBtn" onclick="generateCarouselImage(instaCardIndex+1)">현재 카드 사진 다시 생성</button>
+        </div>
+        <p id="carouselArtStatus" aria-live="polite">2~5번 카드에 각기 다른 사진을 크게 넣을 수 있습니다. 이미지 생성은 별도 요금이 발생합니다.</p>
+      </div>
+      <div class="carousel"><div class="thumbRail" id="cardThumbs"></div><div><div class="instaCard" id="instaCard"></div><div class="dots">● ○ ○ ○ ○</div></div></div></div></div>
     <div>
       <div class="panel"><div class="panelHead"><h2>Instagram 캡션</h2></div><div class="pad"><textarea class="copybox instaFinalEditor" id="instaCaption" oninput="onInstagramFinalEdit()" aria-label="Instagram 최종 캡션 편집" spellcheck="true"></textarea><div class="btnrow" style="margin-top:10px"><button class="btn" onclick="copyCaption()">캡션 복사</button><button class="btn" onclick="toast('해시태그는 캡션 입력창에서 직접 수정할 수 있습니다')">해시태그 변경</button></div></div></div>
       <div class="panel"><div class="panelHead"><h2>출력 구성</h2></div><div class="pad statusline"><span class="status">표지 4안</span><span class="status">5장 카드</span><span class="status">문구 3가지 톤</span><span class="status">카드 5장 PNG 출력</span><span class="status">최근 저장 예약문 중복 검사</span></div></div>
     </div>
   </div>
-  <div class="aiNote" style="margin-top:12px">현재 ZIP/PNG 출력은 실제 파일로 저장되는 <b>텍스트 그래픽 카드</b>입니다. 상품 실물 사진이나 AI 생성 이미지는 아직 합성되지 않습니다. API 연결 이후 실제 상품 이미지와 AI 상황 이미지를 반영할 예정입니다.</div><div class="panel finalActions"><div class="pad"><div><b>5장 카드와 캡션을 확인하고 예약하세요</b><p>선택한 표지 1안, 카드 5장 구성, 직접 수정한 캡션이 예약 항목에 함께 기록됩니다.</p></div><button class="btn primary" onclick="openReservation('Instagram')">✓ 수정 완료 · 게시 예약하기</button></div></div>
+  <div class="aiNote" style="margin-top:12px">5장의 카드 모두 사진 위에 제목·설명 문구를 합성하는 <b>1080×1350 이미지</b>입니다. 2~5번은 각 장면에 맞는 실사를 생성하거나 기존 사진을 활용합니다. AI 이미지 속 제품은 실제 판매 상품과 다를 수 있으며, 비용 발생 전 확인 창이 표시됩니다.</div><div class="panel finalActions"><div class="pad"><div><b>5장 카드와 캡션을 확인하고 예약하세요</b><p>선택한 표지 1안, 카드 5장 구성, 직접 수정한 캡션이 예약 항목에 함께 기록됩니다.</p></div><button class="btn primary" onclick="openReservation('Instagram')">✓ 수정 완료 · 게시 예약하기</button></div></div>
 </section>
 
 <section id="analytics" class="view">
