@@ -1398,7 +1398,7 @@ async function loadRememberedAccess(){
   if(typeof saved.access!=='string'||saved.access.length<16||!/^https:\/\/[\w.-]+(?::\d+)?$/.test(saved.serverUrl||''))return;
   const access=$('#apiAccess'),base=$('#apiBase');
   if(access&&!access.value)access.value=saved.access;
-  if(base&&!base.value)base.value=saved.serverUrl;
+  if(base)base.value=saved.serverUrl;
   rememberedAccessEnabled=true;
   const checkbox=$('#quickRememberAccess');if(checkbox)checkbox.checked=true;
  }catch(e){
@@ -1441,6 +1441,10 @@ async function forgetConnectionSecret(){
   toast('저장된 서버 연결 암호를 삭제했습니다.');
  }catch(e){
   setQuickConnectionMessage('암호 삭제 실패: '+e.message,true);
+ }finally{
+  if($('#apiAccess'))$('#apiAccess').value='';
+  if($('#quickServerPassword'))$('#quickServerPassword').value='';
+  showBackendState('disconnected');
  }
 }
 
@@ -1466,7 +1470,7 @@ async function backendRequest(path,options={}){
    signal:ctl.signal,cache:'no-store'
   });
   const data=await res.json().catch(()=>({message:'JSON 응답을 받지 못했습니다.'}));
-  if(!res.ok||!data.ok)throw new Error(data.message||'요청 오류: '+res.status);
+  if(!res.ok||!data.ok){if(res.status===401||res.status===403)showBackendState('disconnected');throw new Error(data.message||'요청 오류: '+res.status)}
   return data;
  }finally{clearTimeout(timeout)}
 }
@@ -1484,7 +1488,7 @@ async function checkBackendStatus({fromHeader=false,remember=undefined}={}){
   if(remember===true){
    try{await saveRememberedAccess($('#apiAccess').value,persistBackendUrl());reminder=' 암호도 이 브라우저에 암호화해 기억했습니다.'}
    catch(e){reminder=' (연결 성공, 암호 기억하기 실패: '+e.message+')';rememberedAccessEnabled=false}
-  }else if(remember===false){
+  }else if(remember===false&&rememberedAccessEnabled){
    try{await deleteConnectionVault();rememberedAccessEnabled=false}
    catch(e){reminder=' (저장 암호 삭제 실패: '+e.message+')'}
   }
