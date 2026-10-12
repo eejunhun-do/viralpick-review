@@ -583,6 +583,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 #instagram.multiEnabled .instaSlideControls .dots{font-size:14px;letter-spacing:2px;overflow-wrap:anywhere}
 .multiInstagramCaptionTools{padding-bottom:10px}.multiInstagramCaptionTools[hidden]{display:none!important}
 .multiTossApproval{display:flex;align-items:flex-start;gap:7px;font-size:10px;font-weight:800;color:#7f6241}.multiTossApproval input{flex-shrink:0;margin:0;accent-color:#087654}
+.multiItemPhotoControls button:disabled{opacity:.55;cursor:wait}
 </style>
 </head>
 <body>
@@ -1810,6 +1811,7 @@ const multiStudio={
  notes:{},captions:{Threads:'',Instagram:''},allowedToss:{},revision:0
 };
 const multiEditableAssets=new Map();
+const multiSceneAssets=new Map(),multiAiBusy=new Set();
 let multiSaveWarning='',multiTypingTimer=null,multiAssetLoadGeneration=0;
 const MULTI_STUDIO_KEY='viralpick-multi-studio-v1',MULTI_MAX_PRODUCTS=16;
 function isMultiMode(platform){return multiStudio.modes[platform]==='multi'}
@@ -1928,15 +1930,17 @@ function scheduleMultiPreview(){
 function multiMediaFor(p){
  const licensed=multiEditableAssets.get(p.id);
  if(licensed?.kind==='licensed-upload'&&licensed.image?.naturalWidth)return licensed.image;
+ const generated=multiSceneAssets.get(p.id);
+ if(generated?.kind==='ai-scene'&&generated.image?.naturalWidth)return generated.image;
  // Earlier manual upload may be reused only after a separate license attestation.
  return null;
 }
 function multiProductRow(p,i){
- const licensed=multiEditableAssets.get(p.id);
+ const licensed=multiEditableAssets.get(p.id),generated=multiSceneAssets.get(p.id);
  const approvedOriginal=p.source==='toss'&&multiStudio.allowedToss[String(p.id)]===true&&/^https:\/\//.test(p.imageUrl||'');
- const src=licensed?.data||(approvedOriginal?p.imageUrl:null);
+ const src=licensed?.data||generated?.data||(approvedOriginal?p.imageUrl:null);
  const note=multiItemNote(p),name=cleanMarkup(p.name);
- const photo=src?'<img src="'+cleanMarkup(src)+'" alt="'+name+' '+(licensed?'편집 허가 이미지':'토스 원본 미리보기')+'" loading="lazy">':'<span aria-label="등록된 사진 없음">▧</span>';
+ const photo=src?'<img src="'+cleanMarkup(src)+'" alt="'+name+' '+(licensed?'편집 허가 이미지':generated?'AI 생성 상황 예시':'토스 원본 미리보기')+'" loading="lazy">':'<span aria-label="등록된 사진 없음">▧</span>';
  const link=approvedOriginal?'<a href="'+cleanMarkup(p.imageUrl)+'" rel="noopener noreferrer" target="_blank">토스 원본 별도 보기</a>':'';
  const tossReview=p.source==='toss'?'<label class="multiTossApproval"><input type="checkbox" '+(approvedOriginal?'checked':'')+' onchange="toggleTossOriginalApproval('+p.id+',this.checked)">상세페이지 이미지 사용 금지 표시가 없는지 직접 확인했습니다 (원본 미리보기만 허용)</label>':'';
  return '<div class="multiItemRow">'+
@@ -1948,8 +1952,9 @@ function multiProductRow(p,i){
     '<button type="button" onclick="toggleMultiProduct('+p.id+',false)" aria-label="상품 제거">✕</button></div></div>'+
    '<label style="font-size:11px;font-weight:850;color:#657484">카드에 넣을 설명<textarea maxlength="220" oninput="editMultiNote('+p.id+',this.value)" aria-label="'+name+' 설명">'+cleanMarkup(note)+'</textarea></label>'+
    '<div class="multiItemPhotoControls"><label>편집 허가 사진 업로드 <input type="file" accept="image/png,image/jpeg,image/webp" onchange="uploadMultiLicensedPhoto(event,'+p.id+')"></label>'+
-   (licensed?'<button type="button" onclick="removeMultiLicensedPhoto('+p.id+')">업로드 사진 제거</button>':'')+link+'</div>'+
-   (tossReview||'')+'<p class="multiItemRights">'+(licensed?'✓ 별도 편집 권한 확인 사진':'토스 API 원본은 편집 카드에 자동 합성하지 않습니다. 편집 허가 사진이나 AI 예시 이미지를 별도로 사용해 주세요.')+'</p>'+
+   '<button type="button" onclick="generateMultiSceneImage('+p.id+')" '+(multiAiBusy.has(p.id)?'disabled':'')+'>'+(multiAiBusy.has(p.id)?'AI 생성 중…':'✨ AI 상황 예시 1장')+'</button>'+
+   (licensed?'<button type="button" onclick="removeMultiLicensedPhoto('+p.id+')">업로드 사진 제거</button>':'')+(generated?'<button type="button" onclick="removeMultiSceneImage('+p.id+')">AI 예시 삭제</button>':'')+link+'</div>'+
+   (tossReview||'')+'<p class="multiItemRights">'+(licensed?'✓ 별도 편집 권한 확인 사진':generated?'AI로 만든 상황 예시입니다. 실제 판매 상품 모습과 다를 수 있습니다.':'토스 API 원본은 편집 카드에 자동 합성하지 않습니다. 편집 허가 사진이나 AI 예시 이미지를 별도로 사용해 주세요.')+'</p>'+
   '</div></div>';
 }
 function renderMultiProductPicker(query=undefined){
@@ -2013,6 +2018,45 @@ async function uploadMultiLicensedPhoto(event,id){
  }catch(e){toast('사진 등록 실패: '+e.message)}
  if(input)input.value='';
 }
+
+async function generateMultiSceneImage(id){
+ id=Number(id);const p=products.find(item=>item.id===id);
+ if(!p||multiAiBusy.has(id)||sceneGenerationBusy)return;
+ if(!window.confirm(p.name+'의 AI 상황 예시 사진 1장을 만들까요? GPT Image 2 API 비용이 발생합니다. 실제 상품 사진이 아니라 제품 종류의 사용 상황을 표현하는 예시입니다.'))return;
+ multiAiBusy.add(id);renderMultiStudios();
+ try{
+  const scene=[
+   'Photorealistic editorial lifestyle photo about the GENERIC category of the product, not a replica of the exact commercial SKU.',
+   'Show relatable realistic everyday use context; do not copy the appearance, label or branding of any product.',
+   'Buyer problem: '+String(p.problem||'everyday task').slice(0,150),
+   'Scene context: '+String(p.visual||'lifestyle').slice(0,150),
+   'No logos, text, false endorsements or prices.'
+  ].join(' ').slice(0,500);
+  const response=await backendRequest('/api/image',{method:'POST',body:JSON.stringify({
+   product:p.name,scene,purpose:'carousel',slide:3,hook:multiTitle(),style:hookPhotoStyle
+  })});
+  const data=response.image||response.images?.[0];
+  if(!safeDataImage(data))throw new Error('서버에서 이미지가 오지 않았습니다.');
+  const image=await photoImageObject(data);
+  const old=getPhotoHistory(id)||await readPhotoRecord(id).catch(()=>null)||{productId:id,groups:[],activeId:null};
+  const record={...old,productId:id,multiSceneImage:{data,createdAt:new Date().toISOString(),kind:'ai-scene'},updatedAt:new Date().toISOString()};
+  await writePhotoRecord(record);
+  photoHistories.set(id,record);multiSceneAssets.set(id,{...image,kind:'ai-scene'});
+  multiStudio.revision++;toast('AI 상황 예시 사진을 저장했습니다. 실제 상품 모습과 다를 수 있습니다.');
+ }catch(e){toast('AI 예시 생성 실패: '+e.message)}
+ finally{multiAiBusy.delete(id);renderMultiStudios();refreshMultiOutputs()}
+}
+async function removeMultiSceneImage(id){
+ id=Number(id);
+ try{
+  const existing=getPhotoHistory(id)||await readPhotoRecord(id);
+  if(existing?.multiSceneImage){
+   const next={...existing};delete next.multiSceneImage;await writePhotoRecord(next);photoHistories.set(id,next);
+  }
+  multiSceneAssets.delete(id);multiStudio.revision++;renderMultiStudios();refreshMultiOutputs();
+ }catch(e){toast('AI 예시 삭제 실패: '+e.message)}
+}
+
 async function removeMultiLicensedPhoto(id){
  id=Number(id);
  try{
@@ -2028,16 +2072,22 @@ async function restoreMultiEditableAssets(){
  const generation=++multiAssetLoadGeneration;
  const ids=multiSelectedProducts().map(p=>p.id);
  for(const id of ids){
-  if(multiEditableAssets.has(id))continue;
+  if(multiEditableAssets.has(id)&&multiSceneAssets.has(id))continue;
   const saved=getPhotoHistory(id)||await readPhotoRecord(id).catch(()=>null);
   if(generation!==multiAssetLoadGeneration)return;
-  const data=saved?.multiLicensedImage?.data;
-  if(!safeDataImage(data))continue;
-  try{
-   const image=await photoImageObject(data);
-   if(generation!==multiAssetLoadGeneration)return;
-   multiEditableAssets.set(id,{...image,kind:'licensed-upload'});
-  }catch(e){}
+  for(const [field,map,kind] of [
+   ['multiLicensedImage',multiEditableAssets,'licensed-upload'],
+   ['multiSceneImage',multiSceneAssets,'ai-scene']
+  ]){
+   if(map.has(id))continue;
+   const data=saved?.[field]?.data;
+   if(!safeDataImage(data))continue;
+   try{
+    const image=await photoImageObject(data);
+    if(generation!==multiAssetLoadGeneration)return;
+    map.set(id,{...image,kind});
+   }catch(e){}
+  }
  }
  if(generation===multiAssetLoadGeneration){multiStudio.revision++;renderMultiStudios();refreshMultiOutputs()}
 }
@@ -2772,6 +2822,7 @@ function multiDrawTile(ctx,p,rect,variant,index){
  roundedFill(ctx,x,y,w,h,24,'rgba(255,255,255,.97)');
  roundedFill(ctx,x+10,y+10,w-20,h-20,17,'#fff');
  const asset=multiMediaFor(p);
+ const aiOnly=!multiEditableAssets.has(p.id)&&multiSceneAssets.has(p.id);
  const headerH=Math.max(155,Math.round(h*.53));
  const imageHeight=headerH-21;
  ctx.save();
@@ -2793,6 +2844,12 @@ function multiDrawTile(ctx,p,rect,variant,index){
   ctx.fillText('제품 사진 확인 필요',x+w/2,y+imageHeight*.52);
  }
  ctx.restore();
+ if(aiOnly){
+  roundedFill(ctx,x+20,y+22,Math.min(200,w-45),32,8,'rgba(28,37,53,.78)');
+  ctx.font='800 17px "Noto Sans KR","Malgun Gothic",sans-serif';
+  ctx.textAlign='left';ctx.textBaseline='top';ctx.fillStyle='#fff';
+  ctx.fillText('AI 연출 예시 · 실물 아님',x+28,y+29);
+ }
  const textX=x+25,width=w-50;
  ctx.fillStyle=scheme.accent;ctx.fillRect(textX,y+headerH+4,43,6);
  let cursor=y+headerH+22;
