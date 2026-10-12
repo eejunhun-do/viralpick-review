@@ -1880,6 +1880,69 @@ function productCard(p){
 }
 
 /* v0.9.1 shared multi-product studio: browser-private, content output rights aware. */
+
+const MULTI_STORY_PRESETS={
+solo:{headline:'자취하면 은근 신경 쓰이는 불편, 이런 꿀템 어때?',title:'혼자 살면 더 크게 느껴지는 작은 불편',
+ Threads:['혼자 살다 보면 집안일이 하나씩 쌓이잖아.','퇴근하고 돌아와도 정리나 청소가 남아 있으면 시작하기부터 귀찮지.','그래서 일상에서 번거로운 일을 덜 수 있는 방법을 찾아보게 돼.','많이 사기보다 자주 겪는 불편에 필요한 것부터 비교해 보면 좋겠어.'],
+ Instagram:['혼자 살다 보면 집안일이 어느새 하나씩 쌓이기 마련이죠.','집에 돌아온 뒤 정리나 청소까지 해야 할 때는 작은 일도 번거롭게 느껴집니다.','이럴 때 일상의 불편을 덜어 줄 방법을 먼저 생각하게 됩니다.','실제 공간과 사용 상황에 맞는 제품인지 확인해 보세요.']},
+office:{headline:'직장인 책상 앞 작은 불편, 그냥 넘기고 있어?',title:'오래 앉아 있을수록 신경 쓰이는 업무 환경',
+ Threads:['하루 종일 책상 앞에 앉아 있으면 손목이나 허리가 불편한 날도 있잖아.','그럴 땐 도구부터 사기보다 책상 높이와 자세, 쉬는 습관부터 살펴보게 돼.','그다음 내 업무 환경에 맞는 편의 제품이 있는지 비교해 볼 수 있어.','제품이 통증을 치료하는 건 아니니 사양과 사용 조건을 확인해 봐.'],
+ Instagram:['오랜 시간 앉아서 일하다 보면 손목이나 허리에 불편함을 느끼는 날도 있죠.','제품부터 찾기보다 책상 높이, 자세와 휴식 습관을 함께 살펴보는 것이 중요합니다.','그 후 업무 공간에서 사용할 만한 편의 제품들을 비교해 볼 수 있습니다.','제품이 통증을 치료한다는 의미는 아니므로 용도와 사용 조건을 확인해 주세요.']},
+study:{headline:'공부하려고 앉았는데 자꾸 신경 쓰이는 것들',title:'공부 흐름을 끊는 사소한 불편',
+ Threads:['공부하려고 앉았는데 책상 위 작은 불편에 자꾸 신경 쓰일 때 있지?','필기구가 손에 안 맞거나 자리가 어수선하면 마음부터 분주해지잖아.','그럴 때 공부 환경을 정리하는 데 참고할 만한 물건을 찾아보게 돼.','특정 제품이 성적이나 집중력을 높인다고 단정하지는 말자.'],
+ Instagram:['공부를 시작하려는데 책상 위 작은 불편이 계속 신경 쓰일 때가 있습니다.','필기구 사용감이나 조명, 책상 정리처럼 사소한 요소도 고려할 점이죠.','그래서 공부 공간에 어울리는 물건을 몇 가지 비교해 보았습니다.','제품이 성적이나 집중력 향상을 보장하는 것은 아니니 실제 용도를 확인해 주세요.']},
+newlywed:{headline:'신혼집 꾸리고 나서 알게 되는 생활 속 번거로움',title:'둘이 살면서 더 자주 마주치는 집안일',
+ Threads:['신혼집 꾸밀 땐 예쁜 가구부터 눈에 들어오잖아.','막상 같이 생활하면 수납이나 청소처럼 반복되는 일이 더 크게 느껴지기도 해.','그래서 두 사람의 생활 방식에 맞는 편의템을 비교해 보게 돼.','크기와 설치 조건, 관리 방법도 꼭 살펴봐.'],
+ Instagram:['신혼집을 꾸릴 때는 디자인과 분위기를 먼저 생각하게 되죠.','함께 생활하다 보면 수납이나 청소 같은 반복적인 집안일도 중요해집니다.','그래서 집 구조와 생활 방식에 맞는 편의 제품을 살펴보게 됩니다.','제품 크기와 관리 방법을 확인하고 우리 집에 필요한지 판단해 보세요.']},
+meal:{headline:'바쁜 날마다 식단 챙기기 어려웠다면?',title:'끼니 챙기기 어려운 날의 현실적인 고민',
+ Threads:['일정이 바쁘면 끼니 하나 챙기는 것도 생각보다 번거롭지.','요리하고 치우는 데까지 시간이 걸리니까 간단한 대안을 찾는 날도 있잖아.','그래서 준비가 간편한 식품들을 비교해 보게 돼.','건강이나 체중 변화는 단정하지 말고 영양정보와 알레르기 표시부터 확인해 봐.'],
+ Instagram:['바쁜 날에는 한 끼 식사를 준비하는 시간도 부담스럽게 느껴질 수 있습니다.','재료 준비부터 조리와 정리까지 시간이 필요하기 때문에 간편한 대안을 찾게 되죠.','그럴 때 살펴볼 만한 식품들을 모아 비교해 보았습니다.','효과를 단정하지 말고 영양정보와 알레르기 표시를 확인해 주세요.']},
+parenting:{headline:'아이 챙기고 나면 정리할 시간도 부족하지?',title:'육아 뒤에도 남아 있는 집안일',
+ Threads:['아이 챙기다 보면 하루가 정말 금방 가잖아.','식사 준비부터 물건 정리까지 겹치면 어디부터 손댈지 막막할 때도 있고.','그래서 반복되는 일을 덜 번거롭게 할 방법을 찾아보게 돼.','아이 연령과 안전 기준에 맞는 제품인지 확인하는 건 꼭 필요해.'],
+ Instagram:['아이를 돌보다 보면 하루가 빠르게 지나가는 날이 많습니다.','식사 준비와 정리까지 겹치면 집안일을 어디부터 시작할지 고민되기도 하죠.','그래서 반복되는 일을 조금 더 편리하게 처리할 방법을 찾게 됩니다.','육아용 제품은 특히 사용 연령과 안전 기준을 확인해 주세요.']},
+homework:{headline:'재택근무하면 의외로 불편한 것들',title:'집에서 일할 때 생기는 새로운 불편',
+ Threads:['집에서 일하면 출퇴근이 없어 편할 것 같잖아.','그런데 책상 공간이나 케이블 정리처럼 사소한 게 계속 걸리는 날도 있어.','그래서 작업 공간을 쓰기 편하게 만들 방법을 찾아보게 돼.','집 구조와 장비 호환성을 확인하고 필요한 제품부터 살펴봐.'],
+ Instagram:['집에서 일하면 이동 시간을 줄일 수 있다는 장점이 있죠.','반면 책상 공간과 케이블 정리, 장비 배치처럼 새로운 불편이 생기기도 합니다.','이런 상황에서 업무 공간을 정리하는 데 참고할 만한 물건들을 살펴보았습니다.','집 구조와 장비 호환성, 설치 조건을 확인한 뒤 선택해 보세요.']}
+};
+function multiStoryPreset(){return MULTI_STORY_PRESETS[multiStudio.storyPreset]||null}
+function getMultiStory(platform){
+ const custom=multiStudio.storyEdits?.[platform];
+ if(typeof custom==='string'&&custom.trim())return custom;
+ const preset=multiStoryPreset();if(!preset)return '';
+ const limit=({short:2,standard:3,long:4})[multiStudio.storyPace]||3;
+ return preset[platform].slice(0,limit).join('\n\n');
+}
+function multiResetStoryCaptions(){
+ if((multiStudio.captions.Threads||multiStudio.captions.Instagram)&&!window.confirm('직접 수정한 모음형 본문·캡션이 있습니다. 주제 변경을 반영하려면 기본 문구를 다시 작성해야 합니다. 기존 수정본을 초기화할까요?'))return false;
+ multiStudio.captions={Threads:'',Instagram:''};return true;
+}
+function changeMultiStoryPreset(key){
+ if(key!=='none'&&!Object.prototype.hasOwnProperty.call(MULTI_STORY_PRESETS,key))return;
+ if(key===multiStudio.storyPreset)return;
+ if(!multiResetStoryCaptions()){renderMultiStudios();return}
+ multiStudio.storyPreset=key;
+ multiStudio.headline=key==='none'?'일상에서 유용한 추천템 모음':MULTI_STORY_PRESETS[key].headline;
+ multiStudio.storyEdits={Threads:'',Instagram:''};
+ multiStudio.includeStoryCard=key!=='none';
+ multiStudio.revision++;instaCardIndex=0;
+ persistMultiStudio();renderMultiStudios();refreshMultiOutputs();
+}
+function changeMultiStoryPace(pace){
+ if(!['short','standard','long'].includes(pace)||multiStudio.storyPace===pace)return;
+ if(!multiResetStoryCaptions()){renderMultiStudios();return}
+ multiStudio.storyPace=pace;multiStudio.revision++;
+ persistMultiStudio();renderMultiStudios();refreshMultiOutputs();
+}
+function editMultiStory(platform,value){
+ if(!['Threads','Instagram'].includes(platform))return;
+ multiStudio.storyEdits[platform]=String(value||'').slice(0,900);
+ multiStudio.revision++;persistMultiStudio();scheduleMultiPreview();
+}
+function changeMultiStoryCard(enabled){
+ multiStudio.includeStoryCard=!!enabled;multiStudio.revision++;instaCardIndex=0;
+ persistMultiStudio();renderMultiStudios();refreshMultiOutputs();
+}
+
 const multiStudio={
  modes:{Threads:'single',Instagram:'single'},template:'editorial',
  selectedIds:[],headline:'일상에서 유용한 추천템 모음',summary:'필요한 기능을 비교하고, 구매 전 최신 가격·재고·옵션을 확인해 보세요.',
