@@ -9,7 +9,9 @@ export async function POST(req){
  try{data=await safePayload(req)}catch(e){return json(req,{ok:false,message:'요청 형식 오류: '+e.message},400)}
  const product=String(data.product||'').trim().slice(0,100);
  const scene=String(data.scene||'').trim().slice(0,500);
- const purpose=data.purpose==='instagram'?'instagram':'threads';
+ const purpose=data.purpose==='carousel'?'carousel':data.purpose==='instagram'?'instagram':'threads';
+ const slide=Number(data.slide)||0;
+ if(purpose==='carousel'&&![2,3,4,5].includes(slide))return json(req,{ok:false,message:'캐러셀 사진은 2~5번 카드만 지원합니다.'},400);
  if(!product||scene.length<5)return json(req,{ok:false,message:'상품명 및 장면 설명을 입력해 주세요.'},400);
  const style=['warm-editorial','clean-minimal','bold-contrast'].includes(data.style)?data.style:'warm-editorial';
  const artDirection={
@@ -30,6 +32,7 @@ export async function POST(req){
   'Do NOT generate any writing whatsoever: NO Korean, English, text, letters, symbols, prices, watermark, brand, labels or logos. The exact Korean headline will be overlaid by the app later.',
   'Avoid inventing the exact look of the real listed product, manufacturer logos, specifications, performance evidence, comparisons or claims. Depict the usage context and only generic safe visual cues.',
   'Keep the lower-left region legible for a small separate product-name overlay. Authentic credible visual, not exaggerated or misleading.',
+  purpose==='carousel'?'Single dedicated visual for Instagram carousel slide '+slide+' of 5. This slide has a DIFFERENT visual narrative than its cover: '+({2:'show the everyday inconvenience before the solution',3:'feature a realistic generic product-use scene, with no fake brand',4:'show an honest close-up detail of the use context',5:'show a reassuring purchasing-decision moment or tidy completed everyday scene'}[slide])+'.':'',
   purpose==='instagram'?'Designed as one Instagram carousel cover background.':'Designed as one scroll-stopping Threads hook image background.'
  ].join('\n');
  const controller=new AbortController();
@@ -38,7 +41,7 @@ export async function POST(req){
   const upstream=await fetch('https://api.openai.com/v1/images/generations',{
     method:'POST',
     headers:{'Authorization':'Bearer '+key,'Content-Type':'application/json'},
-    body:JSON.stringify({model:'gpt-image-2',prompt,size:'1088x1360',quality:'medium',output_format:'webp',output_compression:75,n:2}),
+    body:JSON.stringify({model:'gpt-image-2',prompt,size:'1088x1360',quality:'medium',output_format:'webp',output_compression:75,n:purpose==='carousel'?1:2}),
     signal:controller.signal
   });
   const result=await upstream.json().catch(()=>({}));
@@ -46,8 +49,9 @@ export async function POST(req){
   const images=Array.isArray(result.data)
    ?result.data.map(item=>item?.b64_json).filter(x=>typeof x==='string'&&x.length>0).slice(0,2).map(b64=>'data:image/webp;base64,'+b64)
    :[];
-  if(images.length!==2)return json(req,{ok:false,message:'생성 결과가 2장이 아닙니다. 요금이 발생했을 수 있으니 API 사용량을 확인해 주세요.'},502);
-  return json(req,{ok:true,mime:'image/webp',images,model:'gpt-image-2',purpose,count:images.length});
+  const expected=purpose==='carousel'?1:2;
+  if(images.length!==expected)return json(req,{ok:false,message:'생성 결과가 '+expected+'장이 아닙니다. 요금이 발생했을 수 있으니 API 사용량을 확인해 주세요.'},502);
+  return json(req,{ok:true,mime:'image/webp',images,image:purpose==='carousel'?images[0]:undefined,model:'gpt-image-2',purpose,slide,count:images.length});
 
  }catch(e){
   return json(req,{ok:false,message:e.name==='AbortError'?'이미지 생성 시간 초과':'이미지 요청 실패. 서버 연결 상태를 확인하세요.'},502);
