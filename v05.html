@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111318">
-<title>ViralPick v0.6.0 Prototype</title>
+<title>ViralPick v0.7.0 Prototype</title>
 <style>
 :root{
   --bg:#f5f6f8;--panel:#fff;--ink:#15171b;--muted:#727985;--line:#e6e8ec;
@@ -117,7 +117,7 @@ button,input,select,textarea{font:inherit}
 .limitNotice{border:1px solid #ffd8a8;background:#fff9db;color:#8a5d00;border-radius:13px;padding:12px;font-size:10px;line-height:1.55}
 .toast{position:fixed;right:22px;bottom:22px;background:#111318;color:#fff;padding:12px 15px;border-radius:12px;font-size:11px;opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s;z-index:20}.toast.show{opacity:1;transform:none}
 
-/* v0.6.0 responsive navigation and workspace */
+/* v0.7.0 responsive navigation and workspace */
 html{scroll-padding-top:82px}
 html,body{width:100%;max-width:100%;overflow-x:clip}
 button,select,input,.copyTab,.cardThumb,.blogTitle,.modeCard,.product{touch-action:manipulation}
@@ -276,7 +276,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 }
 
 
-/* Content review and booking — v0.6.0 */
+/* Content review and booking — v0.7.0 */
 .threadFinalEditor,.instaFinalEditor{width:100%;display:block;resize:vertical;font-family:inherit;font-size:13px;line-height:1.7;outline-offset:3px;border:1px solid var(--line);border-radius:13px;background:#fff;padding:14px;color:var(--ink)}
 .threadFinalEditor{min-height:310px;white-space:pre-wrap;margin:13px 0}.instaFinalEditor{min-height:310px;white-space:pre-wrap}
 .finalActions .pad{display:flex;align-items:center;justify-content:space-between;gap:14px}
@@ -392,6 +392,23 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
  .copyHint{min-width:0}
 }
 
+
+/* v0.7 live media setup */
+.manualProduct{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.manualProduct label{display:grid;gap:6px;color:#616b76;font-weight:850;font-size:11px}
+.manualProduct input{width:100%;min-width:0;border:1px solid var(--line);border-radius:10px;padding:11px;background:#fff;color:#15171b;font-size:13px}
+.mediaUploadGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.uploadBox{display:grid;gap:11px;border:1px dashed #c9d5e5;border-radius:15px;padding:16px;min-width:0;background:#fafbfd}
+.uploadBox b{font-size:13px}.uploadBox p{font-size:11px;color:#677485;line-height:1.5;margin:0}
+.uploadBox input{max-width:100%;font-size:11px}
+.mediaPreviewGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+.mediaPreviewGrid>div{border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:9px;font-weight:800;font-size:11px}
+.mediaPreviewGrid img{width:100%;max-height:280px;aspect-ratio:4/3;object-fit:contain;background:#f2f5f8;border-radius:10px}
+.importedProducts{display:grid;gap:7px;margin-top:12px}
+.importedProducts button{display:flex;align-items:center;gap:10px;text-align:left;min-height:50px;border:1px solid var(--line);border-radius:10px;background:#fff;padding:8px;cursor:pointer;font-size:12px}
+.importedProducts img{width:42px;height:42px;object-fit:contain}
+#scenePrompt{width:100%;min-height:80px;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:13px;resize:vertical}
+@media(max-width:650px){.manualProduct,.mediaUploadGrid,.mediaPreviewGrid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -404,10 +421,11 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 <div class="app">
 <aside class="side" id="siteSidebar" aria-label="전체 메뉴">
   <div class="sideHeader"><div class="brand">ViralPick</div><button type="button" class="mobileClose" onclick="closeMobileMenu()" aria-label="전체 메뉴 닫기">✕</button></div>
-  <div class="ver">v0.6.0 · Threads + Instagram + Blog + Scheduler</div>
+  <div class="ver">v0.7.0 · Threads + Instagram + Blog + Scheduler</div>
   <nav class="nav">
     <button data-view="dashboard" class="active">🏠 대시보드</button>
     <button data-view="discover">🔥 상품 발굴</button>
+    <button data-view="integrations">🔌 상품·이미지 연결</button>
     <button data-view="lab">🧠 상품 분석</button>
     <button data-view="threads">💬 Threads 제작</button>
     <button data-view="instagram">▦ Instagram 제작</button>
@@ -416,7 +434,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
     <button data-view="scheduler">📅 자동게시 설정</button>
     
   </nav>
-  <div class="sideFoot"><b>v0.6.0 Prototype</b>토스 API 승인 전 샘플 데이터로 실제 제작 흐름을 점검하는 버전입니다. v0.4 검수 페이지는 그대로 유지됩니다.</div>
+  <div class="sideFoot"><b>v0.7.0 Prototype</b>토스 API 승인 전 샘플 데이터로 실제 제작 흐름을 점검하는 버전입니다. v0.4 검수 페이지는 그대로 유지됩니다.</div>
 </aside>
 
 <main class="main">
@@ -437,8 +455,56 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
   <div class="panel"><div class="panelHead"><h2>추천 상품</h2><div class="statusline"><span class="status">바이럴 70+</span><span class="status">생활/DIY</span><span class="status">반려동물</span></div></div><div class="pad products" id="discoverProducts"></div></div>
 </section>
 
+<section id="integrations" class="view">
+ <div class="top"><div><span class="badge blue">Live Content Connection</span><h1>실제 상품·이미지 연결</h1><p>먼저 상품 원본 사진을 올리거나 상품 정보를 직접 입력하세요. 서버 배포 후에는 API를 통해 GPT Image 2 상황 이미지를 만들 수 있습니다.</p></div><button class="btn" onclick="show('discover')">상품 목록으로</button></div>
+ <div class="twocol">
+  <div class="panel" style="margin-top:0"><div class="panelHead"><h2>서버 API 연결</h2><span class="badge orange" id="apiHealth">연결 전</span></div>
+   <div class="pad">
+    <div class="field"><label>Vercel 백엔드 URL (GitHub Pages 주소가 아닙니다)</label><input id="apiBase" type="url" placeholder="https://프로젝트명.vercel.app" spellcheck="false"></div>
+    <div class="field"><label>개인 연결 암호 (서버의 VIRALPICK_ACCESS_KEY 값)</label><input id="apiAccess" type="password" autocomplete="off" placeholder="현재 브라우저 탭에서만 사용"></div>
+    <div class="btnrow"><button class="btn primary" onclick="checkBackendStatus()">서버 연결 확인</button><button class="btn" onclick="clearBackendAccess()">암호 지우기</button></div>
+    <div class="aiNote" id="apiResult" style="margin-top:11px">현재 GitHub Pages는 정적 시연 페이지입니다. Vercel Functions를 배포한 뒤 URL과 암호를 입력하면 서버 기능을 사용할 수 있습니다.</div>
+    <p class="queueHint">API 키는 이 페이지에 입력하지 마세요. OpenAI·토스 토큰은 Vercel 환경변수에만 저장하고, 연결 암호도 브라우저 저장소에 보관하지 않습니다.</p>
+   </div>
+  </div>
+  <div class="panel" style="margin-top:0"><div class="panelHead"><h2>토스 상품 가져오기</h2><span class="badge" id="tossHealth">승인 명세 설정 대기</span></div>
+   <div class="pad"><div class="field"><label>상품 검색어</label><input id="tossSearch" placeholder="예: 무선 청소기"></div>
+    <div class="btnrow"><button class="btn primary" onclick="fetchTossProducts()">토스 상품 불러오기</button></div>
+    <div class="aiNote" style="margin-top:10px">현재는 공식 승인 API의 조회 URL·인증 형식을 서버에 설정해야 동작합니다. 실제 상품 데이터를 축적한 공개 쇼핑몰이나 가격비교 서비스는 만들지 않습니다.</div>
+    <div class="importedProducts" id="importedProducts"></div>
+   </div>
+  </div>
+ </div>
+ <div class="panel"><div class="panelHead"><h2>현재 선택 상품 정보 · 직접 입력</h2><span class="badge green" id="liveProductStatus">샘플 상품</span></div>
+  <div class="pad">
+   <div class="manualProduct">
+    <label>상품명<input id="manualName" placeholder="정확한 상품명"></label>
+    <label>판매가 (원)<input id="manualPrice" type="number" min="1" step="1" placeholder="예: 18900"></label>
+    <label>문제 상황<input id="manualProblem" placeholder="예: 차량 틈새 먼지를 치우기 어렵다"></label>
+    <label>확인된 기능·장점<input id="manualNovel" placeholder="실제 상세페이지에서 확인한 사실만 입력"></label>
+    <label>대상·용도<input id="manualAudience" placeholder="예: 차량을 자주 청소하는 운전자"></label>
+    <label>상황 이미지 설명<input id="manualVisual" placeholder="예: 차 안에서 청소하는 손과 차량 좌석"></label>
+   </div>
+   <div class="btnrow" style="margin-top:12px"><button class="btn primary" onclick="saveManualProduct()">입력한 상품으로 콘텐츠 제작</button><button class="btn" onclick="syncProductInputs()">선택 상품 다시 불러오기</button></div>
+   <p class="queueHint">수동 입력으로 시작할 수 있으며, 사실관계가 검증되지 않은 기능·사용후기는 자동으로 확정 표현하지 않습니다.</p>
+  </div>
+ </div>
+ <div class="panel"><div class="panelHead"><h2>실제 이미지 합성</h2><span class="badge blue">상품별 독립 관리</span></div>
+  <div class="pad">
+   <div class="mediaUploadGrid">
+    <div class="uploadBox"><b>실제 상품 사진</b><p>본인이 사용할 권한이 있는 상품 사진만 업로드하세요. 8MB 이하 JPG/PNG/WebP.</p><input id="productImageInput" type="file" accept="image/png,image/jpeg,image/webp" onchange="uploadProductImage(this.files?.[0])"><button class="btn" onclick="clearAsset('product')">상품 이미지 지우기</button></div>
+    <div class="uploadBox"><b>상황 이미지</b><p>직접 사진을 올리거나 서버 연결 후 GPT Image 2로 새로운 상황 이미지를 생성하세요.</p><input id="sceneImageInput" type="file" accept="image/png,image/jpeg,image/webp" onchange="uploadSceneImage(this.files?.[0])"><button class="btn" onclick="clearAsset('scene')">상황 이미지 지우기</button></div>
+   </div>
+   <div class="field" style="margin-top:15px"><label>AI 상황 이미지 프롬프트 (상품 실물/로고를 임의로 재현하지 않음)</label><textarea id="scenePrompt" rows="2" maxlength="500" placeholder="예: 오전 햇살이 비치는 작은 거실에서 선반 수평을 확인하는 장면"></textarea></div>
+   <div class="btnrow"><button class="btn primary" id="generateSceneButton" onclick="requestAiScene()">GPT Image 2 상황 이미지 생성</button><button class="btn" onclick="show('threads')">Threads 확인</button><button class="btn" onclick="show('instagram')">Instagram 확인</button></div>
+   <div id="assetPreview" class="mediaPreviewGrid"></div>
+   <div class="aiNote" style="margin-top:12px">상황 이미지는 AI가 생성할 수 있지만 제품의 정확한 외형은 임의로 만들어서는 안 됩니다. 실제 상품 사진은 별도로 업로드해 3번째 상품 카드에 합성합니다. 이미지 파일은 브라우저 메모리에 남으며 새로고침 후에는 다시 업로드해야 합니다.</div>
+  </div>
+ </div>
+</section>
+
 <section id="lab" class="view">
-  <div class="top"><div><span class="badge orange">AI 상품 분석</span><h1>이 상품은 Threads와 Instagram 중 어디에 잘 맞을까?</h1><p>상품 자체의 바이럴 가능성과 플랫폼 적합도를 보고 SNS 콘텐츠 제작 방향을 결정합니다. Blog는 실제 SNS 성과가 쌓인 뒤 별도 추천합니다.</p></div><button class="btn primary" onclick="show('threads')">콘텐츠 만들기</button></div>
+  <div class="top"><div><span class="badge orange">AI 상품 분석</span><h1>이 상품은 Threads와 Instagram 중 어디에 잘 맞을까?</h1><p>상품 자체의 바이럴 가능성과 플랫폼 적합도를 보고 SNS 콘텐츠 제작 방향을 결정합니다. Blog는 실제 SNS 성과가 쌓인 뒤 별도 추천합니다.</p></div><div class="btnrow"><button class="btn" onclick="show('integrations')">실제 이미지 추가</button><button class="btn primary" onclick="show('threads')">콘텐츠 만들기</button></div></div>
   <div class="twocol">
     <div class="panel" style="margin-top:0"><div class="pad">
       <div class="detail"><div class="heroImg">상품 원본<br>이미지 자리</div><div><span class="badge green" id="labType">-</span><h3 id="labName">-</h3><div class="price" id="labPrice">-</div><p id="labReason">-</p></div></div>
@@ -460,7 +526,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 </section>
 
 <section id="threads" class="view">
-  <div class="top"><div><span class="badge blue">Threads</span><h1>글 + 후킹 이미지 1~2장</h1><p>글이 메인이고 이미지는 스크롤을 멈추게 하는 역할. 너무 광고처럼 보이지 않게 구성합니다.</p></div><div class="btnrow"><button class="btn" onclick="cycleThread()">후킹 6안 새로 만들기</button><button class="btn" onclick="copyThread()">선택 본문 복사</button><button class="btn green" onclick="downloadThreadPNG()">선택 이미지 PNG 저장</button><button class="btn primary" onclick="openReservation('Threads')">📅 최종 검수 후 예약</button></div></div>
+  <div class="top"><div><span class="badge blue">Threads</span><h1>글 + 후킹 이미지 1~2장</h1><p>글이 메인이고 이미지는 스크롤을 멈추게 하는 역할. 너무 광고처럼 보이지 않게 구성합니다.</p></div><div class="btnrow"><button class="btn" onclick="cycleThread()">후킹 6안 새로 만들기</button><button class="btn" onclick="copyThread()">선택 본문 복사</button><button class="btn" onclick="show('integrations')">이미지 연결</button><button class="btn green" onclick="downloadThreadPNG()">선택 이미지 PNG 저장</button><button class="btn primary" onclick="openReservation('Threads')">📅 최종 검수 후 예약</button></div></div>
   <div class="panel"><div class="panelHead"><h2>상품별 후킹·본문 6안</h2><span class="badge" id="threadTypeBadge">-</span></div>
 <div class="pad"><div class="copySettings">
   <label>문구 다양화 강도 <select id="threadDiversity" onchange="changeThreadDiversity(this.value)"><option value="stable">담백형</option><option value="balanced" selected>균형형</option><option value="creative">실험형</option></select></label>
@@ -478,7 +544,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 </section>
 
 <section id="instagram" class="view">
-  <div class="top"><div><span class="badge orange">Instagram Carousel</span><h1>5장 카드형 콘텐츠 만들기</h1><p>첫 장은 후킹, 2장은 문제, 3장은 상품, 4장은 장점, 5장은 CTA로 구성합니다.</p></div><div class="btnrow"><button class="btn" onclick="cycleCover()">표지 4안 재생성</button><button class="btn green" id="igZipBtn" onclick="downloadInstagramZIP()">카드 5장 ZIP 저장</button><button class="btn primary" onclick="openReservation('Instagram')">📅 최종 검수 후 예약</button></div></div>
+  <div class="top"><div><span class="badge orange">Instagram Carousel</span><h1>5장 카드형 콘텐츠 만들기</h1><p>첫 장은 후킹, 2장은 문제, 3장은 상품, 4장은 장점, 5장은 CTA로 구성합니다.</p></div><div class="btnrow"><button class="btn" onclick="cycleCover()">표지 4안 재생성</button><button class="btn" onclick="show('integrations')">이미지 연결</button><button class="btn green" id="igZipBtn" onclick="downloadInstagramZIP()">카드 5장 ZIP 저장</button><button class="btn primary" onclick="openReservation('Instagram')">📅 최종 검수 후 예약</button></div></div>
   <div class="panel"><div class="panelHead"><h2>첫 장 표지 4안</h2><span class="badge green">1080 × 1350</span></div><div class="pad">
   <div class="copySettings"><label>표지·캡션 문구 스타일 <select id="instagramDiversity" onchange="changeInstagramDiversity(this.value)"><option value="stable">담백형</option><option value="balanced" selected>균형형</option><option value="creative">실험형</option></select></label><span class="copyHint">상품별 문제·발견·정보·구매판단 방향을 선택하세요</span></div>
   <div class="coverGrid" id="coverGrid"></div><div class="similarityNotice" id="instaDupStatus" aria-live="polite"></div>
@@ -1497,7 +1563,7 @@ function confirmReservation(){
 
 function generateSNS(){renderThreads();renderInstagram();toast('Threads + Instagram 패키지를 생성했습니다');show('threads')}
 
-const viewLabels={dashboard:'대시보드',discover:'상품 발굴',lab:'상품 분석',threads:'Threads 제작',instagram:'Instagram 제작',analytics:'게시 성과 분석',blog:'Blog 제작',scheduler:'자동게시 설정'};
+const viewLabels={dashboard:'대시보드',discover:'상품 발굴',lab:'상품 분석',integrations:'상품·이미지 연결',threads:'Threads 제작',instagram:'Instagram 제작',analytics:'게시 성과 분석',blog:'Blog 제작',scheduler:'자동게시 설정'};
 let mobileMenuOpener=null;
 function openMobileMenu(){
   mobileMenuOpener=document.activeElement;
@@ -1528,7 +1594,7 @@ function show(id){
 $$('.nav button').forEach(b=>b.onclick=()=>show(b.dataset.view));
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
 loadPostingSettings();setDefaultScheduleFields();renderProductLists();renderLab();renderThreads();renderInstagram();renderAnalytics();renderBlogRecommendations();renderPostingSettings();
-const q=new URLSearchParams(location.search).get('view');if(['dashboard','discover','lab','threads','instagram','analytics','blog','scheduler'].includes(q))show(q);
+const q=new URLSearchParams(location.search).get('view');if(['dashboard','discover','integrations','lab','threads','instagram','analytics','blog','scheduler'].includes(q))show(q);
 </script>
 </body>
 </html>
