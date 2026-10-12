@@ -861,6 +861,10 @@ function photoHistoryDate(time){
 function renderPhotoHistories(){
  const record=getPhotoHistory(),groups=historyGroups(record);
  const locations=['threadPhotoHistory','instagramPhotoHistory','integrationPhotoHistory'];
+ const activeView=document.querySelector('.view.active')?.id;
+ const visible={threads:'threadPhotoHistory',instagram:'instagramPhotoHistory',integrations:'integrationPhotoHistory'}[activeView];
+ for(const id of locations){if(id!==visible){const root=$('#'+id);if(root&&root.innerHTML)root.innerHTML=''}}
+ if(!visible)return;
  const status=photoSavingWarning?'<div class="historyStatus warn">'+cleanMarkup(photoSavingWarning)+'</div>':
    '<div class="historyStatus">이 브라우저에 상품별 최근 3회 생성 기록을 보관합니다. 다른 브라우저·기기와는 동기화되지 않습니다.</div>';
  let markup='';
@@ -888,7 +892,7 @@ function renderPhotoHistories(){
   }).join('');
   markup='<div class="historyHead"><b>AI 사진 선택 · 최근 '+groups.length+'회 기록</b><small>원하는 사진을 눌러 후킹 레이아웃에 적용</small></div>'+cards+status;
  }
- for(const id of locations){const root=$('#'+id);if(root)root.innerHTML=markup}
+ const target=$('#'+visible);if(target)target.innerHTML=markup;
 }
 async function photoImageObject(data){
  if(!safeDataImage(data))throw new Error('저장된 이미지 형식이 올바르지 않습니다.');
@@ -2236,6 +2240,7 @@ function show(id){
  window.scrollTo({top:0,behavior:'auto'});
  if(id==='scheduler')renderPostingSettings();
  if(id==='analytics')renderAnalytics();
+ if(['threads','instagram','integrations'].includes(id))renderPhotoHistories();
  history.replaceState(null,'',`?view=${id}`);
 }
 $$('.nav button').forEach(b=>b.onclick=()=>show(b.dataset.view));
