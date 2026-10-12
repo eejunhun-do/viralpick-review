@@ -1781,7 +1781,7 @@ function threadBodies(p){
   explanations[i],
   '',
   intro,
-  '제품 설명에는 '+withProductJosa(p.name,'은','는')+' ‘'+prof.solution+'’으로 소개돼 있어.',
+  '제품 설명에는 '+withProductJosa(p.name,'이','가')+' ‘'+prof.solution+'’으로 소개돼 있어.',
   considerations[i],
   '',
   '예시 가격은 '+fmt(p.price)+'이야. 실제 가격과 재고는 달라질 수 있어.',
@@ -2045,7 +2045,7 @@ function instaCaption(p){
  };
  return `${lead}
 
-이런 불편을 겪어보신 적 있으신가요?\n${profile.pain}.
+이런 상황, 한 번쯤 겪어보셨나요?\n${profile.pain}.
 ${withProductJosa(p.name,'은','는')} ${profile.solution}으로 소개되는 제품입니다.
 
 ${lines[instagramDiversity]}
