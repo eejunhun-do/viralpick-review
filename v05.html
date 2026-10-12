@@ -2665,10 +2665,148 @@ function drawInstagramStorySlide(ctx,p,slide,variant=0){
   ctx.fillText('판매 정보는 게시 전에 확인해 주세요',79,1313);
  }
 }
+
+function multiPaintBackground(ctx,template){
+ const schemes={
+  editorial:['#f9f6f1','#e7e3dc','#ad6a4a','#2d3035'],
+  price:['#fff5f7','#f6d9e5','#b75c82','#2a2631'],
+  grid:['#f2f8fc','#d7eaf2','#187f9f','#203444']
+ };
+ const [light,dark,accent,ink]=schemes[template]||schemes.editorial;
+ const grad=ctx.createLinearGradient(0,0,1080,1350);
+ grad.addColorStop(0,light);grad.addColorStop(1,dark);
+ ctx.fillStyle=grad;ctx.fillRect(0,0,1080,1350);
+ ctx.save();ctx.globalAlpha=.18;
+ ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(1000,180,275,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle=accent;ctx.beginPath();ctx.arc(60,1280,290,0,Math.PI*2);ctx.fill();ctx.restore();
+ return {accent,ink,light};
+}
+function multiDrawContain(ctx,img,x,y,width,height){
+ if(!img?.naturalWidth||!img?.naturalHeight)return false;
+ const scale=Math.min(width/img.naturalWidth,height/img.naturalHeight);
+ const w=img.naturalWidth*scale,h=img.naturalHeight*scale;
+ ctx.drawImage(img,x+(width-w)/2,y+(height-h)/2,w,h);
+ return true;
+}
+function multiDrawText(ctx,text,x,y,maxWidth,maxHeight,opts={}){
+ if(!String(text||'').trim())return y;
+ return posterText(ctx,String(text).replace(/\s+/g,' ').slice(0,250),x,y,maxWidth,maxHeight,{
+  size:opts.size||52,min:opts.min||24,color:opts.color||'#253040',limit:opts.lines||3
+ });
+}
+function multiDrawTile(ctx,p,rect,variant,index){
+ const {x,y,w,h}=rect;
+ const scheme=multiPaintTileScheme();
+ roundedFill(ctx,x,y,w,h,24,'rgba(255,255,255,.97)');
+ roundedFill(ctx,x+10,y+10,w-20,h-20,17,'#fff');
+ const asset=multiMediaFor(p);
+ const headerH=Math.max(155,Math.round(h*.53));
+ const imageHeight=headerH-21;
+ ctx.save();
+ ctx.beginPath();
+ if(typeof ctx.roundRect==='function')ctx.roundRect(x+16,y+16,w-32,imageHeight-10,12);
+ else ctx.rect(x+16,y+16,w-32,imageHeight-10);
+ ctx.clip();
+ if(asset){
+  ctx.fillStyle='#f7f8f9';ctx.fillRect(x+16,y+16,w-32,imageHeight-10);
+  multiDrawContain(ctx,asset,x+18,y+20,w-36,imageHeight-18);
+ }else{
+  const grad=ctx.createLinearGradient(x,y,x+w,y+imageHeight);
+  grad.addColorStop(0,'#f2f4f6');grad.addColorStop(1,scheme.light);
+  ctx.fillStyle=grad;ctx.fillRect(x+16,y+16,w-32,imageHeight-10);
+  ctx.fillStyle=scheme.accent;ctx.globalAlpha=.09;
+  ctx.beginPath();ctx.arc(x+w*.5,y+imageHeight*.5,Math.min(w,h)*.28,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
+  ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#7f8994';
+  ctx.font='800 '+(w<500?21:28)+'px "Noto Sans KR","Malgun Gothic",sans-serif';
+  ctx.fillText('제품 사진 확인 필요',x+w/2,y+imageHeight*.52);
+ }
+ ctx.restore();
+ const textX=x+25,width=w-50;
+ ctx.fillStyle=scheme.accent;ctx.fillRect(textX,y+headerH+4,43,6);
+ let cursor=y+headerH+22;
+ cursor=multiDrawText(ctx,(index+1)+'. '+p.name,textX,cursor,width,Math.max(72,h*.17),
+  {size:w<480?40:54,min:w<480?25:32,lines:2,color:'#202a35'})+8;
+ const reserveBottom=y+h-62;
+ const space=Math.max(30,reserveBottom-cursor);
+ multiDrawText(ctx,multiItemNote(p),textX,cursor,width,space,
+  {size:w<480?26:34,min:19,lines:Math.max(2,Math.floor(space/36)),color:'#607080'});
+ ctx.font='900 '+(w<480?28:34)+'px "Noto Sans KR","Malgun Gothic",sans-serif';
+ ctx.textAlign='left';ctx.textBaseline='top';ctx.fillStyle=scheme.accent;
+ const amount=multiItemPrice(p);
+ ctx.fillText(amount.length>22?amount.slice(0,20)+'…':amount,textX,y+h-52);
+}
+function multiPaintTileScheme(){
+ return ({editorial:{accent:'#bb7959',light:'#f4e9df'},price:{accent:'#bd6886',light:'#f8e9ef'},grid:{accent:'#317e9d',light:'#e4f3f8'}})[multiStudio.template]||{accent:'#ac705b',light:'#f4e6db'};
+}
+function drawMultiContentCanvas(ctx,platform,slide){
+ const cards=multiCardDescriptors();
+ const card=cards[slide];
+ if(!card)throw new Error('상품을 2개 이상 선택한 뒤 이미지를 생성하세요.');
+ const scheme=multiPaintBackground(ctx,multiStudio.template);
+ const count=cards.length;
+ const number=String(slide+1).padStart(2,'0')+' / '+String(count).padStart(2,'0');
+ ctx.textBaseline='top';ctx.textAlign='left';
+ ctx.fillStyle=scheme.accent;ctx.fillRect(74,73,43,7);
+ ctx.fillStyle=scheme.ink;ctx.font='900 30px "Noto Sans KR","Malgun Gothic",sans-serif';
+ ctx.fillText(number,135,61);
+ if(card.kind==='cover'){
+  ctx.fillStyle=scheme.ink;
+  multiDrawText(ctx,multiTitle(),76,180,927,380,{size:100,min:56,lines:4,color:scheme.ink});
+  roundedFill(ctx,72,657,936,495,29,'rgba(255,255,255,.83)');
+  ctx.fillStyle=scheme.accent;ctx.font='950 38px "Noto Sans KR","Malgun Gothic",sans-serif';
+  ctx.fillText('이번에 함께 살펴볼 '+card.items.length+'개 상품',103,695);
+  const listed=card.items.slice(0,9);
+  listed.forEach((p,i)=>{
+   const col=i<5?0:1,r=i<5?i:i-5;
+   const x=108+col*460,y=777+r*67;
+   ctx.fillStyle=scheme.accent;ctx.font='900 24px "Noto Sans KR","Malgun Gothic",sans-serif';ctx.fillText(String(i+1).padStart(2,'0'),x,y);
+   ctx.fillStyle=scheme.ink;ctx.font='800 26px "Noto Sans KR","Malgun Gothic",sans-serif';
+   multiDrawText(ctx,p.name,x+45,y-4,365,50,{size:28,min:20,lines:1,color:scheme.ink});
+  });
+  if(card.items.length>9){
+   ctx.font='800 27px sans-serif';ctx.fillStyle=scheme.accent;ctx.fillText('외 '+(card.items.length-9)+'개 상품',603,1056);
+  }
+  multiDrawText(ctx,'필요한 제품을 비교하고 결정해 보세요',78,1221,918,80,{size:36,min:29,lines:2,color:scheme.ink});
+ }else if(card.kind==='summary'){
+  multiDrawText(ctx,'추천템 한눈에 보기',73,140,920,135,{size:73,min:48,lines:2,color:scheme.ink});
+  const n=card.items.length,columns=n>8?2:1;
+  const rows=Math.ceil(n/columns);
+  const step=Math.min(118,Math.floor(824/Math.max(rows,1)));
+  for(let i=0;i<n;i++){
+   const col=columns===1?0:Math.floor(i/rows),row=columns===1?i:i%rows;
+   const w=columns===1?926:452,x=76+col*465,y=332+row*step;
+   roundedFill(ctx,x,y,w,step-9,12,'rgba(255,255,255,.84)');
+   ctx.fillStyle=scheme.accent;ctx.font='900 25px "Noto Sans KR","Malgun Gothic",sans-serif';ctx.fillText(String(i+1)+'.',x+13,y+11);
+   multiDrawText(ctx,card.items[i].name,x+46,y+9,w-65,step*.54,{size:columns===1?32:26,min:20,lines:2,color:scheme.ink});
+   ctx.fillStyle='#7d6772';ctx.font='700 21px "Noto Sans KR","Malgun Gothic",sans-serif';
+   ctx.fillText(multiItemPrice(card.items[i]).slice(0,20),x+46,y+step-37);
+  }
+  roundedFill(ctx,65,1183,947,112,19,'rgba(255,255,255,.92)');
+  multiDrawText(ctx,multiSummaryText(),87,1200,900,86,{size:32,min:20,lines:3,color:scheme.ink});
+ }else{
+  const items=card.items;
+  multiDrawText(ctx,items.length===1?'이 제품도 살펴보세요':multiStudio.template==='grid'?'한눈에 비교하는 추천템':'같이 비교해 볼 상품',74,137,938,106,
+   {size:58,min:43,lines:2,color:scheme.ink});
+  const top=278,columns=items.length===1?1:multiStudio.template==='grid'?2:2;
+  const rows=Math.ceil(items.length/columns);
+  const gap=20,usableWidth=946,width=(usableWidth-(columns-1)*gap)/columns;
+  const usableHeight=947,height=(usableHeight-(rows-1)*gap)/rows;
+  items.forEach((p,i)=>{
+   const row=Math.floor(i/columns),col=i%columns;
+   multiDrawTile(ctx,p,{x:67+col*(width+gap),y:top+row*(height+gap),w:width,h:height},0,card.items.length===1?multiStudio.selectedIds.indexOf(p.id):multiStudio.selectedIds.indexOf(p.id));
+  });
+ }
+ ctx.font='700 24px "Noto Sans KR","Malgun Gothic",sans-serif';
+ ctx.fillStyle=scheme.ink;ctx.globalAlpha=.66;ctx.textAlign='left';ctx.textBaseline='top';
+ ctx.fillText('상품 정보·가격·재고·사용 권한은 게시 전에 확인해 주세요',77,1324);
+ ctx.globalAlpha=1;
+}
+
 function buildContentCanvas(platform,slide=0,variant=0){
  const p=selected;
  const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1350;
  const ctx=canvas.getContext('2d');if(!ctx)throw new Error('캔버스 렌더링을 지원하지 않습니다.');
+ if(isMultiMode(platform)){drawMultiContentCanvas(ctx,platform,slide);return canvas}
  if(platform==='Threads'){
   drawFullBleedCover(ctx,p,getHookHeadline(),variant);
  }else if(platform==='Instagram'&&slide===0){
