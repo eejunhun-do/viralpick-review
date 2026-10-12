@@ -1849,48 +1849,79 @@ function drawFullBleedCover(ctx,p,headline,variant=0){
  posterText(ctx,p.name,102,1247,900,73,{size:43,min:27,color:'#191d22',limit:1});
  return withPhoto;
 }
+
+/* Full-photo Instagram carousel slides: one large picture with readable editorial copy. */
+function drawImageCover(ctx,img){
+ if(!img?.naturalWidth||!img?.naturalHeight)return false;
+ const scale=Math.max(1080/img.naturalWidth,1350/img.naturalHeight);
+ const w=img.naturalWidth*scale,h=img.naturalHeight*scale;
+ ctx.drawImage(img,(1080-w)/2,(1350-h)/2,w,h);
+ return true;
+}
+function drawInstagramStorySlide(ctx,p,slide,variant=0){
+ const pal=designPalette(variant);
+ const generated=carouselImageForSlide(slide)?.image;
+ const realProduct=currentMedia().product?.image;
+ const scene=currentMedia().scene?.image;
+ const primary=slide===3?(generated||realProduct||scene):(generated||scene||realProduct);
+ const g=ctx.createLinearGradient(0,0,1080,1350);
+ g.addColorStop(0,'#f4eee4');g.addColorStop(1,pal.mid);
+ ctx.fillStyle=g;ctx.fillRect(0,0,1080,1350);
+ if(!drawImageCover(ctx,primary))drawProductGlyph(ctx,p.id,540,870,1.55,pal);
+ if(slide===3&&realProduct?.naturalWidth&&realProduct?.naturalHeight){
+  // Actual uploaded product photograph must be prominent, not a tiny thumbnail.
+  ctx.fillStyle='rgba(255,255,255,.72)';
+  roundedFill(ctx,80,485,920,675,36,'rgba(255,255,255,.72)');
+  const scale=Math.min(842/realProduct.naturalWidth,620/realProduct.naturalHeight);
+  const w=realProduct.naturalWidth*scale,h=realProduct.naturalHeight*scale;
+  ctx.drawImage(realProduct,(1080-w)/2,510+(620-h)/2,w,h);
+ }
+ const top=ctx.createLinearGradient(0,0,0,675);
+ top.addColorStop(0,'rgba(255,252,246,.95)');
+ top.addColorStop(.50,'rgba(255,250,242,.78)');
+ top.addColorStop(1,'rgba(255,250,242,0)');
+ ctx.fillStyle=top;ctx.fillRect(0,0,1080,675);
+ const bottom=ctx.createLinearGradient(0,1000,0,1350);
+ bottom.addColorStop(0,'rgba(19,25,31,0)');
+ bottom.addColorStop(1,'rgba(18,23,29,.82)');
+ ctx.fillStyle=bottom;ctx.fillRect(0,1000,1080,350);
+ const title={
+  2:'이런 불편, 자주 겪나요?',
+  3:'이 제품은 어떨까요?',
+  4:'어떤 기능을 살펴볼까?',
+  5:'구매 전 꼭 확인하세요'
+ }[slide];
+ const detail={
+  2:p.problem||'생활 속 불편을 먼저 살펴봅니다.',
+  3:p.name,
+  4:p.novel||'실제 기능과 사용 조건을 확인해 보세요.',
+  5:'최신 가격 · 상품 옵션 · 재고 · 리뷰를 다시 확인하세요.'
+ }[slide];
+ ctx.fillStyle='#b84e19';ctx.fillRect(72,90,46,8);
+ ctx.font='900 27px "Noto Sans KR","Malgun Gothic",sans-serif';
+ ctx.fillStyle='#734b37';ctx.textAlign='left';ctx.textBaseline='top';
+ ctx.fillText(String(slide).padStart(2,'0')+' / 05',138,73);
+ posterText(ctx,title,72,145,930,300,{size:82,min:48,color:'#171a1e',limit:3});
+ if(slide!==3)posterText(ctx,detail,78,1130,920,155,{size:52,min:34,color:'#fff',limit:3});
+ else posterText(ctx,p.name,78,1194,910,104,{size:51,min:32,color:'#fff',limit:2});
+ if(slide===5){
+  // Editorial reminder; actual price/discount is not fabricated.
+  ctx.font='700 25px "Noto Sans KR","Malgun Gothic",sans-serif';
+  ctx.fillStyle='rgba(255,255,255,.9)';
+  ctx.fillText('판매 정보는 게시 전에 확인해 주세요',79,1313);
+ }
+}
 function buildContentCanvas(platform,slide=0,variant=0){
- const p=selected,pal=designPalette(variant);
+ const p=selected;
  const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1350;
  const ctx=canvas.getContext('2d');if(!ctx)throw new Error('캔버스 렌더링을 지원하지 않습니다.');
  if(platform==='Threads'){
   drawFullBleedCover(ctx,p,getHookHeadline(),variant);
-  return canvas;
- }
- if(platform==='Instagram'&&slide===0){
+ }else if(platform==='Instagram'&&slide===0){
   drawFullBleedCover(ctx,p,getInstagramCoverHeadline(),variant);
-  return canvas;
- }
- const grad=ctx.createLinearGradient(0,0,1080,1350);
- grad.addColorStop(0,pal.light);grad.addColorStop(1,pal.mid);
- ctx.fillStyle=grad;ctx.fillRect(0,0,1080,1350);
- ctx.globalAlpha=.08;ctx.fillStyle=pal.accent;
- ctx.beginPath();ctx.ellipse(860,300,410,410,0,0,Math.PI*2);ctx.fill();
- ctx.beginPath();ctx.ellipse(120,1190,330,330,0,0,Math.PI*2);ctx.fill();
- ctx.globalAlpha=1;roundedFill(ctx,63,60,954,1230,45,'rgba(255,255,255,.56)');
- const x=112,max=856;
- if(slide===1){
-  canvasParagraph(ctx,'02  문제 상황',x,228,max,44,60,2,pal.accent,900);
-  canvasParagraph(ctx,getHookProfile(p).pain,x,330,max,68,88,6,pal.ink,900);
-  roundedFill(ctx,x,800,856,250,27,'rgba(255,255,255,.66)');
-  if(!drawLiveAsset(ctx,'scene',x,800,856,250))canvasParagraph(ctx,'이 불편을 어떻게 줄일 수 있을까요?',x+42,860,770,39,53,3,pal.ink,800);
- }else if(slide===2){
-  canvasParagraph(ctx,'03  제품 살펴보기',x,215,max,44,58,2,pal.accent,900);
-  canvasParagraph(ctx,p.name,x,315,max,66,85,4,pal.ink,900);
-  roundedFill(ctx,x,660,856,360,34,'rgba(255,255,255,.75)');
-  if(!drawLiveAsset(ctx,'product',x,660,856,360))drawProductGlyph(ctx,p.id,540,825,.59,pal);
- }else if(slide===3){
-  canvasParagraph(ctx,'04  확인할 기능',x,215,max,44,58,2,pal.accent,900);
-  canvasParagraph(ctx,p.novel,x,330,max,62,81,7,pal.ink,900);
-  roundedFill(ctx,x,830,856,180,30,'rgba(255,255,255,.75)');
-  canvasParagraph(ctx,'옵션·사양·상품 리뷰는 구매 전 확인하세요',x+30,881,790,33,48,3,pal.ink,700);
- }else{
-  canvasParagraph(ctx,'05  구매 판단 체크',x,220,max,44,58,2,pal.accent,900);
-  canvasParagraph(ctx,'내게 정말 필요한 제품일까?',x,330,max,68,88,5,pal.ink,900);
-  roundedFill(ctx,x,655,856,345,34,'rgba(255,255,255,.7)');
-  canvasParagraph(ctx,'✓ 사용 빈도와 용도 확인\n✓ 실제 옵션·리뷰 확인\n✓ 최신 가격·재고 확인',x+36,720,785,36,84,6,pal.ink,800);
-  canvasParagraph(ctx,'예시 가격: '+fmt(p.price),x,1060,max,40,52,2,pal.accent,900);
- }
+ }else if(platform==='Instagram'&&slide>=1&&slide<=4){
+  drawInstagramStorySlide(ctx,p,slide+1,variant);
+ }else throw new Error('지원하지 않는 이미지 유형입니다.');
  return canvas;
 }
 async function pngBlob(canvas){
