@@ -1091,7 +1091,16 @@ async function fetchTossProducts(){
 }
 function useRemoteProduct(index){
  const remote=remoteProducts[index];if(!remote)return;
- const id=Math.max(...products.map(p=>Number(p.id)||0),10)+1;
+ // Stable ID from approved Toss product identifier: permits local photo history
+ // without keeping an API-derived public product catalog.
+ let hash=2166136261;
+ for(const ch of String(remote.id)){hash^=ch.charCodeAt(0);hash=Math.imul(hash,16777619)>>>0}
+ const id=1000000000+(hash>>>0);
+ const previous=products.find(p=>p.id===id);
+ if(previous&&previous.tossProductId===String(remote.id)){
+  selectProduct(id);show('integrations');toast('이전에 작업한 상품을 다시 선택했습니다. 저장된 사진 기록을 확인하세요.');return;
+ }
+ if(previous){toast('상품 식별번호가 겹쳤습니다. 다른 상품을 선택하거나 다시 조회하세요.');return;}
  const p={
   id,name:trimText(remote.name,120),price:remote.price,old:remote.price,discount:0,
   viral:0,thread:0,insta:0,blog:0,ad:0,
