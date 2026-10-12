@@ -460,11 +460,11 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
  <div class="twocol">
   <div class="panel" style="margin-top:0"><div class="panelHead"><h2>서버 API 연결</h2><span class="badge orange" id="apiHealth">연결 전</span></div>
    <div class="pad">
-    <div class="field"><label>Vercel 백엔드 URL (GitHub Pages 주소가 아닙니다)</label><input id="apiBase" type="url" placeholder="https://프로젝트명.vercel.app" spellcheck="false"></div>
+    <div class="field"><label>Vercel 백엔드 URL (GitHub Pages 주소가 아닙니다)</label><input id="apiBase" type="url" placeholder="https://viralpick-review.vercel.app" spellcheck="false"></div>
     <div class="field"><label>개인 연결 암호 (서버의 VIRALPICK_ACCESS_KEY 값)</label><input id="apiAccess" type="password" autocomplete="off" placeholder="현재 브라우저 탭에서만 사용"></div>
     <div class="btnrow"><button class="btn primary" onclick="checkBackendStatus()">서버 연결 확인</button><button class="btn" onclick="clearBackendAccess()">암호 지우기</button></div>
-    <div class="aiNote" id="apiResult" style="margin-top:11px">현재 GitHub Pages는 정적 시연 페이지입니다. Vercel Functions를 배포한 뒤 URL과 암호를 입력하면 서버 기능을 사용할 수 있습니다.</div>
-    <p class="queueHint">API 키는 이 페이지에 입력하지 마세요. OpenAI·토스 토큰은 Vercel 환경변수에만 저장하고, 연결 암호도 브라우저 저장소에 보관하지 않습니다.</p>
+    <div class="aiNote" id="apiResult" style="margin-top:11px">Vercel 프로젝트 생성은 확인됐습니다. 이제 서버의 연결 암호와 OpenAI API 키를 Vercel 환경변수에 등록한 뒤 연결을 확인하세요. 배포 보호 설정에 따라 외부 호출이 차단될 수 있습니다.</div>
+    <p class="queueHint">API 키는 여기에 입력하지 마세요. OpenAI·토스 토큰은 Vercel 환경변수에만 저장합니다. Vercel 배포 보호 기능이 모든 접속을 차단하면 GitHub Pages에서 API를 호출할 수 없습니다. 서버 보안 설정을 확인하세요.</p>
    </div>
   </div>
   <div class="panel" style="margin-top:0"><div class="panelHead"><h2>토스 상품 가져오기</h2><span class="badge" id="tossHealth">승인 명세 설정 대기</span></div>
@@ -770,6 +770,7 @@ function persistBackendUrl(){
  const el=$('#apiBase');if(!el)return '';
  let addr=el.value.trim().replace(/\/$/,'');
  if(!addr && location.hostname.endsWith('.vercel.app'))addr=location.origin;
+ if(!addr && location.hostname==='eejunhun-do.github.io')addr='https://viralpick-review.vercel.app';
  if(!/^https:\/\/[\w.-]+(?::\d+)?$/.test(addr))throw new Error('https://... 형태의 실제 배포된 API 서버 주소가 필요합니다.');
  try{localStorage.setItem('viralpickBackendUrl',addr)}catch(e){}
  return addr;
@@ -1783,7 +1784,7 @@ function show(id){
 }
 $$('.nav button').forEach(b=>b.onclick=()=>show(b.dataset.view));
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
-loadPostingSettings();setDefaultScheduleFields();try{$('#apiBase').value=localStorage.getItem('viralpickBackendUrl')||''}catch(e){}renderProductLists();renderLab();renderThreads();renderInstagram();renderAnalytics();renderBlogRecommendations();renderPostingSettings();syncProductInputs();
+loadPostingSettings();setDefaultScheduleFields();try{$('#apiBase').value=localStorage.getItem('viralpickBackendUrl')||(location.hostname.endsWith('.vercel.app')?location.origin:'https://viralpick-review.vercel.app')}catch(e){$('#apiBase').value='https://viralpick-review.vercel.app'}renderProductLists();renderLab();renderThreads();renderInstagram();renderAnalytics();renderBlogRecommendations();renderPostingSettings();syncProductInputs();
 const q=new URLSearchParams(location.search).get('view');if(['dashboard','discover','integrations','lab','threads','instagram','analytics','blog','scheduler'].includes(q))show(q);
 </script>
 </body>
