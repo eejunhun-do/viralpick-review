@@ -33,7 +33,7 @@ export async function POST(req){
   'Avoid inventing the exact look of the real listed product, manufacturer logos, specifications, performance evidence, comparisons or claims. Depict the usage context and only generic safe visual cues.',
   'Keep the lower-left region legible for a small separate product-name overlay. Authentic credible visual, not exaggerated or misleading.',
   purpose==='carousel'?'Single dedicated visual for Instagram carousel slide '+slide+' of 5. This slide has a DIFFERENT visual narrative than its cover: '+({2:'show the everyday inconvenience before the solution',3:'feature a realistic generic product-use scene, with no fake brand',4:'show an honest close-up detail of the use context',5:'show a reassuring purchasing-decision moment or tidy completed everyday scene'}[slide])+'.':'',
-  purpose==='instagram'?'Designed as one Instagram carousel cover background.':'Designed as one scroll-stopping Threads hook image background.'
+  purpose==='carousel'?'Designed as a dedicated Instagram carousel interior slide, NOT the cover image.':purpose==='instagram'?'Designed as one Instagram carousel cover background.':'Designed as one scroll-stopping Threads hook image background.'
  ].join('\n');
  const controller=new AbortController();
  const timeout=setTimeout(()=>controller.abort(),135000);
