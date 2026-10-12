@@ -581,6 +581,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 #instagram.multiEnabled .instagramCarouselViewer .thumbRail{grid-template-columns:repeat(auto-fit,minmax(70px,1fr))}
 #instagram.multiEnabled .instagramCarouselViewer .cardThumb{max-width:130px}
 #instagram.multiEnabled .instaSlideControls .dots{font-size:14px;letter-spacing:2px;overflow-wrap:anywhere}
+.multiInstagramCaptionTools{padding-bottom:10px}.multiInstagramCaptionTools[hidden]{display:none!important}
 </style>
 </head>
 <body>
@@ -733,7 +734,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
     <div class="pad">
      <p class="multiHelperText">카드 수는 선택 상품과 템플릿에 따라 자동 계산됩니다. 아래 카드는 실제 1080×1350 출력의 축소판입니다.</p>
      <div id="multiThreadsGallery" class="multiGallery"></div>
-     <div class="multiActionBar"><button class="btn green" type="button" onclick="downloadMultiZIP('Threads')">모든 카드 ZIP 저장</button><button class="btn" type="button" onclick="copyThread()">게시글 복사</button></div>
+     <div class="multiActionBar"><button class="btn green" type="button" onclick="downloadMultiZIP('Threads')">모든 카드 ZIP 저장</button><button class="btn" type="button" onclick="copyThread()">게시글 복사</button><button class="btn" type="button" onclick="resetMultiCaption('Threads')">기본 문구 다시 만들기</button></div>
     </div>
    </div>
    <div class="panel"><div class="panelHead"><h2>Threads 모음형 본문</h2></div><div class="pad"><textarea id="multiThreadCaption" class="copybox" rows="13" oninput="editMultiCaption('Threads',this.value)" aria-label="Threads 모음형 게시글 편집"></textarea></div></div>
@@ -835,7 +836,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
     </div>
   </div></div></div>
     <div>
-      <div class="panel"><div class="panelHead"><h2>Instagram 캡션</h2></div><div class="pad"><textarea class="copybox instaFinalEditor" id="instaCaption" oninput="onInstagramFinalEdit()" aria-label="Instagram 최종 캡션 편집" spellcheck="true"></textarea><div class="btnrow" style="margin-top:10px"><button class="btn" onclick="copyCaption()">캡션 복사</button><button class="btn" onclick="toast('해시태그는 캡션 입력창에서 직접 수정할 수 있습니다')">해시태그 변경</button></div></div></div>
+      <div class="panel"><div class="panelHead"><h2>Instagram 캡션</h2></div><div class="pad"><div class="multiInstagramCaptionTools" hidden><button class="btn" type="button" onclick="resetMultiCaption('Instagram')">선택 상품으로 기본 캡션 다시 만들기</button></div><textarea class="copybox instaFinalEditor" id="instaCaption" oninput="onInstagramFinalEdit()" aria-label="Instagram 최종 캡션 편집" spellcheck="true"></textarea><div class="btnrow" style="margin-top:10px"><button class="btn" onclick="copyCaption()">캡션 복사</button><button class="btn" onclick="toast('해시태그는 캡션 입력창에서 직접 수정할 수 있습니다')">해시태그 변경</button></div></div></div>
       <div class="panel"><div class="panelHead"><h2>출력 구성</h2></div><div class="pad statusline"><span class="status">표지 4안</span><span class="status">5장 카드</span><span class="status">문구 3가지 톤</span><span class="status">카드 5장 PNG 출력</span><span class="status">최근 저장 예약문 중복 검사</span></div></div>
     </div>
   </div>
@@ -1735,11 +1736,13 @@ async function setMediaSlot(slot,data,kind='ai'){
  renderProductLists();renderMediaPreview();renderThreads();renderInstagram();
 }
 async function uploadProductImage(file){
- try{const media=await readImageFile(file);await setMediaSlot('product',media.data,'upload');toast('상품 사진이 3번째 카드와 출력 이미지에 반영됐습니다.')}
+ if(!window.confirm('직접 촬영했거나 상업적 홍보·합성·편집을 허락받은 사진인가요? 토스쇼핑 API 원본은 가공할 수 없습니다.'))return;
+ try{const media=await readImageFile(file);await setMediaSlot('product',media.data,'licensed-upload');toast('상품 사진이 3번째 카드와 출력 이미지에 반영됐습니다.')}
  catch(e){toast('업로드 오류: '+e.message)}
 }
 async function uploadSceneImage(file){
- try{const media=await readImageFile(file);await setMediaSlot('scene',media.data,'upload');toast('상황 이미지가 카드에 반영됐습니다.')}
+ if(!window.confirm('상업적 사용과 이미지 수정이 허용된 배경 사진인가요?'))return;
+ try{const media=await readImageFile(file);await setMediaSlot('scene',media.data,'licensed-upload');toast('상황 이미지가 카드에 반영됐습니다.')}
  catch(e){toast('업로드 오류: '+e.message)}
 }
 function clearAsset(slot){
@@ -2244,6 +2247,7 @@ function renderMultiThreads(){
  const status=$('#threadDupStatus');if(status)status.textContent='';
 }
 function renderMultiInstagram(){
+ const tools=$('#instagram .multiInstagramCaptionTools');if(tools)tools.hidden=false;
  const cards=instaCards(selected),count=cards.length;
  const caption=$('#instaCaption');
  if(caption&&document.activeElement!==caption)caption.value=getMultiCaption('Instagram');
@@ -2432,7 +2436,7 @@ function instagramSliderKeydown(e){
  if(e.key==='ArrowRight'){e.preventDefault();goInstagramSlide(instaCardIndex+1)}
 }
 
-function renderInstagram(){ if(isMultiMode('Instagram')){renderMultiInstagram();return} const p=selected, hooks=coverHooks(p), cls=['scene1','dark','yellow','pink'];
+function renderInstagram(){ if(isMultiMode('Instagram')){renderMultiInstagram();return} const tools=$('#instagram .multiInstagramCaptionTools');if(tools)tools.hidden=true;const p=selected, hooks=coverHooks(p), cls=['scene1','dark','yellow','pink'];
  const editor=$('#instagramHookHeadline');
  if(editor&&editor.value!==getInstagramCoverHeadline())editor.value=getInstagramCoverHeadline();
  $('#coverGrid').innerHTML=hooks.map((h,i)=>`<div class="visual ${cls[i]} ${coverIndex===i?'selected':''}" onclick="rememberPhotoLayout('Instagram',${i})"><div class="ghost">${i===0?p.visual:'콘텐츠 표지 비주얼'}</div><div class="copy">${cleanMarkup(getInstagramCoverHeadline(i)).replace(/\n/g,'<br>')}<span class="sub">${cleanMarkup(p.name)}</span></div></div>`).join('');
@@ -2600,7 +2604,7 @@ function posterText(ctx,text,x,y,width,height,{size=90,min=40,color='#16191d',li
 }
 function drawPosterPhoto(ctx,p,variant=0){
  const media=currentMedia();
- const item=media.scene||media.product;
+ const item=media.scene?.kind==='ai'||media.scene?.kind==='licensed-upload'?media.scene:media.product?.kind==='licensed-upload'?media.product:null;
  const img=item?.image;
  if(img&&img.naturalWidth&&img.naturalHeight){
   const scale=Math.max(1080/img.naturalWidth,1350/img.naturalHeight);
@@ -2671,7 +2675,7 @@ function drawImageCover(ctx,img){
 function drawInstagramStorySlide(ctx,p,slide,variant=0){
  const pal=designPalette(variant);
  const generated=carouselImageForSlide(slide)?.image;
- const realProduct=currentMedia().product?.image;
+ const realProduct=currentMedia().product?.kind==='licensed-upload'?currentMedia().product.image:null;
  const scene=currentMedia().scene?.image;
  const primary=slide===3?(generated||realProduct||scene):(generated||scene||realProduct);
  const g=ctx.createLinearGradient(0,0,1080,1350);
@@ -2910,6 +2914,33 @@ function makeZipEntries(entries){
  const end=new Uint8Array([80,75,5,6,0,0,0,0,...littleBytes(entries.length,2),...littleBytes(entries.length,2),...littleBytes(centralLength,4),...littleBytes(offset,4),0,0]);
  return new Blob([...files,...central,end],{type:'application/zip'});
 }
+
+async function downloadMultiZIP(platform){
+ if(!isMultiMode(platform)){toast('먼저 여러 상품 모음형을 선택하세요.');return}
+ const cards=multiCardDescriptors();
+ if(!cards.length){toast('추천할 상품을 2개 이상 선택해 주세요.');return}
+ if(cards.length>20){toast('카드 20장을 초과했습니다. 상품 수를 줄여 주세요.');return}
+ const button=platform==='Threads'?$('#threadsPrimaryDownload'):$('#igZipBtn'),label=button?.textContent;
+ if(button){button.disabled=true;button.textContent='ZIP 생성 중…'}
+ try{
+  const files=[];
+  for(let i=0;i<cards.length;i++){
+   const png=await pngBlob(buildContentCanvas(platform,i,coverIndex));
+   files.push({name:platform+'_'+String(i+1).padStart(2,'0')+'.png',bytes:new Uint8Array(await png.arrayBuffer())});
+  }
+  files.push({name:platform+'_caption.txt',bytes:new TextEncoder().encode(getMultiCaption(platform))});
+  downloadFile(makeZipEntries(files),'ViralPick_'+platform+'_추천상품_'+cards.length+'cards.zip');
+  toast('카드 '+cards.length+'장과 캡션 ZIP 저장 완료');
+ }catch(e){toast('모음형 ZIP 출력 실패: '+e.message)}
+ finally{if(button){button.disabled=false;button.textContent=label}}
+}
+function resetMultiCaption(platform){
+ if(!['Threads','Instagram'].includes(platform))return;
+ multiStudio.captions[platform]='';persistMultiStudio();
+ if(platform==='Threads')renderMultiThreads();else renderMultiInstagram();
+ toast('현재 상품 구성으로 기본 문구를 다시 만들었습니다.');
+}
+
 async function downloadInstagramZIP(){
  if(isMultiMode('Instagram'))return downloadMultiZIP('Instagram');
  const btn=$('#igZipBtn');if(btn){btn.disabled=true;btn.textContent='카드 ZIP 생성 중…'}
@@ -3410,7 +3441,7 @@ function show(id){
 }
 $$('.nav button').forEach(b=>b.onclick=()=>show(b.dataset.view));
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
-loadPostingSettings();restoreManualProducts();loadInstagramCoverHeadlineEdits();setDefaultScheduleFields();try{$('#apiBase').value=localStorage.getItem('viralpickBackendUrl')||(location.hostname.endsWith('.vercel.app')?location.origin:'https://viralpick-review.vercel.app')}catch(e){$('#apiBase').value='https://viralpick-review.vercel.app'}renderProductLists();renderLab();renderThreads();renderInstagram();renderAnalytics();renderBlogRecommendations();renderPostingSettings();syncProductInputs();renderPhotoHistories();void restorePhotoHistory(selected.id);
+loadPostingSettings();restoreManualProducts();loadMultiStudio();loadInstagramCoverHeadlineEdits();setDefaultScheduleFields();try{$('#apiBase').value=localStorage.getItem('viralpickBackendUrl')||(location.hostname.endsWith('.vercel.app')?location.origin:'https://viralpick-review.vercel.app')}catch(e){$('#apiBase').value='https://viralpick-review.vercel.app'}renderProductLists();renderLab();renderThreads();renderInstagram();renderAnalytics();renderBlogRecommendations();renderPostingSettings();syncProductInputs();renderPhotoHistories();renderMultiStudios();refreshMultiOutputs();void restorePhotoHistory(selected.id);if(isMultiMode('Threads')||isMultiMode('Instagram'))void restoreMultiEditableAssets();
 connectionRestoreTask=loadRememberedAccess();
 const q=new URLSearchParams(location.search).get('view');if(['dashboard','discover','integrations','lab','threads','instagram','analytics','blog','scheduler'].includes(q))show(q);
 </script>
