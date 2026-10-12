@@ -1944,7 +1944,7 @@ function changeMultiStoryCard(enabled){
 }
 
 const multiStudio={
- modes:{Threads:'single',Instagram:'single'},template:'editorial',
+ modes:{Threads:'single',Instagram:'single'},template:'editorial',storyPreset:'none',storyPace:'standard',storyEdits:{Threads:'',Instagram:''},includeStoryCard:false,
  selectedIds:[],headline:'일상에서 유용한 추천템 모음',summary:'필요한 기능을 비교하고, 구매 전 최신 가격·재고·옵션을 확인해 보세요.',
  notes:{},captions:{Threads:'',Instagram:''},allowedToss:{},revision:0
 };
@@ -1956,14 +1956,17 @@ function isMultiMode(platform){return multiStudio.modes[platform]==='multi'}
 function multiSelectedProducts(){return multiStudio.selectedIds.map(id=>products.find(p=>p.id===id)).filter(Boolean)}
 function multiGroupSize(){return ({editorial:2,price:1,grid:4})[multiStudio.template]||2}
 function multiCardDescriptors(){
- const items=multiSelectedProducts(),groups=[];
+ const items=multiSelectedProducts(),cards=[];
  if(items.length<2)return [];
  const size=multiGroupSize();
+ cards.push({kind:'cover',short:'1. 추천 표지',items});
+ if(multiStudio.storyPreset!=='none'&&multiStudio.includeStoryCard)cards.push({kind:'story',short:'2. 공감 이야기',items});
  for(let i=0;i<items.length;i+=size){
   const group=items.slice(i,i+size);
-  groups.push({kind:'products',short:(groups.length+2)+'. '+group.map(p=>p.name).join(' · ').slice(0,38),items:group});
+  cards.push({kind:'products',short:(cards.length+1)+'. '+group.map(p=>p.name).join(' · ').slice(0,38),items:group});
  }
- return [{kind:'cover',short:'1. 추천 표지',items},...groups,{kind:'summary',short:(groups.length+2)+'. 한눈에 정리',items}];
+ cards.push({kind:'summary',short:(cards.length+1)+'. 한눈에 정리',items});
+ return cards;
 }
 function multiSlideCount(){return multiCardDescriptors().length}
 function multiTitle(){return multiStudio.headline.trim()||'선택한 상품 추천 모음'}
@@ -1977,7 +1980,7 @@ function multiItemPrice(p){
 function persistMultiStudio(){
  try{
   localStorage.setItem(MULTI_STUDIO_KEY,JSON.stringify({
-   modes:multiStudio.modes,template:multiStudio.template,selectedIds:multiStudio.selectedIds,
+   modes:multiStudio.modes,template:multiStudio.template,storyPreset:multiStudio.storyPreset,storyPace:multiStudio.storyPace,storyEdits:multiStudio.storyEdits,includeStoryCard:multiStudio.includeStoryCard,selectedIds:multiStudio.selectedIds,
    headline:multiStudio.headline,summary:multiStudio.summary,
    notes:multiStudio.notes,captions:multiStudio.captions,allowedToss:multiStudio.allowedToss
   }));
@@ -1992,6 +1995,10 @@ function loadMultiStudio(){
   if(!obj||typeof obj!=='object')return;
   for(const platform of ['Threads','Instagram'])if(['single','multi'].includes(obj.modes?.[platform]))multiStudio.modes[platform]=obj.modes[platform];
   if(['editorial','price','grid'].includes(obj.template))multiStudio.template=obj.template;
+  if(obj.storyPreset==='none'||Object.prototype.hasOwnProperty.call(MULTI_STORY_PRESETS,obj.storyPreset||''))multiStudio.storyPreset=obj.storyPreset;
+  if(['short','standard','long'].includes(obj.storyPace))multiStudio.storyPace=obj.storyPace;
+  if(typeof obj.includeStoryCard==='boolean')multiStudio.includeStoryCard=obj.includeStoryCard;
+  if(obj.storyEdits&&typeof obj.storyEdits==='object')for(const platform of ['Threads','Instagram'])if(typeof obj.storyEdits[platform]==='string')multiStudio.storyEdits[platform]=obj.storyEdits[platform].slice(0,900);
   if(Array.isArray(obj.selectedIds))multiStudio.selectedIds=[...new Set(obj.selectedIds.filter(x=>Number.isSafeInteger(x)&&x>0))].slice(0,MULTI_MAX_PRODUCTS);
   if(typeof obj.headline==='string')multiStudio.headline=obj.headline.slice(0,95);
   if(typeof obj.summary==='string')multiStudio.summary=obj.summary.slice(0,210);
@@ -2122,6 +2129,10 @@ function renderMultiStudios(){
    button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));
   });
   const select=root.querySelector('.multiTemplateSelect');if(select)select.value=multiStudio.template;
+  const preset=root.querySelector('.multiStorySelect');if(preset)preset.value=multiStudio.storyPreset;
+  const pace=root.querySelector('.multiStoryPace');if(pace)pace.value=multiStudio.storyPace;
+  const story=root.querySelector('.multiStoryInput');if(story&&document.activeElement!==story)story.value=getMultiStory(platform);
+  const card=root.querySelector('.multiStoryCardCheck');if(card){card.checked=multiStudio.includeStoryCard;card.disabled=multiStudio.storyPreset==='none'}
   const headline=root.querySelector('.multiHeadlineInput');if(headline&&document.activeElement!==headline)headline.value=multiStudio.headline;
   const summary=root.querySelector('.multiSummaryInput');if(summary&&document.activeElement!==summary)summary.value=multiStudio.summary;
   const label=$('#multiCount'+platform);
