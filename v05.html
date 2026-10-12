@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111318">
-<title>ViralPick v0.9.1 Prototype</title>
+<title>ViralPick v0.9.2 Prototype</title>
 <style>
 :root{
   --bg:#f5f6f8;--panel:#fff;--ink:#15171b;--muted:#727985;--line:#e6e8ec;
@@ -419,7 +419,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
  .hookImagePanel .imageGrid3 .hookChoice{flex:0 0 clamp(184px,47%,242px);min-width:184px}
 }
 
-/* v0.9.1 immersive hook image editor */
+/* v0.9.2 immersive hook image editor */
 .hookMaker{display:grid;gap:10px;background:#f8fafc;border:1px solid #e4e8ed;padding:13px;border-radius:14px;margin-bottom:15px}
 .hookEditLabel{display:grid;gap:7px;font-size:11px;font-weight:900;color:#384354}
 #hookHeadline{width:100%;min-height:70px;resize:vertical;border:1px solid #d9dfe8;border-radius:10px;background:white;padding:12px;font-family:inherit;font-size:14px;line-height:1.5;color:#12171e}
@@ -430,7 +430,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 .hookMakerInfo{font-size:10px;color:#687583;line-height:1.55;margin:0}
 @media(max-width:650px){.hookMakerTools{display:grid;grid-template-columns:1fr}.hookMakerTools .btn{width:100%}.hookMakerTools label{min-width:0}#hookHeadline{font-size:16px}}
 
-/* v0.9.1 AI photo candidates and durable local history */
+/* v0.9.2 AI photo candidates and durable local history */
 .photoHistory{display:grid;gap:9px;margin:0 0 13px}
 .photoHistory .historyHead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .photoHistory .historyHead b{font-size:12px;color:#232a35}
@@ -466,7 +466,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 #carouselArtStatus{margin:10px 0 0;font-size:11px;color:#687482;line-height:1.55;overflow-wrap:anywhere}
 @media(max-width:650px){.carouselImageToolsRow{display:grid;grid-template-columns:1fr}.carouselImageToolsRow .btn{min-width:0;width:100%}}
 
-/* v0.9.1 touch-friendly Instagram carousel and real image thumbnail rail */
+/* v0.9.2 touch-friendly Instagram carousel and real image thumbnail rail */
 .instagramCarouselViewer{width:100%;min-width:0;display:grid;gap:12px}
 .instaSwipeFrame{position:relative;width:100%;max-width:500px;margin:0 auto;touch-action:pan-y;user-select:none;-webkit-user-select:none;outline-offset:5px}
 .instaSwipeFrame:focus-visible{outline:3px solid #4263eb;border-radius:20px}
@@ -502,7 +502,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 }
 @media(prefers-reduced-motion:reduce){.instaCard>img{animation:none}}
 
-/* v0.9.1 one-tap secure server connector */
+/* v0.9.2 one-tap secure server connector */
 .serverConnectButton{border:1px solid #e3e7eb;background:#fff;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:7px;color:#334155;min-height:43px;padding:10px 13px;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s}
 .serverConnectButton.connected{color:#08754c;background:#e6f7ee;border-color:#acdabc}
 .serverConnectButton.connecting{color:#926000;background:#fff6df;border-color:#f1d59e}
@@ -529,7 +529,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 @media(max-width:930px){.desktopConnectionBar{display:none}.mobileTop .mobileConnect{margin-left:auto;flex-shrink:0;font-size:11px;min-height:40px;padding:9px 10px}}
 @media(max-width:370px){.mobileTop .mobileConnect{font-size:10px;padding:9px 8px}.mobileTopBrand{font-size:17px}}
 
-/* v0.9.1: cross-platform multi-product studio */
+/* v0.9.2: cross-platform multi-product studio */
 .multiStudioPanel{margin:12px 0 17px;border:1px solid #dce5ed;background:#fff;border-radius:17px;box-shadow:0 8px 25px rgba(13,30,54,.04);overflow:hidden}
 .multiStudioTop{padding:17px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .multiStudioTop>div:first-child{display:grid;gap:5px}.multiStudioTop strong{font-size:15px;color:#243042}.multiStudioTop small{font-size:11px;color:#748091}
@@ -599,6 +599,19 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 .multiStoryCardToggle input{accent-color:#a46440;flex-shrink:0;width:17px;height:17px}
 .multiStoryGuard{font-size:10px;line-height:1.65;color:#7e6870;margin:0}
 @media(max-width:580px){.multiStoryControls{grid-template-columns:1fr}.multiStoryPanel{padding:11px}}
+
+/* v0.9.2: reusable psychological curiosity hooks for Threads and Instagram */
+.openingHookPanel{margin:12px 0 17px;padding:16px;border:1px solid #e1e6ee;background:linear-gradient(125deg,#fffdf8,#f6f9fc);border-radius:16px;display:grid;gap:12px}
+.openingHookHeading{display:flex;gap:8px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+.openingHookHeading>div{display:grid;gap:4px}.openingHookHeading b{font-size:14px;color:#283446}.openingHookHeading small{font-size:11px;color:#7a8493}
+.openingHookHeading>span{font-size:10px;color:#a15e38;font-weight:850;padding:6px 9px;background:#fff0e5;border-radius:50px}
+.openingHookTools{display:flex;align-items:end;flex-wrap:wrap;gap:9px}
+.openingHookTools label{display:grid;gap:6px;flex:1;min-width:180px;font-size:11px;font-weight:850;color:#455365}
+.openingHookTools select{min-height:43px;padding:9px 11px;border-radius:9px;border:1px solid #d6dfe8;background:#fff;font-size:12px;color:#263547}
+.openingHookTools button{min-height:43px;font-size:11px}
+.openingHookPreview{padding:15px 16px;border-left:5px solid #d17c47;border-radius:0 11px 11px 0;background:#fff;font-size:17px;color:#243042;font-weight:900;line-height:1.5;word-break:keep-all;overflow-wrap:anywhere}
+.openingHookTip{margin:0;font-size:10px;color:#718092;line-height:1.65}
+@media(max-width:520px){.openingHookPanel{padding:12px}.openingHookTools label{width:100%;flex-basis:100%}.openingHookTools button{flex:1}.openingHookPreview{font-size:15px}}
 </style>
 </head>
 <body>
@@ -718,6 +731,23 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 </section>
 
 <section id="threads" class="view">
+ <div class="openingHookPanel" id="openingHookThreads">
+  <div class="openingHookHeading"><div><b>본문 첫 줄 · 궁금증 유발 후킹</b><small>손해·반박·의문·후기 검증·결론 유보 중 선택하세요.</small></div><span>제품명보다 궁금증을 먼저</span></div>
+  <div class="openingHookTools">
+   <label>후킹 방식 <select class="openingHookSelect" onchange="changeOpeningStyle('Threads',this.value)">
+     <option value="auto">자동 추천 · 돌아가면서 사용</option>
+     <option value="loss">손해 자극 · 아까움</option>
+     <option value="contrarian">반박 · 통념 뒤집기</option>
+     <option value="doubt">의심 · 당연한 방법 질문</option>
+     <option value="skepticism">후기 검증 · 신중한 선택</option>
+     <option value="suspense">결론 유보 · 다음 내용 궁금하게</option>
+   </select></label>
+   <button type="button" class="btn" onclick="cycleOpeningStyle('Threads')">↻ 다른 첫 줄</button>
+   <button type="button" class="btn primary" onclick="applyOpeningToDraft('Threads')">본문 첫 줄에 적용</button>
+  </div>
+  <div class="openingHookPreview" id="openingPreviewThreads">문구를 불러오는 중…</div>
+  <p class="openingHookTip">설정을 바꾸면 새 기본 문구에 반영됩니다. 직접 수정해 둔 본문은 유지되며, 위 ‘본문 첫 줄에 적용’을 누르면 첫 문장만 교체합니다. 실제로 써봤다는 허위 경험은 생성하지 않습니다.</p>
+ </div>
   <div class="top"><div><span class="badge blue">Threads</span><h1>공감형 글 · 추천템 콘텐츠 만들기</h1><p>단일 상품 후기형부터 여러 상품을 소개하는 공감 스토리형까지 제작합니다. 글이 메인이며 이미지는 후킹을 돕습니다.</p></div><div class="btnrow"><button class="btn singleOnlyThreads" onclick="cycleThread()">후킹 6안 새로 만들기</button><button class="btn" onclick="copyThread()">선택 본문 복사</button><button class="btn singleOnlyThreads" onclick="show('integrations')">사진 업로드</button><button class="btn green" id="threadsPrimaryDownload" onclick="downloadThreadPNG()">선택 이미지 PNG 저장</button><button class="btn primary" onclick="openReservation('Threads')">📅 최종 검수 후 예약</button></div></div>
 <div class="multiStudioPanel" id="multiStudioThreads">
  <div class="multiStudioTop"><div><strong>콘텐츠 제작 방식</strong><small>기존 단일 상품 제작과 여러 상품 모음형을 전환할 수 있습니다.</small></div>
@@ -815,6 +845,23 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 </section>
 
 <section id="instagram" class="view">
+ <div class="openingHookPanel" id="openingHookInstagram">
+  <div class="openingHookHeading"><div><b>본문 첫 줄 · 궁금증 유발 후킹</b><small>손해·반박·의문·후기 검증·결론 유보 중 선택하세요.</small></div><span>제품명보다 궁금증을 먼저</span></div>
+  <div class="openingHookTools">
+   <label>후킹 방식 <select class="openingHookSelect" onchange="changeOpeningStyle('Instagram',this.value)">
+     <option value="auto">자동 추천 · 돌아가면서 사용</option>
+     <option value="loss">손해 자극 · 아까움</option>
+     <option value="contrarian">반박 · 통념 뒤집기</option>
+     <option value="doubt">의심 · 당연한 방법 질문</option>
+     <option value="skepticism">후기 검증 · 신중한 선택</option>
+     <option value="suspense">결론 유보 · 다음 내용 궁금하게</option>
+   </select></label>
+   <button type="button" class="btn" onclick="cycleOpeningStyle('Instagram')">↻ 다른 첫 줄</button>
+   <button type="button" class="btn primary" onclick="applyOpeningToDraft('Instagram')">본문 첫 줄에 적용</button>
+  </div>
+  <div class="openingHookPreview" id="openingPreviewInstagram">문구를 불러오는 중…</div>
+  <p class="openingHookTip">설정을 바꾸면 새 기본 문구에 반영됩니다. 직접 수정해 둔 본문은 유지되며, 위 ‘본문 첫 줄에 적용’을 누르면 첫 문장만 교체합니다. 실제로 써봤다는 허위 경험은 생성하지 않습니다.</p>
+ </div>
   <div class="top"><div><span class="badge orange">Instagram Carousel</span><h1>Instagram 캐러셀 만들기</h1><p>단일 상품은 기존 5장 구성으로, 모음형은 선택 상품 수와 스토리 카드에 맞춰 장수가 자동 조정됩니다.</p></div><div class="btnrow"><button class="btn singleOnlyInstagram" onclick="cycleCover()">표지 4안 재생성</button><button class="btn singleOnlyInstagram" id="instagramGenerateButton" onclick="requestAiScene('instagram')">✨ AI 실사 표지 2장 생성</button><button class="btn green" id="igZipBtn" onclick="downloadInstagramZIP()">카드 5장 ZIP 저장</button><button class="btn primary" onclick="openReservation('Instagram')">📅 최종 검수 후 예약</button></div></div>
 <div class="multiStudioPanel" id="multiStudioInstagram">
  <div class="multiStudioTop"><div><strong>콘텐츠 제작 방식</strong><small>기존 단일 상품 제작과 여러 상품 모음형을 전환할 수 있습니다.</small></div>
@@ -1492,7 +1539,7 @@ function renderMediaPreview(){
  }).join('');
 }
 
-/* v0.9.1: explicitly opted-in, browser-local encrypted access vault. */
+/* v0.9.2: explicitly opted-in, browser-local encrypted access vault. */
 const CONNECTION_VAULT_NAME='viralpick-connection-vault',CONNECTION_VAULT_STORE='secrets',CONNECTION_VAULT_ID='backend-access-v1';
 let backendConnectionState='disconnected',backendConnectionBusy=false,rememberedAccessEnabled=false;
 let connectionRestoreTask=Promise.resolve();
@@ -1879,7 +1926,7 @@ function productCard(p){
  </div>`;
 }
 
-/* v0.9.1 shared multi-product studio: browser-private, content output rights aware. */
+/* v0.9.2 shared multi-product studio: browser-private, content output rights aware. */
 
 const MULTI_STORY_PRESETS={
 solo:{headline:'자취하면 은근 신경 쓰이는 불편, 이런 꿀템 어때?',title:'혼자 살면 더 크게 느껴지는 작은 불편',
