@@ -576,6 +576,11 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 .multiActionBar{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 .multiHelperText{font-size:11px;color:#6c7988;line-height:1.5;margin:0 0 13px}
 @media(max-width:650px){.multiStudioTop{padding:13px}.multiModeTabs{width:100%}.multiConfig{padding:13px}.multiProductPickerList{grid-template-columns:1fr}.multiGallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.multiItemRow{grid-template-columns:64px minmax(0,1fr);gap:9px}.multiItemPicture{width:64px;height:80px}}
+
+#threads.multiEnabled .singleOnlyThreads,#instagram.multiEnabled .singleOnlyInstagram{display:none!important}
+#instagram.multiEnabled .instagramCarouselViewer .thumbRail{grid-template-columns:repeat(auto-fit,minmax(70px,1fr))}
+#instagram.multiEnabled .instagramCarouselViewer .cardThumb{max-width:130px}
+#instagram.multiEnabled .instaSlideControls .dots{font-size:14px;letter-spacing:2px;overflow-wrap:anywhere}
 </style>
 </head>
 <body>
@@ -2164,10 +2169,10 @@ function threadVisuals(p){
  }).join('');
 }
 function threadEditKey(){return selected.id+':'+threadDiversity+':'+threadSeed+':'+threadCopyIndex}
-function getCurrentThreadText(){const key=threadEditKey();return Object.prototype.hasOwnProperty.call(customThreadEdits,key)?customThreadEdits[key]:threadBodies(selected)[threadCopyIndex]}
+function getCurrentThreadText(){if(isMultiMode('Threads'))return getMultiCaption('Threads');const key=threadEditKey();return Object.prototype.hasOwnProperty.call(customThreadEdits,key)?customThreadEdits[key]:threadBodies(selected)[threadCopyIndex]}
 function onThreadFinalEdit(){customThreadEdits[threadEditKey()]=$('#threadFinalText').value;renderThreadDupStatus()}
-function getCurrentInstagramCaption(){return Object.prototype.hasOwnProperty.call(customInstagramCaptions,selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex)?customInstagramCaptions[selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex]:instaCaption(selected)}
-function onInstagramFinalEdit(){customInstagramCaptions[selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex]=$('#instaCaption').value;renderInstagramDupStatus()}
+function getCurrentInstagramCaption(){if(isMultiMode('Instagram'))return getMultiCaption('Instagram');return Object.prototype.hasOwnProperty.call(customInstagramCaptions,selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex)?customInstagramCaptions[selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex]:instaCaption(selected)}
+function onInstagramFinalEdit(){if(isMultiMode('Instagram')){editMultiCaption('Instagram',$('#instaCaption').value);return}customInstagramCaptions[selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex]=$('#instaCaption').value;renderInstagramDupStatus()}
 
 function dupNormalize(text){
  const lines=String(text||'').split('\n').filter(line=>!/(토스쇼핑 쉐어링크 활동|구매 발생 시 일정 수수료|#생활템|#제품정보)/.test(line));
@@ -2214,7 +2219,53 @@ function renderInstagramDupStatus(){
  const m=duplicateMessage('Instagram',getCurrentInstagramCaption());
  node.className='similarityNotice '+m.level;node.textContent=m.text;
 }
+
+function multiSmallPreview(platform,slide){
+ const source=buildContentCanvas(platform,slide);
+ const thumb=document.createElement('canvas');thumb.width=214;thumb.height=268;
+ const ctx=thumb.getContext('2d');if(!ctx)throw new Error('이미지 축소를 지원하지 않습니다.');
+ ctx.drawImage(source,0,0,214,268);
+ return thumb.toDataURL('image/jpeg',.77);
+}
+function renderMultiThreads(){
+ const cards=multiCardDescriptors(),gallery=$('#multiThreadsGallery');
+ const badge=$('#multiThreadsBadge'),caption=$('#multiThreadCaption');
+ if(badge)badge.textContent=cards.length+'장';
+ if(caption&&document.activeElement!==caption)caption.value=getMultiCaption('Threads');
+ if(gallery){
+  gallery.innerHTML=cards.length
+   ?cards.map((card,i)=>{
+    let img='';try{img=multiSmallPreview('Threads',i)}catch(e){}
+    return '<div class="multiGalleryItem">'+(img?'<img loading="lazy" src="'+img+'" alt="'+cleanMarkup(card.short)+'">':'<div class="thumbFallback">미리보기 준비 중</div>')+
+     '<span>'+cleanMarkup(card.short)+'</span></div>';
+   }).join('')
+   :'<p class="multiHelperText">추천할 상품을 2개 이상 선택하면 카드가 자동으로 만들어집니다.</p>';
+ }
+ const status=$('#threadDupStatus');if(status)status.textContent='';
+}
+function renderMultiInstagram(){
+ const cards=instaCards(selected),count=cards.length;
+ const caption=$('#instaCaption');
+ if(caption&&document.activeElement!==caption)caption.value=getMultiCaption('Instagram');
+ const badge=$('#cardIndexBadge'),heading=$('#instagramCarouselHeading'),preview=$('#instagramPreviewHeading');
+ if(heading)heading.textContent=count+'장 모음형 캐러셀';
+ if(preview)preview.textContent=count+'장 실제 이미지 미리보기';
+ if(count===0){
+  const frame=$('#instaCard');if(frame)frame.innerHTML='<div class="multiGalleryItem" style="min-height:250px;place-items:center">상품을 2개 이상 선택하면 카드가 자동으로 만들어집니다.</div>';
+  const thumb=$('#cardThumbs');if(thumb)thumb.innerHTML='';
+  if(badge)badge.textContent='0 / 0';
+  const prev=$('#instagramPrev'),next=$('#instagramNext');if(prev)prev.disabled=true;if(next)next.disabled=true;
+  const dots=$('#instagramSlideDots');if(dots)dots.textContent='';
+  return;
+ }
+ if(instaCardIndex>=count||instaCardIndex<0)instaCardIndex=0;
+ renderInstagramThumbGallery(cards);
+ renderInstagramSlide(cards);
+ renderInstagramDupStatus();
+}
+
 function renderThreads(){
+ if(isMultiMode('Threads')){renderMultiThreads();return}
  const p=selected,b=threadBodies(p),hs=threadHooks(p),cls=['scene1','scene2','scene3'];
  $('#threadTypeBadge').textContent=p.type;
  $('#threadDiversity').value=threadDiversity;
@@ -2292,10 +2343,12 @@ function changeInstagramDiversity(v){
 const instagramThumbCache={key:null,refs:[],images:[]};
 let instagramTouchStartPoint=null,instagramMouseStartPoint=null;
 function instagramVisualRefs(){
+ if(isMultiMode('Instagram'))return multiSelectedProducts().map(p=>multiMediaFor(p));
  const media=currentMedia();
  return [media.scene?.image||null,media.product?.image||null,...[2,3,4,5].map(slide=>carouselImageForSlide(slide)?.image||null)];
 }
 function instagramThumbKey(){
+ if(isMultiMode('Instagram'))return JSON.stringify(['multi',multiStudio.template,multiStudio.selectedIds,multiStudio.revision]);
  const p=selected;
  return JSON.stringify([p.id,p.name,p.problem,p.novel,p.visual,p.price,coverIndex,getInstagramCoverHeadline(),hookPhotoStyle]);
 }
@@ -2310,7 +2363,7 @@ function instagramThumbImage(slide){
 function renderInstagramThumbGallery(cards){
  const root=$('#cardThumbs');if(!root)return;
  const refs=instagramVisualRefs(),key=instagramThumbKey();
- const unchanged=instagramThumbCache.key===key&&instagramThumbCache.images.length===5&&refs.length===instagramThumbCache.refs.length&&refs.every((x,i)=>x===instagramThumbCache.refs[i]);
+ const unchanged=instagramThumbCache.key===key&&instagramThumbCache.images.length===cards.length&&refs.length===instagramThumbCache.refs.length&&refs.every((x,i)=>x===instagramThumbCache.refs[i]);
  if(!unchanged){
   const images=cards.map((card,i)=>{try{return instagramThumbImage(i)}catch(e){return ''}});
   instagramThumbCache.key=key;instagramThumbCache.refs=refs;instagramThumbCache.images=images;
@@ -2338,15 +2391,16 @@ function renderInstagramSlide(cards=instaCards(selected)){
   const png=buildContentCanvas('Instagram',instaCardIndex,coverIndex).toDataURL('image/png');
   frame.innerHTML='<img src="'+png+'" draggable="false" alt="Instagram '+(instaCardIndex+1)+'번 카드 실제 출력 미리보기" style="display:block;width:100%;height:100%;object-fit:contain">';
  }catch(e){frame.innerHTML=cards[instaCardIndex]?.html||'<p>이미지를 표시할 수 없습니다.</p>'}
- const badge=$('#cardIndexBadge');if(badge)badge.textContent=(instaCardIndex+1)+' / 5';
- const dots=$('#instagramSlideDots');if(dots)dots.textContent=[0,1,2,3,4].map(i=>i===instaCardIndex?'●':'○').join(' ');
+ const count=isMultiMode('Instagram')?multiSlideCount():5;
+ const badge=$('#cardIndexBadge');if(badge)badge.textContent=(instaCardIndex+1)+' / '+count;
+ const dots=$('#instagramSlideDots');if(dots)dots.textContent=Array.from({length:count},(_,i)=>i===instaCardIndex?'●':'○').join(' ');
  const prev=$('#instagramPrev'),next=$('#instagramNext');
  if(prev)prev.disabled=instaCardIndex===0;
- if(next)next.disabled=instaCardIndex===4;
+ if(next)next.disabled=instaCardIndex===count-1;
  updateInstagramThumbSelection();renderCarouselArtStatus();
 }
 function goInstagramSlide(index){
- const next=Math.min(4,Math.max(0,Number(index)));
+ const next=Math.min((isMultiMode('Instagram')?multiSlideCount():5)-1,Math.max(0,Number(index)));
  if(!Number.isFinite(next)||next===instaCardIndex)return;
  instaCardIndex=next;renderInstagramSlide();
 }
@@ -2378,7 +2432,7 @@ function instagramSliderKeydown(e){
  if(e.key==='ArrowRight'){e.preventDefault();goInstagramSlide(instaCardIndex+1)}
 }
 
-function renderInstagram(){ const p=selected, hooks=coverHooks(p), cls=['scene1','dark','yellow','pink'];
+function renderInstagram(){ if(isMultiMode('Instagram')){renderMultiInstagram();return} const p=selected, hooks=coverHooks(p), cls=['scene1','dark','yellow','pink'];
  const editor=$('#instagramHookHeadline');
  if(editor&&editor.value!==getInstagramCoverHeadline())editor.value=getInstagramCoverHeadline();
  $('#coverGrid').innerHTML=hooks.map((h,i)=>`<div class="visual ${cls[i]} ${coverIndex===i?'selected':''}" onclick="rememberPhotoLayout('Instagram',${i})"><div class="ghost">${i===0?p.visual:'콘텐츠 표지 비주얼'}</div><div class="copy">${cleanMarkup(getInstagramCoverHeadline(i)).replace(/\n/g,'<br>')}<span class="sub">${cleanMarkup(p.name)}</span></div></div>`).join('');
@@ -2387,7 +2441,9 @@ function renderInstagram(){ const p=selected, hooks=coverHooks(p), cls=['scene1'
  renderInstagramSlide(cards);
  $('#instaCaption').value=getCurrentInstagramCaption();$('#instagramDiversity').value=instagramDiversity;renderInstagramDupStatus();
 }
-function instaCards(p){ const cover=cleanMarkup(getInstagramCoverHeadline()).replace(/\n/g,'<br>'); return [
+function instaCards(p){
+ if(isMultiMode('Instagram'))return multiCardDescriptors().map(card=>({short:card.short,html:'<p>다중 상품 미리보기: '+cleanMarkup(card.short)+'</p>'}));
+ const cover=cleanMarkup(getInstagramCoverHeadline()).replace(/\n/g,'<br>'); return [
  {short:'후킹 표지',html:`<div class="bg scene1"></div><div class="content"><div><div class="num">01 / 05</div><h3>${cover}</h3><p>${p.name}</p></div><div class="cta">넘겨서 보기 →</div></div>`},
  {short:'문제 공감',html:`<div class="bg scene2"></div><div class="content"><div><div class="num">02 / 05</div><h3>은근 반복되는<br>이 불편</h3><p>${p.problem}</p></div><div class="productBox">${p.visual}<br><span style="font-size:10px;font-weight:700">이미지 연동 전 시안</span></div></div>`},
  {short:'상품 등장',html:`<div class="bg" style="background:#f7f8fa"></div><div class="content"><div><div class="num">03 / 05</div><h3>그래서<br>찾아본 게 이거</h3></div><div class="productBox">실제 상품 사진<br>미연결</div><p>${p.name}</p></div>`},
@@ -2826,6 +2882,7 @@ function downloadFile(blob,name){
 }
 function safeFileName(value){return String(value).replace(/[^\w가-힣-]/g,'_').slice(0,45)}
 async function downloadThreadPNG(){
+ if(isMultiMode('Threads'))return downloadMultiZIP('Threads');
  try{
  const canvas=buildContentCanvas('Threads',0,threadImageIndex);
  const blob=await pngBlob(canvas);
@@ -2854,6 +2911,7 @@ function makeZipEntries(entries){
  return new Blob([...files,...central,end],{type:'application/zip'});
 }
 async function downloadInstagramZIP(){
+ if(isMultiMode('Instagram'))return downloadMultiZIP('Instagram');
  const btn=$('#igZipBtn');if(btn){btn.disabled=true;btn.textContent='카드 ZIP 생성 중…'}
  try{
   const files=[];
