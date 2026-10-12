@@ -541,7 +541,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
     <div class="uploadBox"><b>상황 이미지</b><p>직접 사진을 올리거나 서버 연결 후 GPT Image 2로 새로운 상황 이미지를 생성하세요.</p><input id="sceneImageInput" type="file" accept="image/png,image/jpeg,image/webp" onchange="uploadSceneImage(this.files?.[0])"><button class="btn" onclick="clearAsset('scene')">상황 이미지 지우기</button></div>
    </div>
    <div class="field" style="margin-top:15px"><label>AI 상황 이미지 프롬프트 (상품 실물/로고를 임의로 재현하지 않음)</label><textarea id="scenePrompt" rows="2" maxlength="500" placeholder="예: 오전 햇살이 비치는 작은 거실에서 선반 수평을 확인하는 장면"></textarea></div>
-   <div class="btnrow"><button class="btn primary" id="generateSceneButton" onclick="requestAiScene()">GPT Image 2 상황 이미지 생성</button><button class="btn" onclick="show('threads')">Threads 확인</button><button class="btn" onclick="show('instagram')">Instagram 확인</button></div>
+   <div class="btnrow"><button class="btn primary" id="generateSceneButton" onclick="requestAiScene()">GPT Image 2 배경 2장 생성</button><button class="btn" onclick="show('threads')">Threads 확인</button><button class="btn" onclick="show('instagram')">Instagram 확인</button></div>
    <div id="assetPreview" class="mediaPreviewGrid"></div>
    <div id="integrationPhotoHistory" class="photoHistory" style="margin-top:13px"></div>
    <div class="aiNote" style="margin-top:12px">상황 이미지는 AI가 생성할 수 있지만 제품의 정확한 외형은 임의로 만들어서는 안 됩니다. 실제 상품 사진은 별도로 업로드해 3번째 상품 카드에 합성합니다. AI 생성 사진은 이 브라우저의 IndexedDB에 상품별 최근 3세트까지 저장됩니다. 저장한 기록은 같은 브라우저에서 다시 접속할 때 복원되며, 기기가 다르면 동기화되지 않습니다.</div>
@@ -839,6 +839,20 @@ async function writePhotoRecord(record){
  })}finally{db.close()}
 }
 function getPhotoHistory(productId=selected.id){return photoHistories.get(productId)||null}
+function restorePhotoLayouts(record){
+ if(!record||selected.id!==record.productId)return;
+ if(Number.isInteger(record.threadLayout)&&record.threadLayout>=0&&record.threadLayout<3)threadImageIndex=record.threadLayout;
+ if(Number.isInteger(record.instagramCover)&&record.instagramCover>=0&&record.instagramCover<4)coverIndex=record.instagramCover;
+}
+function rememberPhotoLayout(platform,index){
+ if(platform==='Threads'){threadImageIndex=index;renderThreads()}
+ else{coverIndex=index;instaCardIndex=0;renderInstagram()}
+ const record=getPhotoHistory();
+ if(!record)return;
+ if(platform==='Threads')record.threadLayout=index;
+ else record.instagramCover=index;
+ writePhotoRecord(record).catch(e=>{photoSavingWarning='레이아웃 선택을 기록하지 못했습니다: '+e.message;renderPhotoHistories()});
+}
 function historyGroups(record){return Array.isArray(record?.groups)?record.groups:[]}
 function photoHistoryDate(time){
  const d=new Date(time);
@@ -929,7 +943,7 @@ async function savePhotoBatch(productId,images,meta={}){
   hook:meta.hook||'',images:images.map(data=>({data,createdAt:now})),
   selectedIndex:0
  };
- const next={...prev,productId,groups:[group,...historyGroups(prev)].slice(0,3),activeId:group.id,updatedAt:now};
+ const next={...prev,productId,groups:[group,...historyGroups(prev)].slice(0,3),activeId:group.id,threadLayout:threadImageIndex,instagramCover:coverIndex,updatedAt:now};
  photoHistories.set(productId,next);
  const applied=await applyHistoryChoice(productId,group.id,0,{persist:false});
  try{
@@ -949,6 +963,7 @@ async function restorePhotoHistory(productId){
   const rec=photoHistories.get(productId);
   const active=historyGroups(rec).find(g=>g.id===rec.activeId)||historyGroups(rec)[0];
   if(active&&selected.id===productId){
+   restorePhotoLayouts(rec);
    try{await applyHistoryChoice(productId,active.id,active.selectedIndex??0,{persist:false})}
    catch(e){photoSavingWarning='저장된 이미지 복원 오류: '+e.message;renderPhotoHistories()}
   }else if(selected.id===productId)renderPhotoHistories();
@@ -961,6 +976,7 @@ async function restorePhotoHistory(productId){
   const loaded=getPhotoHistory(productId)||rec;
   const active=historyGroups(loaded).find(g=>g.id===loaded?.activeId)||historyGroups(loaded)[0];
   if(active){
+   restorePhotoLayouts(loaded);
    try{await applyHistoryChoice(productId,active.id,active.selectedIndex??0,{persist:false})}
    catch(e){photoSavingWarning='저장된 이미지 복원 오류: '+e.message}
   }
@@ -1221,6 +1237,7 @@ function productCard(p){
 function renderProductLists(){ $('#dashProducts').innerHTML=products.map(productCard).join(''); $('#discoverProducts').innerHTML=products.map(productCard).join(''); }
 function selectProduct(id){
  selected=products.find(p=>p.id===id)||products[0];
+ threadImageIndex=0;coverIndex=0;
  renderProductLists();renderLab();renderThreads();renderInstagram();syncProductInputs();
  renderPhotoHistories();show('lab');void restorePhotoHistory(selected.id);
 }
@@ -1328,7 +1345,7 @@ function threadVisuals(p){
  return [0,1,2].map(i=>{
   try{
    const png=buildContentCanvas('Threads',0,i).toDataURL('image/png');
-   return `<div class="hookChoice ${threadImageIndex===i?'selected':''}" onclick="threadImageIndex=${i};renderThreads()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();threadImageIndex=${i};renderThreads()}" aria-label="후킹 이미지 시안 ${i+1} 선택"><img loading="lazy" src="${png}" alt="후킹 이미지 시안 ${i+1}"></div>`;
+   return `<div class="hookChoice ${threadImageIndex===i?'selected':''}" onclick="rememberPhotoLayout('Threads',${i})" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();threadImageIndex=${i};renderThreads()}" aria-label="후킹 이미지 시안 ${i+1} 선택"><img loading="lazy" src="${png}" alt="후킹 이미지 시안 ${i+1}"></div>`;
   }catch(e){
    return `<div class="visual scene${i+1} ${threadImageIndex===i?'selected':''}" onclick="threadImageIndex=${i};renderThreads()"><div class="copy">${threadHooks(p)[threadCopyIndex]}</div></div>`;
   }
@@ -1426,7 +1443,7 @@ function changeInstagramDiversity(v){
  if(!['stable','balanced','creative'].includes(v))return;
  instagramDiversity=v;coverIndex=0;instaCardIndex=0;renderInstagram();
 }
-function renderInstagram(){ const p=selected, hooks=coverHooks(p), cls=['scene1','dark','yellow','pink']; $('#coverGrid').innerHTML=hooks.map((h,i)=>`<div class="visual ${cls[i]} ${coverIndex===i?'selected':''}" onclick="coverIndex=${i};instaCardIndex=0;renderInstagram()"><div class="ghost">${i===0?p.visual:'콘텐츠 표지 비주얼'}</div><div class="copy">${h}<span class="sub">${p.name}</span></div></div>`).join('');
+function renderInstagram(){ const p=selected, hooks=coverHooks(p), cls=['scene1','dark','yellow','pink']; $('#coverGrid').innerHTML=hooks.map((h,i)=>`<div class="visual ${cls[i]} ${coverIndex===i?'selected':''}" onclick="rememberPhotoLayout('Instagram',${i})"><div class="ghost">${i===0?p.visual:'콘텐츠 표지 비주얼'}</div><div class="copy">${h}<span class="sub">${p.name}</span></div></div>`).join('');
  const cards=instaCards(p); $('#cardThumbs').innerHTML=cards.map((c,i)=>`<div class="cardThumb ${instaCardIndex===i?'active':''}" onclick="instaCardIndex=${i};renderInstagram()">${i+1}. ${c.short}</div>`).join(''); try{
  const png=buildContentCanvas('Instagram',instaCardIndex,coverIndex).toDataURL('image/png');
  $('#instaCard').innerHTML='<img src="'+png+'" alt="다운로드할 Instagram 카드 실제 미리보기" style="display:block;width:100%;height:100%;object-fit:contain">';
