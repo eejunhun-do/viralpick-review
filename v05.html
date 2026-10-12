@@ -930,6 +930,104 @@ async function photoImageObject(data){
  });
  return {data,image,kind:'ai'};
 }
+
+/* Per-slide Instagram image assets, persisted alongside the existing image history. */
+const carouselPhotoAssets=new Map();
+let carouselGenerationBusy=false;
+function carouselImageForSlide(slide,productId=selected.id){
+ return carouselPhotoAssets.get(productId)?.[slide]||null;
+}
+async function restoreCarouselArtwork(productId,rec){
+ const stored=rec?.carouselSlides||{};
+ const already=carouselPhotoAssets.get(productId)||{};
+ const next={};
+ for(const slide of [2,3,4,5]){
+  const data=stored[slide];
+  if(!safeDataImage(data))continue;
+  if(already[slide]?.data===data){next[slide]=already[slide];continue}
+  try{next[slide]=await photoImageObject(data)}catch(e){
+   if(selected.id===productId)photoSavingWarning='저장된 '+slide+'번 카드 이미지를 열 수 없습니다.';
+  }
+ }
+ carouselPhotoAssets.set(productId,next);
+ if(selected.id===productId)renderInstagram();
+}
+async function saveCarouselArtwork(productId,slide,data){
+ if(![2,3,4,5].includes(slide))throw new Error('2~5번 카드 이미지만 저장할 수 있습니다.');
+ const asset=await photoImageObject(data);
+ let rec=getPhotoHistory(productId);
+ if(!rec){rec=await readPhotoRecord(productId).catch(()=>null)||{productId,groups:[],activeId:null};}
+ const updated={...rec,carouselSlides:{...(rec.carouselSlides||{}),[slide]:data},updatedAt:new Date().toISOString()};
+ photoHistories.set(productId,updated);
+ const map=carouselPhotoAssets.get(productId)||{};
+ map[slide]=asset;carouselPhotoAssets.set(productId,map);
+ if(selected.id===productId){renderInstagram();renderPhotoHistories()}
+ try{await writePhotoRecord(updated);photoSavingWarning='';return true}
+ catch(e){
+  photoSavingWarning=slide+'번 카드 이미지를 저장하지 못했습니다. 브라우저 저장 공간을 확인하세요. ('+e.message+')';
+  if(selected.id===productId)renderCarouselArtStatus();
+  return false;
+ }
+}
+function carouselSceneForSlide(p,slide){
+ const context='Product context: '+p.name+'. Actual use problem: '+(p.problem||'ordinary inconvenience')+'. Verified feature description: '+(p.novel||'check function')+'.';
+ const direction={
+  2:'Photograph the everyday PROBLEM before any solution. Show a person in a relatable setting dealing with this inconvenience, with honest natural body language. Close-up story, important objects clearly visible. '+(p.visual||''),
+  3:'Photograph a generic product-category tool or accessory naturally being used in the everyday setting. Make the usage context clear, subject large, authentic photographic detail. Do not pretend to depict an exact listed SKU or brand.',
+  4:'Photograph an honest, plausible close-up of a person evaluating or demonstrating the CATEGORY of feature or use context. Emphasize hands, useful everyday action, and a beautiful realistic environment. Do not illustrate an unsupported benefit.',
+  5:'Photograph an elegant editorial lifestyle decision moment: calm completed everyday scene and someone evaluating a product option on a smartphone with an intentionally blank or unreadable screen, naturally lit. Do not include prices, discounts or text.'
+ }[slide];
+ return (direction+' '+context+' No letters, text, captions, symbols, watermarks, product logos or prices. Top third has naturally uncluttered background for Korean headline overlay.').slice(0,500);
+}
+function renderCarouselArtStatus(){
+ const status=$('#carouselArtStatus'),single=$('#carouselSingleBtn'),batch=$('#carouselBatchBtn');
+ if(!status)return;
+ const asset=carouselPhotoAssets.get(selected.id)||{};
+ const count=[2,3,4,5].filter(n=>!!asset[n]).length;
+ const current=instaCardIndex+1;
+ const busy=carouselGenerationBusy||sceneGenerationBusy;
+ status.textContent=busy?'AI 이미지를 만드는 중입니다. 현재 작업을 유지해 주세요.':
+  '2~5번 카드별 실사 배경 '+count+'/4장 준비 · '+(current===1?'1번은 표지 사진을 사용합니다.':current+'번 카드 '+(asset[current]?'전용 사진 적용됨':'전용 사진 미생성 (기존 사진 사용)'))+' · 생성 사진은 이 브라우저에 자동 저장됩니다.';
+ if(single){single.disabled=busy||current===1;single.textContent=current===1?'2~5번 카드를 선택하세요':current+'번 카드 사진 1장 생성'}
+ if(batch)batch.disabled=busy;
+}
+async function runCarouselArtworkGeneration(slides){
+ if(carouselGenerationBusy||sceneGenerationBusy)return;
+ if(!Array.isArray(slides)||!slides.length||slides.some(n=>![2,3,4,5].includes(n)))return;
+ const targetId=selected.id,product={...selected};
+ const count=slides.length;
+ if(!window.confirm('Instagram '+slides.join('·')+'번 카드 실사 '+count+'장을 GPT Image 2로 생성할까요? 이미지 '+count+'장에 대한 API 요금이 발생합니다.'))return;
+ carouselGenerationBusy=true;sceneGenerationBusy=true;
+ let done=0,saved=0;
+ const status=$('#carouselArtStatus');
+ try{
+  for(const slide of slides){
+   if(status)status.textContent=slide+'번 카드 AI 사진 생성 중… ('+(done+1)+'/'+count+')';
+   const data=await backendRequest('/api/image',{
+    method:'POST',body:JSON.stringify({
+     product:product.name,
+     scene:carouselSceneForSlide(product,slide),purpose:'carousel',slide,
+     hook:slide===2?product.problem:slide===3?product.name:slide===4?product.novel:'구매 전 확인할 것',
+     style:hookPhotoStyle
+    })
+   });
+   const image=data.image||(Array.isArray(data.images)?data.images[0]:null);
+   if(!safeDataImage(image))throw new Error(slide+'번 카드 이미지가 정상적으로 수신되지 않았습니다.');
+   if(await saveCarouselArtwork(targetId,slide,image))saved++;
+   done++;
+  }
+  toast('Instagram '+done+'장 생성 완료 · '+saved+'장 브라우저에 저장했습니다.');
+ }catch(e){
+  toast('캐러셀 이미지 생성 중단: '+e.message);
+  if(status)status.textContent=done+'장 생성 후 중단: '+e.message+' · 이전에 만든 카드는 유지됩니다.';
+ }finally{
+  carouselGenerationBusy=false;sceneGenerationBusy=false;
+  if(selected.id===targetId)renderInstagram();
+ }
+}
+function generateCarouselImages(){void runCarouselArtworkGeneration([2,3,4,5])}
+function generateCarouselImage(slide){if(![2,3,4,5].includes(slide)){toast('먼저 2~5번 카드를 선택하세요.');return}void runCarouselArtworkGeneration([slide])}
+
 async function applyHistoryChoice(productId,groupId,index,{persist=true,notify=false}={}){
  const rec=getPhotoHistory(productId);
  const group=historyGroups(rec).find(g=>g.id===groupId);
@@ -1015,6 +1113,7 @@ async function restorePhotoHistory(productId){
    try{await applyHistoryChoice(productId,active.id,active.selectedIndex??0,{persist:false})}
    catch(e){photoSavingWarning='저장된 이미지 복원 오류: '+e.message;renderPhotoHistories()}
   }else if(selected.id===productId)renderPhotoHistories();
+  if(selected.id===productId)await restoreCarouselArtwork(productId,rec);
   return;
  }
  try{
@@ -1028,6 +1127,7 @@ async function restorePhotoHistory(productId){
    try{await applyHistoryChoice(productId,active.id,active.selectedIndex??0,{persist:false})}
    catch(e){photoSavingWarning='저장된 이미지 복원 오류: '+e.message}
   }
+  if(selected.id===productId)await restoreCarouselArtwork(productId,loaded);
   renderPhotoHistories();
  }catch(e){
   if(selected.id!==productId)return;
@@ -1533,7 +1633,7 @@ function renderInstagram(){ const p=selected, hooks=coverHooks(p), cls=['scene1'
  const cards=instaCards(p); $('#cardThumbs').innerHTML=cards.map((c,i)=>`<div class="cardThumb ${instaCardIndex===i?'active':''}" onclick="instaCardIndex=${i};renderInstagram()">${i+1}. ${c.short}</div>`).join(''); try{
  const png=buildContentCanvas('Instagram',instaCardIndex,coverIndex).toDataURL('image/png');
  $('#instaCard').innerHTML='<img src="'+png+'" alt="다운로드할 Instagram 카드 실제 미리보기" style="display:block;width:100%;height:100%;object-fit:contain">';
- }catch(e){$('#instaCard').innerHTML=cards[instaCardIndex].html;} $('#cardIndexBadge').textContent=(instaCardIndex+1)+' / 5'; $('.dots').textContent=[0,1,2,3,4].map(i=>i===instaCardIndex?'●':'○').join(' '); $('#instaCaption').value=getCurrentInstagramCaption();$('#instagramDiversity').value=instagramDiversity;renderInstagramDupStatus(); }
+ }catch(e){$('#instaCard').innerHTML=cards[instaCardIndex].html;} $('#cardIndexBadge').textContent=(instaCardIndex+1)+' / 5'; $('.dots').textContent=[0,1,2,3,4].map(i=>i===instaCardIndex?'●':'○').join(' '); $('#instaCaption').value=getCurrentInstagramCaption();$('#instagramDiversity').value=instagramDiversity;renderInstagramDupStatus();renderCarouselArtStatus(); }
 function instaCards(p){ const cover=cleanMarkup(getInstagramCoverHeadline()).replace(/\n/g,'<br>'); return [
  {short:'후킹 표지',html:`<div class="bg scene1"></div><div class="content"><div><div class="num">01 / 05</div><h3>${cover}</h3><p>${p.name}</p></div><div class="cta">넘겨서 보기 →</div></div>`},
  {short:'문제 공감',html:`<div class="bg scene2"></div><div class="content"><div><div class="num">02 / 05</div><h3>은근 반복되는<br>이 불편</h3><p>${p.problem}</p></div><div class="productBox">${p.visual}<br><span style="font-size:10px;font-weight:700">이미지 연동 전 시안</span></div></div>`},
