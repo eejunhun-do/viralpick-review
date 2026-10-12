@@ -38,14 +38,17 @@ export async function POST(req){
   const upstream=await fetch('https://api.openai.com/v1/images/generations',{
     method:'POST',
     headers:{'Authorization':'Bearer '+key,'Content-Type':'application/json'},
-    body:JSON.stringify({model:'gpt-image-2',prompt,size:'1088x1360',quality:'medium',output_format:'webp',n:1}),
+    body:JSON.stringify({model:'gpt-image-2',prompt,size:'1088x1360',quality:'medium',output_format:'webp',output_compression:75,n:2}),
     signal:controller.signal
   });
   const result=await upstream.json().catch(()=>({}));
   if(!upstream.ok)return json(req,{ok:false,message:'이미지 제공자 호출 오류 ('+upstream.status+'). 계정 한도/모델 권한을 확인해 주세요.'},502);
-  const b64=result.data?.[0]?.b64_json;
-  if(typeof b64!=='string'||!b64.length)return json(req,{ok:false,message:'이미지 응답에 파일 데이터가 없습니다.'},502);
-  return json(req,{ok:true,mime:'image/webp',image:'data:image/webp;base64,'+b64,model:'gpt-image-2',purpose});
+  const images=Array.isArray(result.data)
+   ?result.data.map(item=>item?.b64_json).filter(x=>typeof x==='string'&&x.length>0).slice(0,2).map(b64=>'data:image/webp;base64,'+b64)
+   :[];
+  if(images.length!==2)return json(req,{ok:false,message:'생성 결과가 2장이 아닙니다. 요금이 발생했을 수 있으니 API 사용량을 확인해 주세요.'},502);
+  return json(req,{ok:true,mime:'image/webp',images,model:'gpt-image-2',purpose,count:images.length});
+
  }catch(e){
   return json(req,{ok:false,message:e.name==='AbortError'?'이미지 생성 시간 초과':'이미지 요청 실패. 서버 연결 상태를 확인하세요.'},502);
  }finally{clearTimeout(timeout)}
