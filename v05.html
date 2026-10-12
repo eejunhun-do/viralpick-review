@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111318">
-<title>ViralPick v0.7.0 Prototype</title>
+<title>ViralPick v0.7.1 Prototype</title>
 <style>
 :root{
   --bg:#f5f6f8;--panel:#fff;--ink:#15171b;--muted:#727985;--line:#e6e8ec;
@@ -409,6 +409,15 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 .importedProducts img{width:42px;height:42px;object-fit:contain}
 #scenePrompt{width:100%;min-height:80px;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:13px;resize:vertical}
 @media(max-width:650px){.manualProduct,.mediaUploadGrid,.mediaPreviewGrid{grid-template-columns:1fr}}
+
+/* Publish-ready hook graphic choices - final canvas composition at thumbnail scale */
+.hookImagePanel .hookChoice{cursor:pointer;border:3px solid transparent;border-radius:19px;padding:4px;background:#fff;min-width:0;scroll-snap-align:start;transition:border-color .12s,box-shadow .12s;overflow:hidden}
+.hookImagePanel .hookChoice.selected{border-color:#12161d;box-shadow:0 4px 16px rgba(0,0,0,.12)}
+.hookImagePanel .hookChoice:focus-visible{outline:3px solid #4263eb;outline-offset:2px}
+.hookImagePanel .hookChoice img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:11px}
+@container hookpanel (max-width:530px){
+ .hookImagePanel .imageGrid3 .hookChoice{flex:0 0 clamp(184px,47%,242px);min-width:184px}
+}
 </style>
 </head>
 <body>
@@ -1011,8 +1020,16 @@ function changeThreadDiversity(v){
  if(!['stable','balanced','creative'].includes(v))return;
  threadDiversity=v;threadCopyIndex=0;threadImageIndex=0;renderThreads();
 }
-function threadVisuals(p){ const hook=threadHooks(p)[threadCopyIndex]; const cls=['scene1','scene2','scene3'];
-return cls.map((cl,i)=>`<div class="visual ${cl} ${threadImageIndex===i?'selected':''}" onclick="threadImageIndex=${i};renderThreads()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'){threadImageIndex=${i};renderThreads()}"><div class="ghost">${p.visual}<br><span style="font-weight:600;font-size:9px">텍스트 그래픽 시안 ${i+1}</span></div><div class="copy">${hook}<span class="sub">${p.name}</span></div></div>`).join('');}
+function threadVisuals(p){
+ return [0,1,2].map(i=>{
+  try{
+   const png=buildContentCanvas('Threads',0,i).toDataURL('image/png');
+   return `<div class="hookChoice ${threadImageIndex===i?'selected':''}" onclick="threadImageIndex=${i};renderThreads()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();threadImageIndex=${i};renderThreads()}" aria-label="후킹 이미지 시안 ${i+1} 선택"><img loading="lazy" src="${png}" alt="후킹 이미지 시안 ${i+1}"></div>`;
+  }catch(e){
+   return `<div class="visual scene${i+1} ${threadImageIndex===i?'selected':''}" onclick="threadImageIndex=${i};renderThreads()"><div class="copy">${threadHooks(p)[threadCopyIndex]}</div></div>`;
+  }
+ }).join('');
+}
 function threadEditKey(){return selected.id+':'+threadDiversity+':'+threadSeed+':'+threadCopyIndex}
 function getCurrentThreadText(){const key=threadEditKey();return Object.prototype.hasOwnProperty.call(customThreadEdits,key)?customThreadEdits[key]:threadBodies(selected)[threadCopyIndex]}
 function onThreadFinalEdit(){customThreadEdits[threadEditKey()]=$('#threadFinalText').value;renderThreadDupStatus()}
@@ -1217,16 +1234,29 @@ function buildContentCanvas(platform,slide=0,variant=0){
  ctx.beginPath();ctx.ellipse(120,1190,330,330,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
  roundedFill(ctx,63,60,954,1230,45,'rgba(255,255,255,.56)');
  const x=112,max=856;
- const platformLabel=platform==='Threads'?'THREADS • HOOK IMAGE':'INSTAGRAM • '+String(slide+1).padStart(2,'0')+'/05';
- canvasParagraph(ctx,platformLabel,x,115,max,30,38,2,pal.accent,900);
- ctx.fillStyle=pal.accent;ctx.fillRect(x,167,120,8);
  if(platform==='Threads'){
   const hook=threadHooks(p)[threadCopyIndex];
-  canvasParagraph(ctx,'문제 해결 · 생활 속 발견',x,214,max,36,49,2,pal.ink,700);
-  const y=canvasParagraph(ctx,hook,x,295,max,73,92,5,pal.ink,900);
-  roundedFill(ctx,112,Math.max(720,y+48),856,330,35,'rgba(255,255,255,.60)');
-  if(!drawLiveAsset(ctx,'scene',112,Math.max(720,y+48),856,330)&&!drawLiveAsset(ctx,'product',112,Math.max(720,y+48),856,330))drawProductGlyph(ctx,p.id,540,Math.max(885,y+205),.50,pal);
-  canvasParagraph(ctx,p.name,x,1120,max,40,50,2,pal.accent,900);
+  // These are final consumer-facing graphics; do not bake internal labels into the image.
+  // Variants use different real layouts, not just a different background palette.
+  const drawHero=(px,py,pw,ph,scale=0.88)=>{
+   roundedFill(ctx,px,py,pw,ph,34,'rgba(255,255,255,.74)');
+   const used=drawLiveAsset(ctx,'scene',px,py,pw,ph)||
+              drawLiveAsset(ctx,'product',px,py,pw,ph);
+   if(!used)drawProductGlyph(ctx,p.id,px+pw/2,py+ph/2,scale,pal);
+  };
+  if(variant%3===0){
+   const bottom=canvasParagraph(ctx,hook,x,140,max,81,99,4,pal.ink,900);
+   const top=Math.min(665,Math.max(460,bottom+40));
+   drawHero(84,top,912,1205-top,1.15);
+  }else if(variant%3===1){
+   drawHero(82,92,916,1138,1.6);
+   roundedFill(ctx,100,810,880,360,36,'rgba(255,255,255,.90)');
+   canvasParagraph(ctx,hook,132,851,810,74,91,4,pal.ink,900);
+  }else{
+   drawHero(82,92,916,770,1.5);
+   roundedFill(ctx,96,881,888,290,32,'rgba(255,255,255,.78)');
+   canvasParagraph(ctx,hook,126,909,828,70,85,3,pal.ink,900);
+  }
  }else if(slide===0){
   const hook=coverHooks(p)[coverIndex].replace(/<br>/g,' ');
   canvasParagraph(ctx,'생활에서 발견한 작은 변화',x,210,max,38,52,2,pal.ink,700);
@@ -1245,7 +1275,7 @@ function buildContentCanvas(platform,slide=0,variant=0){
   roundedFill(ctx,x,660,856,360,34,'rgba(255,255,255,.75)');
   const hasProductPhoto=drawLiveAsset(ctx,'product',x,660,856,360);
   if(!hasProductPhoto)drawProductGlyph(ctx,p.id,540,825,.59,pal);
-  canvasParagraph(ctx,hasProductPhoto?'사용자 등록 상품 사진':'제품 일러스트 시안 · 상품 사진 미연결',x,1070,max,30,42,2,pal.accent,700);
+  // Product-image source/status is shown in the editor, not on the published graphic.
  }else if(slide===3){
   canvasParagraph(ctx,'04  확인할 기능',x,215,max,44,58,2,pal.accent,900);
   canvasParagraph(ctx,p.novel,x,330,max,62,81,7,pal.ink,900);
@@ -1258,8 +1288,7 @@ function buildContentCanvas(platform,slide=0,variant=0){
   canvasParagraph(ctx,'✓ 사용 빈도와 용도 확인\n✓ 실제 옵션·리뷰 확인\n✓ 최신 가격·재고 확인',x+36,720,785,36,84,6,pal.ink,800);
   canvasParagraph(ctx,'예시 가격: '+fmt(p.price),x,1060,max,40,52,2,pal.accent,900);
  }
- ctx.fillStyle=pal.ink;ctx.fillRect(x,1190,max,2);
- canvasParagraph(ctx,'ViralPick  ·  '+(currentMedia().scene?'상황 이미지 합성':'그래픽 시안')+'  ·  '+(currentMedia().product?'등록 상품 사진 사용':'제품 이미지 미확인'),x,1215,max,22,34,2,pal.ink,600);
+
  return canvas;
 }
 async function pngBlob(canvas){
