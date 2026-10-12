@@ -1750,26 +1750,26 @@ function threadHooks(p){
 function threadBodies(p){
  const prof=getHookProfile(p),hs=threadHooks(p);
  const explanations=[
-  '이런 일이 생기면 다시 손봐야 하나 싶어서 번거롭잖아.',
-  '이런 상황에서 실제로 쓸 만한 도구인지 궁금해졌어.',
+  '다시 손봐야 하나 싶어서 번거롭잖아.',
+  '실제로 쓸 만한 도구인지 궁금해졌어.',
   '이런 불편을 줄일 방법이 있을지 찾아봤어.',
-  '중요한 건 기능 이름보다 내 작업에 맞는지겠지.',
+  '중요한 건 내 작업에 맞는지겠지.',
   '설명만으로는 체감 차이를 알기 어렵더라.',
   '필요한 기능과 사용 빈도부터 따져보게 돼.'
  ];
  const considerations=[
   '내가 자주 겪는 불편인지 먼저 따져봐야겠어.',
-  '어떤 작업에 쓸 건지부터 생각해 보는 게 좋겠어.',
-  '그렇다고 모든 작업에 필요한 건 아닐 수 있어.',
+  '어떤 작업에 쓸 건지부터 생각해 봐야겠어.',
+  '모든 작업에 꼭 필요한 건 아닐 수 있어.',
   '모델별 사양과 정확도는 직접 확인해야겠어.',
   '실제 사용 후기도 함께 살펴봐야겠어.',
-  '가끔 쓸 거라면 굳이 필요한지 한 번 더 생각해 보자.'
+  '가끔 쓸 거라면 굳이 필요한지 생각해 봐야겠어.'
  ];
  const closings=[
   '이런 불편 겪어본 사람 있어?',
   '이런 방식 써본 적 있어?',
   '어떤 상황에서 제일 유용할까?',
-  '구매 전에 뭘 가장 먼저 확인할까?',
+  '구매 전에 뭘 가장 먼저 확인해?',
   '직접 써본 사람은 어땠어?',
   '너라면 어떤 기능을 먼저 볼 것 같아?'
  ];
@@ -1777,7 +1777,7 @@ function threadBodies(p){
  return hs.map((hook,i)=>[
   hook,
   '',
-  String(prof.pain).trim().replace(/[.!?]\s*$/,'')+'.',
+  String(prof.pain).trim().replace(/[.!?]\\s*$/,'')+'.',
   explanations[i],
   '',
   intro,
@@ -1788,7 +1788,7 @@ function threadBodies(p){
   closings[i],
   '',
   affiliateDisclosure
- ].join('\n'));
+ ].join('\\n'));
 }
 function changeThreadDiversity(v){
  if(!['stable','balanced','creative'].includes(v))return;
@@ -2039,21 +2039,22 @@ function instaCaption(p){
  const profile=getHookProfile(p);
  const lead=getInstagramCoverHeadline();
  const lines={
- stable:'제품을 찾을 때는 어떤 상황에서 쓸지 먼저 확인하는 편이 좋습니다.',
- balanced:'신기한 점보다 일상에서 얼마나 필요한지가 더 중요하겠죠.',
- creative:'생활 속 번거로운 일을 줄일 방법이 있다면 한 번쯤 궁금해지죠.'
+ stable:'제품을 찾을 때는 어떤 상황에서 사용할지 먼저 확인하는 게 좋습니다.',
+ balanced:'새로운 기능보다 일상에서 얼마나 필요한지가 더 중요하겠죠.',
+ creative:'생활 속 번거로움을 줄일 방법이라면 한 번쯤 궁금해지기 마련이죠.'
  };
  return `${lead}
 
-이런 상황, 한 번쯤 겪어보셨나요?\n${profile.pain}.
-${withProductJosa(p.name,'은','는')} ${profile.solution}으로 소개되는 제품입니다.
+이런 상황, 한 번쯤 겪어보셨나요?
+${String(profile.pain).trim().replace(/[.!?]\\s*$/,'')}.
 
+${withProductJosa(p.name,'은','는')} ${profile.solution}으로 소개되는 제품입니다.
 ${lines[instagramDiversity]}
 
-구매 전에는 실제 사양, 옵션, 리뷰를 확인하세요.
-작성 화면의 예시 가격은 ${fmt(p.price)}이며 현재 판매가와 다를 수 있습니다.
+구매 전에는 실제 사양과 옵션, 리뷰를 확인해 보세요.
+작성 화면의 예시 가격은 ${fmt(p.price)}이며 실제 판매가는 달라질 수 있습니다.
 
-비슷한 고민이 있었다면 저장해두고 필요한 때 확인해보세요.
+비슷한 고민이 있으셨다면 저장해 두고 필요할 때 확인해 보세요.
 
 #생활템 #제품정보 #사용팁 #구매가이드
 
