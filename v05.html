@@ -582,6 +582,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 #instagram.multiEnabled .instagramCarouselViewer .cardThumb{max-width:130px}
 #instagram.multiEnabled .instaSlideControls .dots{font-size:14px;letter-spacing:2px;overflow-wrap:anywhere}
 .multiInstagramCaptionTools{padding-bottom:10px}.multiInstagramCaptionTools[hidden]{display:none!important}
+.multiTossApproval{display:flex;align-items:flex-start;gap:7px;font-size:10px;font-weight:800;color:#7f6241}.multiTossApproval input{flex-shrink:0;margin:0;accent-color:#087654}
 </style>
 </head>
 <body>
@@ -1792,7 +1793,7 @@ async function requestAiScene(purpose='instagram'){
 }
 function productCard(p){
  const img=liveMedia.get(p.id)?.product?.data;
- const picture=img&&safeDataImage(img)?img:(p.imageUrl&&/^https:\/\//.test(p.imageUrl)?p.imageUrl:null);
+ const picture=img&&safeDataImage(img)?img:(p.source!=='toss'||multiStudio.allowedToss[String(p.id)]===true)&&p.imageUrl&&/^https:\/\//.test(p.imageUrl)?p.imageUrl:null;
  const thumb=picture?'<img alt="상품 사진" src="'+cleanMarkup(picture)+'" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">':'상품 사진<br>미등록';
  return `<div class="product ${p.id===selected.id?'selected':''}" onclick="selectProduct(${p.id})">
   <div class="prodTop"><div class="thumb">${thumb}</div><div><span class="badge ${p.source==='sample'?'orange':'green'}">${cleanMarkup(p.type)}</span><h3>${cleanMarkup(p.name)}</h3><div class="old">${p.old!==p.price?fmt(p.old):''}</div><div class="price">${fmt(p.price)}</div></div></div>
@@ -1806,7 +1807,7 @@ function productCard(p){
 const multiStudio={
  modes:{Threads:'single',Instagram:'single'},template:'editorial',
  selectedIds:[],headline:'일상에서 유용한 추천템 모음',summary:'필요한 기능을 비교하고, 구매 전 최신 가격·재고·옵션을 확인해 보세요.',
- notes:{},captions:{Threads:'',Instagram:''},revision:0
+ notes:{},captions:{Threads:'',Instagram:''},allowedToss:{},revision:0
 };
 const multiEditableAssets=new Map();
 let multiSaveWarning='',multiTypingTimer=null,multiAssetLoadGeneration=0;
@@ -1838,7 +1839,7 @@ function persistMultiStudio(){
   localStorage.setItem(MULTI_STUDIO_KEY,JSON.stringify({
    modes:multiStudio.modes,template:multiStudio.template,selectedIds:multiStudio.selectedIds,
    headline:multiStudio.headline,summary:multiStudio.summary,
-   notes:multiStudio.notes,captions:multiStudio.captions
+   notes:multiStudio.notes,captions:multiStudio.captions,allowedToss:multiStudio.allowedToss
   }));
   multiSaveWarning='';
  }catch(e){multiSaveWarning='설정 저장 실패: 브라우저 공간을 확인해 주세요.'}
@@ -1854,6 +1855,7 @@ function loadMultiStudio(){
   if(Array.isArray(obj.selectedIds))multiStudio.selectedIds=[...new Set(obj.selectedIds.filter(x=>Number.isSafeInteger(x)&&x>0))].slice(0,MULTI_MAX_PRODUCTS);
   if(typeof obj.headline==='string')multiStudio.headline=obj.headline.slice(0,95);
   if(typeof obj.summary==='string')multiStudio.summary=obj.summary.slice(0,210);
+  if(obj.allowedToss&&typeof obj.allowedToss==='object')multiStudio.allowedToss=Object.fromEntries(Object.entries(obj.allowedToss).filter(([id,allowed])=>/^[0-9]+$/.test(id)&&allowed===true).slice(0,60));
   if(obj.notes&&typeof obj.notes==='object')multiStudio.notes=Object.fromEntries(Object.entries(obj.notes).slice(0,60).map(([k,v])=>[k,String(v).slice(0,220)]));
   if(obj.captions&&typeof obj.captions==='object')for(const platform of ['Threads','Instagram'])if(typeof obj.captions[platform]==='string')multiStudio.captions[platform]=obj.captions[platform].slice(0,6500);
  }catch(e){multiSaveWarning='이전 편집 데이터를 불러오지 못했습니다.'}
@@ -1885,6 +1887,14 @@ function toggleMultiProduct(id,checked){
  }
  multiStudio.selectedIds=ids;multiStudio.revision++;instaCardIndex=0;
  persistMultiStudio();renderMultiStudios();refreshMultiOutputs();void restoreMultiEditableAssets();
+}
+function toggleTossOriginalApproval(id,approved){
+ id=Number(id);
+ const p=products.find(x=>x.id===id);
+ if(!p||p.source!=='toss')return;
+ if(approved&&!window.confirm('해당 판매 페이지에서 이미지 사용 금지 표시가 없는지 확인하셨나요? 확인 후에도 토스 원본은 편집·합성할 수 없습니다.')){renderMultiStudios();return}
+ if(approved)multiStudio.allowedToss[String(id)]=true;else delete multiStudio.allowedToss[String(id)];
+ multiStudio.revision++;persistMultiStudio();renderMultiStudios();renderProductLists();
 }
 function moveMultiProduct(id,direction){
  const index=multiStudio.selectedIds.indexOf(Number(id)),other=index+Number(direction);
@@ -1923,10 +1933,12 @@ function multiMediaFor(p){
 }
 function multiProductRow(p,i){
  const licensed=multiEditableAssets.get(p.id);
- const src=licensed?.data||((p.source==='toss'&&/^https:\/\//.test(p.imageUrl||''))?p.imageUrl:null);
+ const approvedOriginal=p.source==='toss'&&multiStudio.allowedToss[String(p.id)]===true&&/^https:\/\//.test(p.imageUrl||'');
+ const src=licensed?.data||(approvedOriginal?p.imageUrl:null);
  const note=multiItemNote(p),name=cleanMarkup(p.name);
  const photo=src?'<img src="'+cleanMarkup(src)+'" alt="'+name+' '+(licensed?'편집 허가 이미지':'토스 원본 미리보기')+'" loading="lazy">':'<span aria-label="등록된 사진 없음">▧</span>';
- const link=p.source==='toss'&&/^https:\/\//.test(p.imageUrl||'')?'<a href="'+cleanMarkup(p.imageUrl)+'" rel="noopener noreferrer" target="_blank">토스 원본 별도 보기</a>':'';
+ const link=approvedOriginal?'<a href="'+cleanMarkup(p.imageUrl)+'" rel="noopener noreferrer" target="_blank">토스 원본 별도 보기</a>':'';
+ const tossReview=p.source==='toss'?'<label class="multiTossApproval"><input type="checkbox" '+(approvedOriginal?'checked':'')+' onchange="toggleTossOriginalApproval('+p.id+',this.checked)">상세페이지 이미지 사용 금지 표시가 없는지 직접 확인했습니다 (원본 미리보기만 허용)</label>':'';
  return '<div class="multiItemRow">'+
   '<div class="multiItemPicture">'+photo+'</div>'+
   '<div class="multiItemInfo">'+
@@ -1937,7 +1949,7 @@ function multiProductRow(p,i){
    '<label style="font-size:11px;font-weight:850;color:#657484">카드에 넣을 설명<textarea maxlength="220" oninput="editMultiNote('+p.id+',this.value)" aria-label="'+name+' 설명">'+cleanMarkup(note)+'</textarea></label>'+
    '<div class="multiItemPhotoControls"><label>편집 허가 사진 업로드 <input type="file" accept="image/png,image/jpeg,image/webp" onchange="uploadMultiLicensedPhoto(event,'+p.id+')"></label>'+
    (licensed?'<button type="button" onclick="removeMultiLicensedPhoto('+p.id+')">업로드 사진 제거</button>':'')+link+'</div>'+
-   '<p class="multiItemRights">'+(licensed?'✓ 상업적 SNS 게시·수정 사용 권한 확인 이미지':'토스 API 이미지는 미리보기로만 노출하고 제작 이미지에는 자동 합성하지 않습니다.')+'</p>'+
+   (tossReview||'')+'<p class="multiItemRights">'+(licensed?'✓ 별도 편집 권한 확인 사진':'토스 API 원본은 편집 카드에 자동 합성하지 않습니다. 편집 허가 사진이나 AI 예시 이미지를 별도로 사용해 주세요.')+'</p>'+
   '</div></div>';
 }
 function renderMultiProductPicker(query=undefined){
