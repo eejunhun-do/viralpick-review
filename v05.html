@@ -2243,15 +2243,21 @@ async function restoreMultiEditableAssets(){
 function multiCaptionDefault(platform){
  const items=multiSelectedProducts(),isThreads=platform==='Threads';
  if(items.length<2)return '먼저 추천할 상품을 2개 이상 선택해 주세요.';
+ const theme=multiStoryPreset();
  const lines=items.map((p,i)=>(i+1)+'. '+p.name+' — '+multiItemNote(p).slice(0,76));
- return [
-  multiTitle(),'',
-  isThreads?'궁금했던 생활템 몇 개를 모아봤어. 필요한 상황에 맞는지 비교해 보자.':'생활 속에서 궁금했던 상품들을 한 번에 모아봤습니다.',
-  '',...lines,'',
-  isThreads?'가격과 옵션, 재고는 변할 수 있으니 구매 전에 다시 확인해 봐.':'가격·옵션·재고는 변경될 수 있으니 구매 전에 최신 정보를 확인해 주세요.',
-  multiSummaryText(),'',
-  affiliateDisclosure
- ].join('\n');
+ const story=theme?getMultiStory(platform):isThreads
+  ?'일상에서 귀찮았던 순간이 있다면, 그 불편을 덜 방법부터 찾아보게 되지.'
+  :'일상 속에서 반복되는 번거로움이 있다면, 해결 방법부터 찾아보게 됩니다.';
+ const transition=isThreads
+  ?'이럴 때 비교해 볼 만한 제품을 모아봤어. 직접 써본 후기는 아니니까 실제 사양은 확인해 줘.'
+  :'이럴 때 살펴볼 만한 제품들을 모았습니다. 직접 사용한 후기가 아니며 제품별 실제 사양은 확인이 필요합니다.';
+ const ending=isThreads
+  ?'그중 어떤 불편이 제일 공감돼? 가격·옵션·재고는 변할 수 있으니 구매 전 다시 확인해 봐.'
+  :'가장 공감되는 불편은 무엇인가요? 가격·옵션·재고는 달라질 수 있으니 구매 전에 확인해 주세요.';
+ return [multiTitle(),'',
+  story,'',transition,'',...lines,'',ending,
+  ...(isThreads?[]:[multiSummaryText()]),'',
+  affiliateDisclosure].join('\n');
 }
 function getMultiCaption(platform){return multiStudio.captions[platform]||multiCaptionDefault(platform)}
 function refreshMultiOutputs(){
@@ -3045,6 +3051,24 @@ function drawMultiContentCanvas(ctx,platform,slide){
    ctx.font='800 27px sans-serif';ctx.fillStyle=scheme.accent;ctx.fillText('외 '+(card.items.length-9)+'개 상품',603,1056);
   }
   multiDrawText(ctx,'필요한 제품을 비교하고 결정해 보세요',78,1221,918,80,{size:36,min:29,lines:2,color:scheme.ink});
+ }else if(card.kind==='story'){
+  const theme=multiStoryPreset();
+  const cardTitle=theme?.title||'일상 속 반복되는 불편';
+  roundedFill(ctx,68,171,943,980,33,'rgba(255,255,255,.86)');
+  ctx.fillStyle=scheme.accent;ctx.font='900 31px "Noto Sans KR","Malgun Gothic",sans-serif';
+  ctx.fillText('STORY · 공감 이야기',112,220);
+  multiDrawText(ctx,cardTitle,105,310,864,195,{size:73,min:45,lines:3,color:scheme.ink});
+  ctx.fillStyle=scheme.accent;ctx.fillRect(108,545,95,8);
+  const text=getMultiStory(platform);
+  const paragraphs=text.split(/\\n+/).map(s=>s.trim()).filter(Boolean);
+  let y=619;
+  for(const [i,line] of paragraphs.entries()){
+   if(y>1030)break;
+   y=multiDrawText(ctx,line,109,y,858,Math.min(148,1100-y),{
+    size:46,min:31,lines:3,color:i===0?scheme.ink:'#526376'
+   })+22;
+  }
+  multiDrawText(ctx,'어떤 상품이 이런 상황에 맞을까요?  →',89,1219,906,76,{size:37,min:29,lines:2,color:scheme.ink});
  }else if(card.kind==='summary'){
   multiDrawText(ctx,'추천템 한눈에 보기',73,140,920,135,{size:73,min:48,lines:2,color:scheme.ink});
   const n=card.items.length,columns=n>8?2:1;
