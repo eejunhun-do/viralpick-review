@@ -3060,7 +3060,7 @@ function drawMultiContentCanvas(ctx,platform,slide){
   multiDrawText(ctx,cardTitle,105,310,864,195,{size:73,min:45,lines:3,color:scheme.ink});
   ctx.fillStyle=scheme.accent;ctx.fillRect(108,545,95,8);
   const text=getMultiStory(platform);
-  const paragraphs=text.split(/\\n+/).map(s=>s.trim()).filter(Boolean);
+  const paragraphs=text.split(/\n+/).map(s=>s.trim()).filter(Boolean);
   let y=619;
   for(const [i,line] of paragraphs.entries()){
    if(y>1030)break;
