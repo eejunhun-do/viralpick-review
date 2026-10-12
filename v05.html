@@ -740,6 +740,162 @@ let perfScenario=0;
 const $=q=>document.querySelector(q), $$=q=>[...document.querySelectorAll(q)];
 const fmt=n=>Number(n).toLocaleString('ko-KR')+'원';
 
+
+const liveMedia=new Map();
+let remoteProducts=[];
+function currentMedia(){return liveMedia.get(selected.id)||{}}
+function trimText(value,max=160){return String(value||'').replace(/[<>\u0000-\u001f]/g,' ').trim().slice(0,max)}
+function safeDataImage(src){return typeof src==='string'&&/^data:image\/(png|jpeg|webp);base64,[a-z0-9+/=]+$/i.test(src)}
+function syncProductInputs(){
+ const p=selected;
+ for(const [id,v] of Object.entries({
+  manualName:p.name,manualPrice:p.price,manualProblem:p.problem,
+  manualNovel:p.novel,manualAudience:p.audience,manualVisual:p.visual,
+  scenePrompt:p.visual||''
+ })){const e=$('#'+id);if(e)e.value=v||''}
+ if($('#liveProductStatus'))$('#liveProductStatus').textContent=({sample:'시연용 샘플',manual:'직접 입력',toss:'토스 API 수신'}[p.source]||'시연용 샘플');
+ renderMediaPreview();
+}
+function renderMediaPreview(){
+ const root=$('#assetPreview');if(!root)return;
+ const a=currentMedia();
+ root.innerHTML=['product','scene'].map(key=>{
+  const item=a[key],label=key==='product'?'상품 원본 사진':'상황 이미지';
+  return '<div><b>'+label+'</b>'+
+   (item&&safeDataImage(item.data)?'<img alt="'+label+'" src="'+item.data+'">':'<p style="color:#8b95a3;margin:10px 0">아직 이미지 없음</p>')+
+   '<span style="font-size:10px;color:#73808b">'+(item?cleanMarkup(item.kind==='ai'?'GPT Image 2로 생성':'직접 업로드'):'파일 미등록')+'</span></div>';
+ }).join('');
+}
+function persistBackendUrl(){
+ const el=$('#apiBase');if(!el)return '';
+ let addr=el.value.trim().replace(/\/$/,'');
+ if(!addr && location.hostname.endsWith('.vercel.app'))addr=location.origin;
+ if(!/^https:\/\/[\w.-]+(?::\d+)?$/.test(addr))throw new Error('https://... 형태의 실제 배포된 API 서버 주소가 필요합니다.');
+ try{localStorage.setItem('viralpickBackendUrl',addr)}catch(e){}
+ return addr;
+}
+async function backendRequest(path,options={}){
+ const base=persistBackendUrl();
+ const access=$('#apiAccess')?.value||'';
+ if(access.length<16)throw new Error('개인 연결 암호를 입력하세요 (16자 이상).');
+ const ctl=new AbortController();
+ const timeout=setTimeout(()=>ctl.abort(),150000);
+ try{
+  const res=await fetch(base+path,{
+   ...options,
+   headers:{'X-Viralpick-Access':access,...(options.body?{'Content-Type':'application/json'}:{})},
+   signal:ctl.signal,cache:'no-store'
+  });
+  const data=await res.json().catch(()=>({message:'JSON 응답을 받지 못했습니다.'}));
+  if(!res.ok||!data.ok)throw new Error(data.message||'요청 오류: '+res.status);
+  return data;
+ }finally{clearTimeout(timeout)}
+}
+async function checkBackendStatus(){
+ $('#apiHealth').textContent='연결 중…';
+ try{
+  const data=await backendRequest('/api/status');
+  $('#apiHealth').textContent='서버 연결 성공';
+  $('#apiResult').textContent='보호된 서버 연결 정상 · GPT Image 2: '+(data.imageReady?'사용 준비':'API 키 설정 필요')+' / 토스: '+(data.tossConfigured?'서버 명세 설정됨':'승인 명세 설정 필요');
+  $('#tossHealth').textContent=data.tossConfigured?'서버 설정 있음':'토스 연동 대기';
+ }catch(e){$('#apiHealth').textContent='연결 필요';$('#apiResult').textContent=e.message}
+}
+function clearBackendAccess(){
+ const input=$('#apiAccess');if(input)input.value='';
+ $('#apiHealth').textContent='암호 입력 필요';toast('현재 탭의 연결 암호 입력을 지웠습니다.');
+}
+async function fetchTossProducts(){
+ const root=$('#importedProducts');root.textContent='조회 중…';
+ try{
+  const q=($('#tossSearch')?.value||'').trim();
+  const data=await backendRequest('/api/products?q='+encodeURIComponent(q));
+  remoteProducts=data.products||[];
+  if(!remoteProducts.length){root.textContent='조회 결과가 없습니다. 응답 형식과 필터를 확인하세요.';return}
+  root.innerHTML=remoteProducts.map((p,i)=>'<button onclick="useRemoteProduct('+i+')">'+(p.imageUrl?'<img alt="" src="'+cleanMarkup(p.imageUrl)+'">':'')+'<span>'+cleanMarkup(p.name)+' · '+fmt(p.price)+'</span></button>').join('');
+  $('#tossHealth').textContent='상품 '+remoteProducts.length+'개 수신';
+ }catch(e){root.textContent='상품 조회 불가: '+e.message;$('#tossHealth').textContent='연동 확인 필요'}
+}
+function useRemoteProduct(index){
+ const remote=remoteProducts[index];if(!remote)return;
+ const id=Math.max(...products.map(p=>Number(p.id)||0),10)+1;
+ const p={
+  id,name:trimText(remote.name,120),price:remote.price,old:remote.price,discount:0,
+  viral:0,thread:0,insta:0,blog:0,ad:0,
+  source:'toss',tossProductId:String(remote.id),
+  type:'상품 검수 필요',reason:'토스 API 수신 상품 · 상세 기능/효과/재고 확인 전',
+  problem:'구매자가 실제로 겪는 문제 상황을 직접 입력하세요',
+  novel:'확인된 상품 사양과 특장점을 입력하세요',
+  audience:'상품에 맞는 사용 대상을 입력하세요',
+  visual:'실제 사용 상황을 설명해 주세요',
+  imageUrl:remote.imageUrl
+ };
+ products.push(p);selectProduct(id);show('integrations');
+ toast('상품을 가져왔습니다. 확인된 기능을 입력하고 상품 사진의 사용 권한을 확인하세요.');
+}
+function saveManualProduct(){
+ const p={
+  name:trimText($('#manualName').value,120),
+  price:Number($('#manualPrice').value),
+  problem:trimText($('#manualProblem').value,220),
+  novel:trimText($('#manualNovel').value,220),
+  audience:trimText($('#manualAudience').value,150),
+  visual:trimText($('#manualVisual').value,220)
+ };
+ if(!p.name||!Number.isSafeInteger(p.price)||p.price<=0||!p.problem||!p.novel||!p.visual){toast('상품명·판매가·문제상황·확인된 기능·이미지 설명을 입력하세요.');return}
+ const base=selected.source==='manual'||selected.source==='toss'?selected:null;
+ if(base){Object.assign(base,p)}
+ else{
+  const id=Math.max(...products.map(item=>Number(item.id)||0),10)+1;
+  products.push({...p,id,old:p.price,discount:0,viral:0,thread:0,insta:0,blog:0,ad:0,type:'직접 입력',reason:'사용자가 직접 확인하고 입력한 상품',source:'manual'});
+  selected=products[products.length-1];
+ }
+ renderProductLists();renderLab();renderThreads();renderInstagram();syncProductInputs();
+ toast('실제 입력 상품을 콘텐츠 제작 대상으로 설정했습니다.');show('lab');
+}
+async function readImageFile(file){
+ if(!file)throw new Error('이미지 파일을 선택하세요.');
+ if(!['image/png','image/jpeg','image/webp'].includes(file.type))throw new Error('JPG/PNG/WebP만 지원합니다.');
+ if(file.size>8*1024*1024)throw new Error('이미지는 8MB 이하로 선택하세요.');
+ const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('파일 읽기 실패'));reader.readAsDataURL(file)});
+ if(!safeDataImage(data))throw new Error('허용하지 않는 이미지 데이터입니다.');
+ const image=new Image();await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=()=>reject(new Error('이미지 파일을 열 수 없습니다.'));image.src=data});
+ return {data,image,kind:'upload'};
+}
+async function setMediaSlot(slot,data,kind='ai'){
+ if(!safeDataImage(data))throw new Error('PNG/JPEG/WebP 데이터만 허용합니다.');
+ const image=new Image();
+ await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=()=>reject(new Error('이미지 표시 실패'));image.src=data});
+ const assets=currentMedia();assets[slot]={data,image,kind};
+ liveMedia.set(selected.id,assets);
+ renderProductLists();renderMediaPreview();renderThreads();renderInstagram();
+}
+async function uploadProductImage(file){
+ try{const media=await readImageFile(file);await setMediaSlot('product',media.data,'upload');toast('상품 사진이 3번째 카드와 출력 이미지에 반영됐습니다.')}
+ catch(e){toast('업로드 오류: '+e.message)}
+}
+async function uploadSceneImage(file){
+ try{const media=await readImageFile(file);await setMediaSlot('scene',media.data,'upload');toast('상황 이미지가 카드에 반영됐습니다.')}
+ catch(e){toast('업로드 오류: '+e.message)}
+}
+function clearAsset(slot){
+ const assets=currentMedia();delete assets[slot];
+ liveMedia.set(selected.id,assets);renderMediaPreview();renderProductLists();renderThreads();renderInstagram();
+ const file=$('#'+(slot==='product'?'productImageInput':'sceneImageInput'));if(file)file.value='';
+ toast('해당 이미지를 현재 작업에서 지웠습니다.');
+}
+async function requestAiScene(){
+ const button=$('#generateSceneButton'),targetId=selected.id;
+ if(button.disabled)return;
+ button.disabled=true;button.textContent='GPT Image 2 생성 중…';
+ try{
+  const scene=trimText($('#scenePrompt').value,500);
+  const data=await backendRequest('/api/image',{method:'POST',body:JSON.stringify({product:selected.name,scene,purpose:'instagram'})});
+  if(selected.id!==targetId){toast('다른 상품을 선택해 결과를 반영하지 않았습니다.');return}
+  await setMediaSlot('scene',data.image,'ai');
+  toast('실제 AI 상황 이미지를 생성해 카드에 연결했습니다.');
+ }catch(e){toast('생성 실패: '+e.message);$('#apiResult').textContent='이미지 생성 요청: '+e.message}
+ finally{button.disabled=false;button.textContent='GPT Image 2 상황 이미지 생성'}
+}
 function productCard(p){
  return `<div class="product ${p.id===selected.id?'selected':''}" onclick="selectProduct(${p.id})">
   <div class="prodTop"><div class="thumb">상품 원본<br>이미지</div><div><span class="badge ${p.id===1?'orange':'green'}">${p.type}</span><h3>${p.name}</h3><div class="old">${fmt(p.old)}</div><div class="price">${fmt(p.price)}</div></div></div>
@@ -749,8 +905,8 @@ function productCard(p){
  </div>`
 }
 function renderProductLists(){ $('#dashProducts').innerHTML=products.map(productCard).join(''); $('#discoverProducts').innerHTML=products.map(productCard).join(''); }
-function selectProduct(id){ selected=products.find(p=>p.id===id)||products[0]; renderProductLists(); renderLab(); renderThreads(); renderInstagram(); show('lab'); }
-function renderLab(){ const p=selected; $('#labType').textContent=p.type; $('#labName').textContent=p.name; $('#labPrice').textContent=fmt(p.price); $('#labReason').textContent=p.reason; $('#viralScore').textContent=p.viral; $('#threadScore').textContent=p.thread; $('#instaScore').textContent=p.insta; $('#adScore').textContent=p.ad+'%'; $('#analysisText').innerHTML=`<b>추천 유형: ${p.type}</b><br><br>문제 상황: ${p.problem}<br>신기/해결 포인트: ${p.novel}<br>주요 타깃: ${p.audience}<br>추천 시각: ${p.visual}`; }
+function selectProduct(id){ selected=products.find(p=>p.id===id)||products[0]; renderProductLists(); renderLab(); renderThreads(); renderInstagram();syncProductInputs(); show('lab'); }
+function renderLab(){ const p=selected; $('#labType').textContent=p.type; $('#labName').textContent=p.name; $('#labPrice').textContent=fmt(p.price); $('#labReason').textContent=p.reason; $('#viralScore').textContent=p.viral; $('#threadScore').textContent=p.thread; $('#instaScore').textContent=p.insta; $('#adScore').textContent=p.ad+'%'; $('#analysisText').innerHTML=`<b>추천 유형: ${cleanMarkup(p.type)}</b><br><br>문제 상황: ${cleanMarkup(p.problem)}<br>신기/해결 포인트: ${cleanMarkup(p.novel)}<br>주요 타깃: ${cleanMarkup(p.audience)}<br>추천 시각: ${cleanMarkup(p.visual)}`; }
 
 const hookKinds=['공감형','발견형','문제해결형','정보형','질문형','구매판단형'];
 const hookProfiles={
@@ -786,7 +942,21 @@ const hookProfiles={
  ]}
 };
 let threadDiversity='balanced',instagramDiversity='balanced';
-function getHookProfile(p){return hookProfiles[p.id]||hookProfiles[1]}
+function getHookProfile(p){
+ if(hookProfiles[p.id])return hookProfiles[p.id];
+ const short=trimText(p.name,60);
+ return {
+  pain:p.problem||'사용 상황 확인 필요',solution:p.novel||'기능 검증 필요',
+  hooks:[
+   [short+' 사용할 때 어떤 점이 가장 불편할까?',short+' 같은 제품을 찾는 사람은 어떤 상황일까?',short+' 필요한 순간이 따로 있겠지?'],
+   [short+' 이런 형태의 제품도 있구나',short+'의 쓰임이 궁금해서 찾아봤어',short+' 제품 설명을 살펴보니'],
+   [short+'는 어떤 불편을 해결할까?',short+'가 도움이 되는 상황은?',short+' 사용 방법을 알아보자'],
+   [short+' 고를 때 확인할 점',short+' 기능을 확인하기 전에 꼭 봐야 할 것',short+' 옵션과 사양 체크리스트'],
+   [short+' 사용해본 사람 있나요?',short+'는 어떤 사람에게 필요할까?',short+' 비슷한 제품 써본 경험 있어?'],
+   [short+' 구매 전 확인할 점',short+' 과연 필요한 제품일까?',short+' 옵션 확인 없이 사도 될까?']
+  ]
+ };
+}
 function hookVersion(genre,seed,tone){
  const shift={stable:0,balanced:1,creative:2}[tone]??1;
  return (seed+shift+genre)%3;
@@ -1593,7 +1763,7 @@ function show(id){
 }
 $$('.nav button').forEach(b=>b.onclick=()=>show(b.dataset.view));
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
-loadPostingSettings();setDefaultScheduleFields();renderProductLists();renderLab();renderThreads();renderInstagram();renderAnalytics();renderBlogRecommendations();renderPostingSettings();
+loadPostingSettings();setDefaultScheduleFields();try{$('#apiBase').value=localStorage.getItem('viralpickBackendUrl')||''}catch(e){}renderProductLists();renderLab();renderThreads();renderInstagram();renderAnalytics();renderBlogRecommendations();renderPostingSettings();syncProductInputs();
 const q=new URLSearchParams(location.search).get('view');if(['dashboard','discover','integrations','lab','threads','instagram','analytics','blog','scheduler'].includes(q))show(q);
 </script>
 </body>
