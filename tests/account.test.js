@@ -17,7 +17,7 @@ test('credential envelope encrypts and authenticates',()=>{
  const x={coupangAccessKey:'sample-key',coupangSecretKey:'private'};
  const c=encrypt(x);assert.ok(!c.includes('sample-key'));
  assert.deepEqual(decrypt(c),x);
- const [v,t,d]=c.split('.');assert.throws(()=>decrypt(v+'.'+t+'.'+d.slice(0,-1)+'a'));
+ const [v,t,d]=c.split('.');const bytes=Buffer.from(d,'base64url');bytes[0]^=1;assert.throws(()=>decrypt(v+'.'+t+'.'+bytes.toString('base64url')));
 });
 test('sessions are signed and expire after set period',()=>{
  const tok=makeToken('admin');
