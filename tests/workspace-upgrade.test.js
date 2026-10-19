@@ -57,3 +57,20 @@ test('product reference fetch allows only exact HTTPS Coupang CDN domains',()=>{
  assert.equal(referenceImageUrl('https://thumbnail.coupangcdn.com:4443/a.jpg'),null);
  assert.equal(referenceImageUrl('https://user:pass@thumbnail.coupangcdn.com/a.jpg'),null);
 });
+
+test('visual creation follows hook -> product image -> three layouts',()=>{
+ const studio=readFileSync(new URL('../studio-layout.js',import.meta.url),'utf8');
+ const creator=readFileSync(new URL('../creator-assets.js',import.meta.url),'utf8');
+ assert.match(studio,/stages\.visual\.insertBefore\(assetsRoot/);
+ assert.match(studio,/stages\.visual\.appendChild\(legacyLayouts\)/);
+ assert.match(creator,/root\.prepend\(hookStep\);root\.appendChild\(photoStep\)/);
+ assert.match(creator,/vpCreatorHookStep/);
+ assert.match(creator,/vpCreatorPhotoStep/);
+ assert.match(creator,/vpCreatorStylePicker/);
+ const html=readFileSync(new URL('../v05.html',import.meta.url),'utf8');
+ const image=readFileSync(new URL('../api/image.js',import.meta.url),'utf8');
+ assert.match(html,/Photograph the real everyday situation described by this Korean hook/);
+ assert.doesNotMatch(html,/hints\[selected\.id\]/);
+ assert.match(image,/USER-SELECTED HOOK IS THE PRIMARY STORY DIRECTION/);
+ assert.match(image,/Transfer that exact product into the hook-matching situation/);
+});
