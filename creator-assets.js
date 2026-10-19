@@ -144,6 +144,15 @@ function sceneText(platform){
  const root=$('#vpAssetStudio'+(platform==='threads'?'Threads':'Instagram'));
  return String(root?.querySelector('.vpCreatorScene')?.value||'').trim()||String(selected.visual||'').trim()||'제품을 일상에서 자연스럽게 사용하는 생활 장면';
 }
+function setGenerating(platform,busy,message){
+ const current=state[platform];if(!current)return;
+ current.busy=!!busy;
+ const root=$('#vpAssetStudio'+(platform==='threads'?'Threads':'Instagram'));
+ const button=root?.querySelector('.vpImageCreate');
+ if(button){button.disabled=!!busy||!selection(platform);button.textContent=busy?'AI 실사 사진 2장 생성 중…':'선택한 제품으로 실사 배경 2장 생성'}
+ const status=root?.querySelector('.vpAssetStatus');
+ if(status&&message)status.textContent=message;
+}
 function generate(platform){
  const root=$('#vpAssetStudio'+(platform==='threads'?'Threads':'Instagram')),status=root?.querySelector('.vpAssetStatus');
  try{
@@ -163,6 +172,25 @@ function creatorNode(platform){
  '<div class="vpCreatorHookHeader"><div><h3>이미지 후킹 문구 5개</h3><p>상황·감정 중심의 문구를 선택하면 실제 이미지 문구에 반영됩니다.</p></div><button type="button" class="btn vpHookRegenerate">✨ AI 후킹 5개 새로 생성</button></div>'+
  '<div class="vpHookChoices" role="group" aria-label="후킹 문구 선택"></div><label class="vpCreatorDirect">후킹 문구 직접 수정<input class="vpCustomHook" maxlength="120" type="text" placeholder="직접 후킹 문구 입력"></label><p class="vpHookStatus" role="status">기본 생활형 후보 5개 제공 · AI 재생성 시 API 비용 발생</p>'+
  '<div class="vpCreatorSceneRow"><label>제품을 사용하는 장면 설명<textarea class="vpCreatorScene" maxlength="500" rows="2" placeholder="예: 외식 중 보호자가 아기에게 일회용 턱받이를 착용시키는 자연스러운 장면"></textarea></label><button type="button" class="btn primary vpImageCreate">선택한 제품으로 실사 배경 2장 생성</button></div><p class="vpAssetStatus" role="status">제품 이미지를 선택하고 편집 권한을 확인한 뒤 생성하세요. AI 생성물은 원본과 차이가 날 수 있습니다.</p>';
+ // Assemble the visual editor in the same order people work:
+ // 1) narrative hook, 2) real-product photo and image generation, 3) legacy layouts (outside this component).
+ const hookStep=document.createElement('section');
+ hookStep.className='vpCreatorPhase vpCreatorHookStep';
+ const hookHeading=document.createElement('div');hookHeading.className='vpCreatorPhaseLabel';
+ hookHeading.innerHTML='<span>01</span><strong>후킹 문장 선택</strong><small>이 문장의 실제 상황을 이미지로 보여줍니다.</small>';
+ hookStep.appendChild(hookHeading);
+ for(const selector of ['.vpCreatorHookHeader','.vpHookChoices','.vpCreatorDirect','.vpHookStatus']){
+  const node=root.querySelector(selector);if(node)hookStep.appendChild(node);
+ }
+ const photoStep=document.createElement('section');
+ photoStep.className='vpCreatorPhase vpCreatorPhotoStep';
+ const photoHeading=document.createElement('div');photoHeading.className='vpCreatorPhaseLabel';
+ photoHeading.innerHTML='<span>02</span><strong>상품 이미지 선택 · 실사 배경 생성</strong><small>선택한 제품 사진과 위 후킹 문장의 상황을 함께 반영합니다.</small>';
+ photoStep.appendChild(photoHeading);
+ for(const selector of ['.vpCreatorTitle','.vpAssetGrid','.vpChosenImage','.vpAssetRights','.vpCreatorUpload','.vpCreatorSceneRow','.vpAssetStatus']){
+  const node=root.querySelector(selector);if(node)photoStep.appendChild(node);
+ }
+ root.prepend(hookStep);root.appendChild(photoStep);
  root.querySelector('.vpAssetRights input').onchange=e=>{state[platform].rights=e.target.checked};
  root.querySelector('.vpAssetUpload').onchange=async e=>{if(e.target.files?.[0]){await uploadProductImage(e.target.files[0]);if(currentMedia()?.product?.kind==='licensed-upload'){state[platform].chosen='upload';state[platform].rights=true}else{state[platform].rights=false}renderGallery(platform)}};
  root.querySelector('.vpAssetSceneUpload').onchange=e=>{if(e.target.files?.[0])void uploadSceneImage(e.target.files[0])};
@@ -231,10 +259,19 @@ function init(){
  if(!threads||!insta)return;
  threads.replaceChildren(creatorNode('threads'));
  insta.replaceChildren(creatorNode('instagram'));
+ // Preserve the legacy photo-style dropdown; it belongs to image generation, not the 3 layout previews.
+ const stylePicker=$('#threads .vpStudioThreadArt .hookMakerTools label');
+ const photoSection=$('#vpAssetStudioThreads .vpCreatorPhotoStep');
+ const sceneRow=photoSection?.querySelector('.vpCreatorSceneRow');
+ if(stylePicker&&sceneRow){
+  stylePicker.classList.add('vpCreatorStylePicker');
+  photoSection.insertBefore(stylePicker,sceneRow);
+ }
  const first=$('#threads .vpStudioStage[data-studio-stage="final"]');
  if(first){const panel=makeThreadPreview();panel.id='vpThreadSocialReview';first.insertBefore(panel,first.querySelector('.vpStudioReviewNote')||first.children[1])}
  const second=$('#instagram .vpStudioStage[data-studio-stage="final"]');
  if(second){const panel=makeInstagramPreview();panel.id='vpInstagramSocialReview';second.insertBefore(panel,second.querySelector('.vpStudioReviewNote')||second.children[1])}
+ window.vpCreatorSetGenerating=setGenerating;
  window.vpCreatorReferencePayload=payload;
  window.vpCreatorSceneText=sceneText;
  window.vpCreatorRefresh=refresh;
