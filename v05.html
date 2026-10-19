@@ -2964,8 +2964,8 @@ async function generateProductCopy(platform){
   const evidence=loadReviewEvidence(reviewEvidenceKey(selected));
   const data=await backendRequest('/api/copy',{method:'POST',body:JSON.stringify({platform,products:items.map(p=>({title:p.name,price:p.price,category:p.type,description,reviewNotes: p.id===selected.id?reviewNotes:'',reviewStats:p.id===selected.id&&evidence?{rating:evidence.rating,reviewCount:evidence.count,writtenCount:evidence.writtenCount,images:evidence.images}:null}))})});
   const links=(useMulti?items:[selected]).map(p=>partnerLink(p)).filter(Boolean);
-  const promoLinks=[...new Set(links)].join('\\n');
-  const instagramCopy=String(data.text||'').trim()+'\\n\\n'+(promoLinks?promoLinks+'\\n':'')+affiliateDisclosure;
+  const promoLinks=[...new Set(links)].join('\n');
+  const instagramCopy=String(data.text||'').trim()+'\n\n'+(promoLinks?promoLinks+'\n':'')+affiliateDisclosure;
   const copy=platform==='Threads'?data.part1:instagramCopy;
   if(platform==='Threads'&&!copy)throw new Error('Threads 1단 응답이 비어 있습니다.');
   if(useMulti){
