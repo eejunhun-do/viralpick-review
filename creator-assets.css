@@ -1,0 +1,54 @@
+/* ViralPick Creator Assets · responsive photo selection and real-feed previews */
+.vpCreatorReference{margin:15px 0;background:#fff;border:1px solid #dfe5ef;border-radius:18px;padding:20px;box-shadow:0 8px 22px rgba(18,33,57,.035)}
+.vpCreatorTitle,.vpCreatorHookHeader{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:12px}
+.vpCreatorTitle h3,.vpCreatorHookHeader h3,.vpSocialReviewHeading h3{font-size:17px;font-weight:900;margin:0 0 5px;letter-spacing:-.45px}
+.vpCreatorTitle p,.vpCreatorHookHeader p,.vpSocialReviewHeading p{font-size:12px;line-height:1.6;color:#7b8593;margin:0}
+.vpAssetCount{white-space:nowrap;background:#ecf2ff;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:850;color:#3457ae}
+.vpAssetGrid{display:flex;align-items:stretch;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 2px 12px}
+.vpAssetItem{position:relative;flex:0 0 126px;width:126px;border:2px solid #e4e9f1;background:#fff;padding:6px;border-radius:13px;cursor:pointer;scroll-snap-align:start;display:flex;flex-direction:column;gap:8px;color:#667181;text-align:center}
+.vpAssetItem img{width:100%;height:130px;object-fit:contain;background:#f5f7fa;border-radius:9px}
+.vpAssetItem span{font-size:11px;line-height:1.25;font-weight:750}
+.vpAssetItem.active{border-color:#346cce;background:#f0f5ff;box-shadow:0 6px 15px rgba(30,90,190,.11)}
+.vpAssetItem.active:after{content:"✓ 선택";position:absolute;top:10px;right:10px;color:white;background:#275dc5;border-radius:20px;font-size:10px;padding:4px 7px;font-weight:850}
+.vpCreatorEmpty{color:#7e8a9e;padding:20px 10px;font-size:13px}
+.vpChosenImage{font-size:12px;color:#45659c;font-weight:780;margin:3px 0 12px}
+.vpAssetRights{display:flex;align-items:flex-start;gap:7px;margin:7px 0 14px;background:#fff7e9;border:1px solid #fae0b5;border-radius:11px;padding:12px 13px;color:#7f540b;font-size:12px;line-height:1.6}
+.vpAssetRights[hidden]{display:none}.vpAssetRights input{margin-top:3px}
+.vpCreatorUpload{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:24px}
+.vpCreatorUpload>label{cursor:pointer;font-size:12px}.vpCreatorUpload details{font-size:12px;color:#68748a}
+.vpCreatorUpload summary{cursor:pointer;font-weight:800}
+.vpCreatorUpload details input{margin:10px 5px 8px 0;max-width:100%}
+.vpHookChoices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:10px 0 14px}
+.vpHookOption{border:1px solid #e1e6ef;border-radius:11px;padding:12px 14px;background:#f9fafc;color:#2e3d52;text-align:left;font-size:12px;line-height:1.6;font-weight:800;cursor:pointer;min-height:58px}
+.vpHookOption:hover{border-color:#83a3df;background:#f2f7ff}
+.vpHookOption.active{border-color:#406fc9;background:#eaf2ff;color:#214da4}
+.vpCreatorDirect,.vpCreatorSceneRow label{display:block;font-size:12px;font-weight:800;color:#56647b}
+.vpCreatorDirect input,.vpCreatorSceneRow textarea{width:100%;border:1px solid #d8e1eb;border-radius:10px;padding:10px 12px;margin-top:7px;background:#fff;line-height:1.6}
+.vpHookStatus,.vpAssetStatus{font-size:11px;line-height:1.65;color:#69798e}
+.vpCreatorSceneRow{margin-top:19px;border-top:1px solid #e8edf4;padding-top:19px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:end}
+.vpCreatorSceneRow .btn{max-width:240px;line-height:1.45;white-space:normal}
+.vpSocialReviewPanel{margin-top:16px;background:#fff;border:1px solid #e5e8ed;border-radius:17px;padding:20px;max-width:820px}
+.vpSocialReviewHeading{display:flex;justify-content:space-between;align-items:start;gap:16px;margin-bottom:16px}
+.vpSocialReviewHeading label{font-size:11px;font-weight:750;color:#5c6b80}
+.vpPreviewAlias{display:block;margin-top:6px;border:1px solid #cfd9e7;border-radius:8px;padding:8px;width:180px;max-width:100%}
+.vpThreadFeed{background:#101114;border:1px solid #2b2d30;border-radius:16px;padding:22px 18px;color:#f8f8f8;max-width:650px;margin:auto}
+.vpPost{display:grid;grid-template-columns:38px minmax(0,1fr);gap:10px}
+.vpSocialRail{display:flex;align-items:center;flex-direction:column;gap:8px;min-height:75px}
+.vpSocialAvatar{display:grid;place-items:center;background:linear-gradient(145deg,#728399,#b2bdc8);width:37px;height:37px;border-radius:50%;font-weight:850;font-size:16px;color:#fff}
+.vpSocialRail i{display:block;flex:1;width:2px;background:#3c3d40;margin-bottom:4px}
+.vpPostContents{min-width:0;padding-bottom:21px}
+.vpPostContents header{display:flex;align-items:center;gap:9px;font-size:12px;margin:1px 0 10px}
+.vpPostContents header strong{font-size:13px}.vpPostContents header span{color:#898d93}
+.vpPostContents header b{font-size:16px;margin-left:auto;color:#8d9094;letter-spacing:2px}
+.vpPreviewBody{white-space:pre-wrap;word-break:break-word;font-size:14px;line-height:1.65;letter-spacing:.03px}
+.vpPreviewMedia{margin-top:12px;max-width:410px;border-radius:12px;overflow:hidden;background:#202328}
+.vpPreviewMedia[hidden]{display:none}.vpPreviewMedia img{display:block;width:100%;max-height:470px;object-fit:contain}
+.vpSocialCounts{display:flex;align-items:center;gap:21px;margin-top:15px;color:#c6c8cb;font-size:20px}
+.vpSocialCounts .vpPart{margin-left:auto;font-size:11px;color:#c3c5c7;background:#2a2c30;padding:4px 9px;border-radius:20px}
+.vpSecondPost .vpPostContents{padding-bottom:3px}
+.vpSocialReviewFoot{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:14px}
+.vpInstagramReview{display:grid;grid-template-columns:minmax(160px,.7fr) minmax(0,1fr);gap:16px}
+.vpInstagramReviewCover{background:#f3f5f8;border-radius:12px;overflow:hidden;min-height:200px}
+.vpInstagramReviewCover img{width:100%;height:auto;display:block}
+.vpInstagramReviewCaption{white-space:pre-wrap;word-break:break-word;font-size:13px;line-height:1.8;max-height:560px;overflow:auto}
+@media(max-width:680px){.vpCreatorReference,.vpSocialReviewPanel{padding:13px}.vpCreatorTitle,.vpCreatorHookHeader,.vpSocialReviewHeading{flex-direction:column}.vpHookChoices{grid-template-columns:1fr}.vpAssetItem{flex-basis:108px;width:108px}.vpAssetItem img{height:100px}.vpCreatorSceneRow{grid-template-columns:1fr}.vpCreatorSceneRow .btn{max-width:none}.vpThreadFeed{padding:12px 9px}.vpPreviewBody{font-size:13px}.vpInstagramReview{grid-template-columns:1fr}.vpSocialCounts{gap:16px}}
