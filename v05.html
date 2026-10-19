@@ -2080,18 +2080,18 @@ async function requestAiScene(purpose='instagram'){
  if(button?.disabled)return;
  if(!window.confirm('GPT Image 2로 실사 사진 2장을 생성합니다. 이미지 2장에 대한 API 이용 요금이 발생할 수 있습니다. 진행할까요?'))return;
  sceneGenerationBusy=true;
+ window.vpCreatorSetGenerating?.(inThreads?'threads':'instagram',true,'선택한 후킹 문장과 제품 사진으로 실사 배경 2장을 생성 중입니다…');
  const allButtons=['threadGenerateButton','instagramGenerateButton','generateSceneButton'].map(id=>$('#'+id)).filter(Boolean);
  const labels=allButtons.map(b=>b.textContent);
  allButtons.forEach(b=>{b.disabled=true;b.textContent='AI 사진 2장 생성 중…'});
- const hints={
-  1:'A person carefully installing floating wooden shelves in a bright cozy modern living room, using a generic laser level tool casting a straight horizontal red guide line, plants, warm wooden surfaces, beautiful natural daylight. Human activity and laser level prominent in the lower two thirds; clear bright cream wall on top for headline.',
-  2:'A person cleaning crumbs from gaps between car seats with a small cordless handheld cleaner, realistic sunlit car interior, hands and vehicle seats prominent, authentic dust and interior details. Upper portion naturally uncluttered and bright for headline.',
-  3:'A pet guardian gently washing muddy dog paws after a walk using a generic washable cup at a bright home entryway, dog calm and comfortable, warm natural daylight. Upper portion uncluttered and bright for headline.'
- };
  const platform=inThreads?'threads':'instagram';
+ const hook=(inThreads?getHookHeadline():getInstagramCoverHeadline()).trim();
  const source=window.vpCreatorSceneText?.(platform)||$('#scenePrompt')?.value?.trim()||selected.visual||'';
- const scene=(hints[selected.id]?hints[selected.id]+' Additional user context: '+source:source).slice(0,500);
- const hook=inThreads?getHookHeadline():getInstagramCoverHeadline();
+ // Always prioritize the selected hook's concrete everyday moment.
+ // The selected photo supplies product identity, not the background or narrative.
+ const scene=('Photograph the real everyday situation described by this Korean hook: "'+hook+'". '+
+  'Show human activity, location and emotion that naturally fit the hook, while the exact reference product is visibly being used. '+
+  'Additional context: '+source).slice(0,500);
  const style=hookPhotoStyle;
  try{
   const refPayload=await window.vpCreatorReferencePayload(platform);
@@ -2103,11 +2103,14 @@ async function requestAiScene(purpose='instagram'){
   const saved=await savePhotoBatch(targetId,images,{purpose,hook,style,imageMode:'product'});
   if(selected.id!==targetId){toast('원래 상품의 사진 기록에 2장을 저장했습니다.');return}
   toast(saved.saved?'AI 사진 2장을 생성하고 기록에 저장했습니다. 원하는 사진을 선택하세요.':'사진 2장 생성 완료. 다만 저장에 실패해 기록을 보존하지 못했습니다.');
+  window.vpCreatorSetGenerating?.(platform,false,'후킹 문장에 맞는 실사 이미지 2장이 생성됐습니다. 아래에서 이미지와 3가지 레이아웃을 비교하세요.');
  }catch(e){
+  window.vpCreatorSetGenerating?.(inThreads?'threads':'instagram',false,'이미지 생성 실패: '+e.message);
   toast('AI 사진 2장 생성 실패: '+e.message);
   const result=$('#apiResult');if(result)result.textContent='이미지 생성 요청: '+e.message;
  }finally{
   sceneGenerationBusy=false;
+  window.vpCreatorSetGenerating?.(platform,false);
   allButtons.forEach((b,i)=>{b.disabled=false;b.textContent=labels[i]});
  }
 }
