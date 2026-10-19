@@ -18,7 +18,7 @@ export async function POST(req){
  const rows=Array.isArray(result?.data)?result.data:[];
  const links=originals.map((original,i)=>{
   const match=rows.find(r=>r.originalUrl===original)||rows[i];
-  const affiliateUrl=validProductUrl(match?.shortenUrl);
+  const affiliateUrl=validProductUrl(match?.shortenUrl??match?.shortUrl??match?.affiliateUrl);
   return {originalUrl:original,affiliateUrl};
  });
  if(links.some(l=>!l.affiliateUrl))return json(req,{ok:false,message:'파트너스 딥링크가 일부 생성되지 않았습니다. 발급 내역을 확인해 주세요.'},502);
