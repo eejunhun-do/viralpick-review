@@ -1,5 +1,41 @@
 import {session,getKeys} from '../lib/account-store.js';
 import {json,preflight,checkAccess,safePayload} from '../lib/api-guard.js';
+
+// Only image CDN hosts, never arbitrary remote URLs or redirects.
+export function referenceImageUrl(value){
+ if(typeof value!=='string'||value.length>2500)return null;
+ try{
+  const u=new URL(value);
+  if(u.protocol!=='https:'||u.username||u.password||u.port)return null;
+  if(!(u.hostname==='coupangcdn.com'||u.hostname.endsWith('.coupangcdn.com')))return null;
+  return u.toString();
+ }catch{return null}
+}
+async function fetchReferenceImage(url,signal){
+ const response=await fetch(url,{redirect:'error',cache:'no-store',headers:{Accept:'image/jpeg,image/png,image/webp'},signal});
+ if(!response.ok)throw Error('상세 이미지 CDN이 접근을 거부했습니다 (HTTP '+response.status+'). 직접 사용 권한이 있는 사진을 업로드해 주세요.');
+ const ct=String(response.headers.get('content-type')||'').split(';')[0].toLowerCase();
+ if(!['image/jpeg','image/png','image/webp'].includes(ct))throw Error('선택한 주소가 지원하는 이미지 형식이 아닙니다.');
+ if(Number(response.headers.get('content-length')||0)>3200000)throw Error('선택한 상세 이미지는 3MB 이하만 지원합니다.');
+ const chunks=[];let total=0;
+ if(!response.body)throw Error('이미지 데이터를 읽을 수 없습니다.');
+ const reader=response.body.getReader();
+ try{
+  while(true){
+   const {done,value}=await reader.read();if(done)break;
+   total+=value.byteLength;
+   if(total>3200000)throw Error('선택한 이미지가 너무 큽니다. 3MB 이하 이미지를 선택하세요.');
+   chunks.push(value);
+  }
+ }finally{await reader.cancel().catch(()=>{})}
+ const bytes=Buffer.concat(chunks.map(v=>Buffer.from(v)));
+ const png=bytes[0]===137&&bytes[1]===80&&bytes[2]===78&&bytes[3]===71;
+ const jpg=bytes[0]===255&&bytes[1]===216&&bytes[2]===255;
+ const webp=bytes.toString('ascii',0,4)==='RIFF'&&bytes.toString('ascii',8,12)==='WEBP';
+ if(!((ct==='image/png'&&png)||(ct==='image/jpeg'&&jpg)||(ct==='image/webp'&&webp)))throw Error('이미지 형식과 파일 내용이 일치하지 않습니다.');
+ return {bytes,mime:ct};
+}
+
 export function OPTIONS(req){return preflight(req)}
 export async function POST(req){
  const problem=checkAccess(req);
@@ -23,9 +59,12 @@ export async function POST(req){
  }[style];
  const referenceMode=data.imageMode==='product'?'product':'scene';
  const imageData=referenceMode==='product'?String(data.referenceImage||''):'';
- const match=referenceMode==='product'?imageData.match(/^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/=]+)$/):null;
- if(referenceMode==='product'&&(!match||match[2].length>850000||match[2].length<300))
-  return json(req,{ok:false,message:'제품 실사 모드에는 직접 사용·편집 권한이 있는 상품 사진(JPG/PNG/WebP)이 필요합니다. 600KB 이하로 축소해서 다시 시도하세요.'},400);
+ const imageUrl=referenceMode==='product'?referenceImageUrl(data.referenceUrl):null;
+ const match=referenceMode==='product'&&imageData?imageData.match(/^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/=]+)$/):null;
+ if(referenceMode==='product'&&!data.referenceRightsConfirmed)return json(req,{ok:false,message:'선택한 제품 이미지의 상업적 이용 및 AI 편집 권한을 확인해야 합니다.'},400);
+ if(referenceMode==='product'&&!(imageUrl||match))return json(req,{ok:false,message:'선택된 제품 이미지가 없습니다. 상품 썸네일·상세 이미지 또는 업로드한 사진을 선택하세요.'},400);
+ if(referenceMode==='product'&&imageData&&(!match||match[2].length>850000||match[2].length<300))
+  return json(req,{ok:false,message:'제품 업로드 사진은 600KB 이하 JPEG/PNG/WebP로 축소해야 합니다.'},400);
  const hook=String(data.hook||'').trim().slice(0,160);
  const prompt=[
   'Create a high quality PHOTOREALISTIC VERTICAL 4:5 lifestyle photo to be used as the entire background of a Korean social media hook poster.',
@@ -52,9 +91,9 @@ export async function POST(req){
    form.append('model','gpt-image-2');form.append('prompt',prompt);
    form.append('size','1088x1360');form.append('quality','medium');form.append('output_format','webp');form.append('output_compression','75');
    form.append('n',String(purpose==='carousel'?1:2));
-   const bytes=Buffer.from(match[2],'base64');
-   const mime='image/'+match[1];
-   form.append('image',new Blob([bytes],{type:mime}),'product-reference.'+(match[1]==='jpeg'?'jpg':match[1]));
+   const reference=imageUrl?await fetchReferenceImage(imageUrl,controller.signal):{bytes:Buffer.from(match[2],'base64'),mime:'image/'+match[1]};
+   const {bytes,mime}=reference;
+   form.append('image',new Blob([bytes],{type:mime}),'product-reference.'+(mime==='image/jpeg'?'jpg':mime.split('/')[1]));
    upstream=await fetch('https://api.openai.com/v1/images/edits',{method:'POST',headers:{Authorization:'Bearer '+key},body:form,signal:controller.signal});
   }else{
    upstream=await fetch('https://api.openai.com/v1/images/generations',{
