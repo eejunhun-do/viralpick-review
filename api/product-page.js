@@ -22,7 +22,10 @@ function extract(html){
  }
  const product=structured.find(x=>x&&typeof x==='object'&&(String(x['@type']).includes('Product')||String(x['@type']).includes('ProductGroup')));
  const details=decode([description,typeof product?.description==='string'?product.description:''].filter(Boolean).join(' ')).slice(0,2600);
- return {title:title.slice(0,200),description:details,imageUrl: /^https:\/\//.test(image)?image:null,reviewNotes:'',reviewStatus:'not_accessible',extracted:{title:!!title,description:!!details,review:false}};
+ const reviewItems=Array.isArray(product?.review)?product.review:product?.review?[product.review]:[];
+ const reviews=reviewItems.filter(x=>x&&typeof x==='object'&&String(x['@type']||'').includes('Review')).slice(0,5).map(x=>decode(typeof x.reviewBody==='string'?x.reviewBody:'')).filter(x=>x.length>=15).map(x=>x.slice(0,350));
+ const reviewNotes=reviews.join('\n');
+ return {title:title.slice(0,200),description:details,imageUrl: /^https:\/\//.test(image)?image:null,reviewNotes,reviewStatus:reviews.length?'structured_data':'not_accessible',extracted:{title:!!title,description:!!details,review:reviews.length>0}};
 }
 export async function POST(req){
  const denied=checkAccess(req);if(denied)return json(req,{ok:false,message:denied},401);
@@ -48,6 +51,6 @@ export async function POST(req){
   if(!html)return json(req,{ok:false,message:'리디렉션이 많아 상품 페이지를 확인하지 못했습니다.'},422);
   const result=extract(html);
   if(!result.title&&!result.description)return json(req,{ok:false,message:'상품 정보를 확인할 수 없습니다. 접근 제한 또는 동적 페이지일 수 있습니다.'},422);
-  return json(req,{ok:true,url:url.toString(),...result,notice:'공개 HTML에서 확인된 정보만 수집했습니다. 구매후기는 확인되지 않았으며 AI가 임의 생성하지 않습니다.'});
+  return json(req,{ok:true,url:url.toString(),...result,notice:result.extracted.review?'공개 구조화 데이터에 제공된 리뷰 본문만 추출했습니다.':'구매후기 본문은 공개 HTML에서 확인되지 않았습니다.'});
  }catch(e){return json(req,{ok:false,message:e.name==='TimeoutError'?'상세페이지 응답 시간 초과':'상품 페이지를 읽지 못했습니다. 접근 제한 여부를 확인하세요.'},502)}
 }
