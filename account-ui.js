@@ -31,7 +31,7 @@
  let initialSetup=false;
  async function initialize(){
  try{const result=await request(API);initialSetup=!result.initialized;$('#vpLoginButton').disabled=false;$('#vpAuthError').textContent='';
- if(state.token){const verify=await request(API);if(verify.loggedIn){state.user=verify.user;state.role=verify.role;gate.classList.remove('visible');return}state.token='';sessionStorage.removeItem('vp_session')}
+ if(state.token){const verify=await request(API);if(verify.loggedIn){state.user=verify.user;state.role=verify.role;gate.classList.remove('visible');if(typeof refreshCoupangCatalog==='function')void refreshCoupangCatalog();return}state.token='';sessionStorage.removeItem('vp_session')}
  $('#vpAuthTip').textContent=initialSetup?'관리자 계정을 최초 생성합니다. 기존 서버 연결 암호를 확인한 후 관리자 비밀번호를 설정하세요.':'아이디와 비밀번호로 로그인하세요.';
  $('#vpBootstrap').style.display=initialSetup?'block':'none';$('#vpLoginButton').textContent=initialSetup?'관리자 계정 생성':'로그인';gate.classList.add('visible');
  }catch(e){$('#vpAuthTip').textContent='로그인 서버 연결 실패: Redis 환경변수 및 배포 상태를 확인해 주세요.';$('#vpAuthError').textContent='서버 응답: '+e.message;$('#vpLoginButton').disabled=true;$('#vpLoginButton').textContent='서버 확인 중';gate.classList.add('visible');}
@@ -41,7 +41,7 @@
  if(!/^[A-Za-z0-9_-]{3,32}$/.test($('#vpUsername').value)){ $('#vpAuthError').textContent='사이트 주소가 아닌 영문 관리자 아이디를 입력해 주세요.';return; }
  const button=$('#vpLoginButton');button.disabled=true;button.textContent='처리 중…';
  try{const data=await request(API,'POST',{action:initialSetup?'setup':'login',user:$('#vpUsername').value,password:$('#vpPassword').value,...(initialSetup?{bootstrap:$('#vpBootstrap').value}:{})});
- state.token=data.token;state.user=data.user;state.role=data.role||'admin';sessionStorage.setItem('vp_session',data.token);$('#vpPassword').value='';$('#vpBootstrap').value='';gate.classList.remove('visible');show('apiSettings');loadKeys();
+ state.token=data.token;state.user=data.user;state.role=data.role||'admin';sessionStorage.setItem('vp_session',data.token);$('#vpPassword').value='';$('#vpBootstrap').value='';gate.classList.remove('visible');show('apiSettings');loadKeys();if(typeof refreshCoupangCatalog==='function')void refreshCoupangCatalog();
  }catch(e){$('#vpAuthError').textContent=e.message}
  finally{const b=$('#vpLoginButton');b.disabled=false;b.textContent=initialSetup?'관리자 계정 생성':'로그인'}
  });
