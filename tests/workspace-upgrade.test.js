@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {Script} from 'node:vm';
 import {validProductImage} from '../lib/coupang-partners.js';
+import {referenceImageUrl} from '../api/image.js';
 
 const html=readFileSync(new URL('../v05.html',import.meta.url),'utf8');
 const workspace=readFileSync(new URL('../workspace-upgrade.js',import.meta.url),'utf8');
@@ -46,4 +47,13 @@ test('Coupang CDN product thumbnails are upgraded to HTTPS',()=>{
  assert.equal(validProductImage('http://thumbnail.coupangcdn.com/x.png'),'https://thumbnail.coupangcdn.com/x.png');
  assert.equal(validProductImage('https://thumbnail.coupangcdn.com/y.png'),'https://thumbnail.coupangcdn.com/y.png');
  assert.equal(validProductImage('http://other.example/x.png'),null);
+});
+
+test('product reference fetch allows only exact HTTPS Coupang CDN domains',()=>{
+ assert.equal(referenceImageUrl('https://thumbnail.coupangcdn.com/ab/image.jpg'),'https://thumbnail.coupangcdn.com/ab/image.jpg');
+ assert.equal(referenceImageUrl('http://thumbnail.coupangcdn.com/ab/image.jpg'),null);
+ assert.equal(referenceImageUrl('https://thumbnail.coupangcdn.com.evil.example/a.jpg'),null);
+ assert.equal(referenceImageUrl('https://127.0.0.1/private'),null);
+ assert.equal(referenceImageUrl('https://thumbnail.coupangcdn.com:4443/a.jpg'),null);
+ assert.equal(referenceImageUrl('https://user:pass@thumbnail.coupangcdn.com/a.jpg'),null);
 });
