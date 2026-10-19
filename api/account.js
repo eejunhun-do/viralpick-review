@@ -43,7 +43,7 @@ export async function POST(req){
  const valid=timingSafeEqual(Buffer.from(a),Buffer.from(expected));
  if(!valid||!record||password.length>128)return json(req,{ok:false,message:'아이디 또는 비밀번호가 일치하지 않습니다.'},401);
  await redis('DEL',key);
- return json(req,{ok:true,user,token:makeToken(user)});
+ return json(req,{ok:true,user,role:record.role,token:makeToken(user)});
  }
  return json(req,{ok:false,message:'지원되지 않는 동작'},400);
  }catch(e){return json(req,{ok:false,message:e.message},d.action==='setup'?409:503)}
