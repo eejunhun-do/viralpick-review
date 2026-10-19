@@ -1,3 +1,4 @@
+import {createHash} from 'node:crypto';
 import {json,preflight,safePayload,responseHeaders} from '../lib/api-guard.js';
 import {accountReady,session,getAdmin,createAdmin,getAccount,hashPassword,makeToken,redis} from '../lib/account-store.js';
 export function OPTIONS(req){return preflight(req)}
@@ -20,12 +21,18 @@ export async function POST(req){
  return json(req,{ok:true,user:account.user,token:makeToken(account.user)});
  }
  if(d.action==='login'){
+ const identity=createHash('sha256').update(user+'|'+(req.headers.get('x-real-ip')||'')).digest('hex');
+ const key='viralpick:auth:attempt:'+identity;
+ const attempts=Number(await redis('INCR',key));
+ if(attempts===1)await redis('EXPIRE',key,900);
+ if(attempts>10)return json(req,{ok:false,message:'로그인 시도가 너무 많습니다. 잠시 후 다시 시도하세요.'},429);
  const record=await getAccount(user);
  const a=record?.hash||'0'.repeat(128),salt=record?.salt||'0'.repeat(32);
  const expected=hashPassword(password.slice(0,128),salt);
  const {timingSafeEqual}=await import('node:crypto');
  const valid=timingSafeEqual(Buffer.from(a),Buffer.from(expected));
  if(!valid||!record||password.length>128)return json(req,{ok:false,message:'아이디 또는 비밀번호가 일치하지 않습니다.'},401);
+ await redis('DEL',key);
  return json(req,{ok:true,user,token:makeToken(user)});
  }
  return json(req,{ok:false,message:'지원되지 않는 동작'},400);
