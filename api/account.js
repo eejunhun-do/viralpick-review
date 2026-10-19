@@ -1,13 +1,14 @@
 import {createHash} from 'node:crypto';
 import {json,preflight,safePayload,responseHeaders} from '../lib/api-guard.js';
-import {accountReady,session,getAdmin,createAdmin,getAccount,hashPassword,makeToken,redis} from '../lib/account-store.js';
+import {accountReady,session,getAdmin,createAdmin,getAccount,hashPassword,makeToken,redis,newSalt,isName} from '../lib/account-store.js';
 export function OPTIONS(req){return preflight(req)}
 export async function GET(req){
  if(!responseHeaders(req).originAllowed)return json(req,{ok:false,message:'출처 제한'},403);
  if(!accountReady())return json(req,{ok:false,ready:false,message:'계정 저장소 서버 설정이 필요합니다.'},503);
  try{
  const admin=await getAdmin(),user=session(req);
- return json(req,{ok:true,initialized:!!admin,loggedIn:!!user,user:user||null,role:user?'admin':null});
+ const record=user?await getAccount(user):null;
+ return json(req,{ok:true,initialized:!!admin,loggedIn:!!record,user:record?.user||null,role:record?.role||null});
  }catch{return json(req,{ok:false,message:'계정 저장소에 연결할 수 없습니다.'},503)}
 }
 export async function POST(req){
@@ -20,8 +21,17 @@ export async function POST(req){
  const account=await createAdmin(user,password,String(d.bootstrap||''));
  return json(req,{ok:true,user:account.user,token:makeToken(account.user)});
  }
+ if(d.action==='create_user'){
+ const actor=session(req),admin=actor?await getAccount(actor):null;
+ if(admin?.role!=='admin')return json(req,{ok:false,message:'관리자 전용 기능입니다.'},403);
+ if(!isName(user)||password.length<12||password.length>128)return json(req,{ok:false,message:'아이디 또는 비밀번호 형식이 올바르지 않습니다.'},400);
+ const salt=newSalt(),account={user,salt,hash:hashPassword(password,salt),role:'user'};
+ const created=await redis('SET','viralpick:accounts:v1:user:'+user,JSON.stringify(account),'NX');
+ if(created!=='OK')return json(req,{ok:false,message:'이미 사용 중인 아이디입니다.'},409);
+ return json(req,{ok:true,user,role:'user'});
+ }
  if(d.action==='login'){
- const identity=createHash('sha256').update(user+'|'+(req.headers.get('x-real-ip')||'')).digest('hex');
+ const identity=createHash('sha256').update(user).digest('hex');
  const key='viralpick:auth:attempt:'+identity;
  const attempts=Number(await redis('INCR',key));
  if(attempts===1)await redis('EXPIRE',key,900);
