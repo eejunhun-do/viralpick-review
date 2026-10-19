@@ -52,3 +52,6 @@
 .vpInstagramReviewCover img{width:100%;height:auto;display:block}
 .vpInstagramReviewCaption{white-space:pre-wrap;word-break:break-word;font-size:13px;line-height:1.8;max-height:560px;overflow:auto}
 @media(max-width:680px){.vpCreatorReference,.vpSocialReviewPanel{padding:13px}.vpCreatorTitle,.vpCreatorHookHeader,.vpSocialReviewHeading{flex-direction:column}.vpHookChoices{grid-template-columns:1fr}.vpAssetItem{flex-basis:108px;width:108px}.vpAssetItem img{height:100px}.vpCreatorSceneRow{grid-template-columns:1fr}.vpCreatorSceneRow .btn{max-width:none}.vpThreadFeed{padding:12px 9px}.vpPreviewBody{font-size:13px}.vpInstagramReview{grid-template-columns:1fr}.vpSocialCounts{gap:16px}}
+
+/* The selected-image gallery is the only primary AI photo generation control. */
+#threads.vpStudioReady #threadGenerateButton,#instagram.vpStudioReady #instagramGenerateButton{display:none!important}
