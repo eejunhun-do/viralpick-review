@@ -1,0 +1,74 @@
+/* Dedicated Threads / Instagram creator workspace. Existing functionality retained. */
+#threads.vpStudioReady,#instagram.vpStudioReady{max-width:1240px;margin:0 auto}
+.vpStudioHero{display:flex;justify-content:space-between;align-items:center;gap:22px;padding:25px 28px;border:1px solid #e5eaf1;background:linear-gradient(125deg,#fff 15%,#f2f6ff 100%);border-radius:22px;box-shadow:0 12px 30px rgba(18,37,77,.055)}
+.vpStudioIdentity{min-width:0;flex:1}
+.vpStudioKicker{display:block;color:#4161ca;font-size:11px;font-weight:900;letter-spacing:1.35px;margin-bottom:11px}
+.vpStudioIdentity h1{font-size:29px;letter-spacing:-1.15px;line-height:1.25;margin:0 0 8px;font-weight:900}
+.vpStudioIdentity p{font-size:13px;line-height:1.7;margin:0;color:#667388}
+.vpStudioCurrentProduct{display:flex;flex-direction:column;align-items:flex-start;gap:7px;max-width:330px;min-width:240px;padding:15px 17px;background:rgba(255,255,255,.85);border:1px solid #e0e7f2;border-radius:16px}
+.vpStudioProductLabel{font-size:11px;color:#62718a;font-weight:900}
+.vpStudioProductName{font-size:13px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vpStudioProductMeta{font-size:11px;color:#7e8794}
+.vpStudioCurrentProduct .btn{padding:7px 11px;font-size:11px;box-shadow:none}
+.vpStudioSteps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:16px 0 12px}
+.vpStudioStepButton{display:flex;align-items:center;gap:10px;min-width:0;text-align:left;background:#fff;border:1px solid #e1e6ef;border-radius:13px;padding:15px 13px;color:#6c788d;font-size:13px;font-weight:850;cursor:pointer;transition:background .15s,border-color .15s,box-shadow .15s}
+.vpStudioStepButton:hover{border-color:#7b98de;background:#f5f8ff}
+.vpStudioStepButton.active{color:#2845a5;border:1px solid #819be6;background:#ecf2ff;box-shadow:0 4px 14px rgba(62,99,199,.09)}
+.vpStudioStepNumber{display:grid;place-items:center;flex:0 0 29px;width:29px;height:29px;border-radius:9px;background:#eff2f6;color:#667288;font-size:11px;font-weight:950}
+.vpStudioStepButton.active .vpStudioStepNumber{background:#3c61cc;color:#fff}
+.vpStudioStepText{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vpStudioStage{min-width:0;animation:vpStudioIn .15s ease-out}
+.vpStudioStage[hidden]{display:none!important}
+@keyframes vpStudioIn{from{opacity:.5;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.vpStudioSectionHeading{padding:20px 0 4px}
+.vpStudioSectionHeading h2{font-size:22px;font-weight:900;letter-spacing:-.65px;margin:0 0 6px}
+.vpStudioSectionHeading p{margin:0;font-size:13px;color:#798493;line-height:1.6}
+.vpStudioStage>.panel,.vpStudioStage>.multiStudioPanel,.vpStudioStage>.openingHookPanel{margin-top:14px}
+.vpStudioStage>div.singleOnlyThreads,.vpStudioStage>div.singleOnlyInstagram,.vpStudioStage>.vpStudioMultiCopy{min-width:0}
+.vpStudioCopyLead{margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 19px;background:#f1f6ff;border:1px solid #dce6ff;border-radius:15px}
+.vpStudioCopyLeadText{color:#344567;font-size:13px;line-height:1.7;max-width:650px}
+.vpStudioLeadActions{display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0}
+.vpStudioAdvanced{border:1px solid #e2e8ee;background:#fff;border-radius:15px;margin:15px 0;overflow:hidden}
+.vpStudioAdvanced>summary{cursor:pointer;padding:16px 18px;color:#4e5e75;font-size:13px;font-weight:850;list-style-position:inside;user-select:none}
+.vpStudioAdvanced[open]>summary{border-bottom:1px solid #e6eaf0;background:#f8fafc}
+.vpStudioAdvancedBody{padding:15px}
+.vpStudioAdvancedBody>.panel{margin-top:0;margin-bottom:12px}
+.vpStudioAdvancedBody>.openingHookPanel{margin-bottom:14px}
+.vpStudioMultiSettings{margin:12px 14px}
+#threads:not(.multiEnabled) .vpStudioMultiSettings,#instagram:not(.multiEnabled) .vpStudioMultiSettings{display:none}
+#threads:not(.multiEnabled) .vpStudioMultiCopy{display:none!important}
+.vpStudioReviewNote{margin-top:16px;padding:19px 20px;background:#f7f9fc;border:1px solid #e5e9ef;border-radius:16px}
+.vpStudioReviewNote strong{font-size:14px}
+.vpStudioReviewNote p{font-size:12px;line-height:2;color:#647187;margin:7px 0 0}
+.vpStudioStageFooter{display:flex;justify-content:flex-end;gap:9px;margin:18px 0 28px;border-top:1px solid #e5e9ef;padding-top:18px}
+.vpStudioStageFooter button:first-child:not(:last-child){margin-right:auto}
+.vpStudioStage>.vpStudioThreadText>.panel,.vpStudioStage>.vpStudioThreadArt>.panel{margin-top:16px}
+.vpStudioStage #vpAiCopyPanel{box-shadow:0 12px 28px rgba(22,36,63,.04)}
+.vpStudioStage #vpAiCopyPanel .panelHead{background:#f5f8ff}
+.vpStudioStage #vpAiCopyPanel textarea{max-width:100%}
+.vpStudioStage #vpReviewImagePreview{gap:8px}
+.vpStudioStage #vpReviewImagePreview img:hover{outline:2px solid #718de1}
+.vpStudioStage #multiThreadsResult>.panel{margin-top:14px}
+.vpStudioStage #instagramCarouselHeading{font-size:17px}
+.vpStudioStage .twocol{grid-template-columns:minmax(0,1fr)}
+.vpStudioStage .finalActions{margin-top:18px}
+@media(max-width:940px){
+ .vpStudioHero{flex-direction:column;align-items:stretch;padding:20px}
+ .vpStudioCurrentProduct{max-width:none;min-width:0}
+ .vpStudioCopyLead{flex-direction:column;align-items:flex-start}
+}
+@media(max-width:580px){
+ .vpStudioHero{padding:18px;border-radius:16px}
+ .vpStudioIdentity h1{font-size:23px}
+ .vpStudioSteps{gap:5px;margin-top:12px}
+ .vpStudioStepButton{flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:9px 4px;min-height:68px}
+ .vpStudioStepNumber{height:24px;width:24px;flex-basis:24px;font-size:10px}
+ .vpStudioStepText{font-size:10px;white-space:normal;text-align:center;line-height:1.2;min-height:24px}
+ .vpStudioSectionHeading{padding:14px 0 2px}
+ .vpStudioSectionHeading h2{font-size:19px}
+ .vpStudioStageFooter .btn{font-size:12px;padding:9px}
+ .vpStudioAdvanced>summary{padding:13px 12px;font-size:12px}
+ .vpStudioAdvancedBody{padding:11px}
+ .vpStudioCopyLead{padding:13px}
+ .vpStudioLeadActions{width:100%}
+}
