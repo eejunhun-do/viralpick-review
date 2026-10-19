@@ -2711,20 +2711,54 @@ const hookProfiles={
  ]}
 };
 let threadDiversity='balanced',instagramDiversity='balanced';
+function getLifestyleHooks(p){
+ const name=String(p?.name||'');
+ let subject='일상의 작은 번거로움',scenes=[
+  '은근 반복되는 귀찮은 순간 있지 않아?',
+  '이런 불편 다들 그냥 참는 편임?',
+  '작은 일인데 자꾸 손 가는 거 진짜 싫음',
+  '해결 방법 찾다가 더 번거로운 날 있음',
+  '생각보다 이런 상황이 자주 생기더라',
+  '다들 이런 거 고를 때 뭐부터 봐?'
+ ];
+ if(/턱받이|이유식|아기식사/.test(name)){subject='아기 외출 식사';scenes=[
+  '외식 한 번 하면 애 옷이 더 난리남 ㅋㅋ',
+  '젖은 턱받이 가방에 다시 넣기 싫을 때',
+  '아기 밥 먹일 때 가방만 무거워지는 이유',
+  '기저귀 가방은 왜 맨날 꽉 차냐',
+  '밥 먹고 빨래까지 늘어나는 집 있음?',
+  '애 밥 먹일 때 손이 열 개라도 모자람'
+ ]}else if(/향|섬유|탈취|디퓨저/.test(name)){subject='집안 향기';scenes=[
+  '독한 향보다 은은한 냄새가 더 좋음',
+  '집 들어왔을 때 좋은 냄새 나면 기분 달라짐',
+  '이불에서 은은한 향 나는 거 좋아해?',
+  '향 진한 건 오히려 머리 아픈 사람?',
+  '방 안 분위기 바꾸고 싶을 때 있음',
+  '은근 향은 취향 엄청 갈리더라'
+ ]}else if(/청소|먼지|물걸레|세척/.test(name)){subject='청소';scenes=[
+  '청소했는데 왜 또 먼지가 보이냐',
+  '귀찮아서 미루다 일이 두 배 되는 순간',
+  '집안일 빨리 끝내고 싶은 날 있지',
+  '구석구석 청소하는 거 제일 귀찮음',
+  '닦아도 금방 다시 더러워지는 곳',
+  '청소할 때 뭐가 제일 손 많이 감?'
+ ]}else if(/주방|도마|칼|요리|식기/.test(name)){subject='집밥 준비';scenes=[
+  '밥 한 끼보다 뒷정리가 더 오래 걸림',
+  '요리할 땐 왜 일이 자꾸 늘어나냐',
+  '주방에서 은근 손 많이 가는 순간',
+  '매일 쓰는 건 편한 게 최고인 듯',
+  '밥 해먹고 설거지까지 하면 지침',
+  '집밥 만들 때 제일 귀찮은 과정 뭐야?'
+ ]}
+ return {subject,scenes};
+}
 function getHookProfile(p){
  if(hookProfiles[p.id])return hookProfiles[p.id];
- const short=trimText(p.name,60);
- return {
-  pain:p.problem||'사용 상황 확인 필요',solution:p.novel||'기능 검증 필요',
-  hooks:[
-   [short+' 사용할 때 어떤 점이 가장 불편할까?',short+' 같은 제품을 찾는 사람은 어떤 상황일까?',short+'가 필요한 순간이 따로 있겠지?'],
-   [short+' 이런 형태의 제품도 있구나',short+' 쓰임이 궁금해서 찾아봤어',short+' 제품 설명을 살펴보니'],
-   [short+' 어떤 불편을 해결할까?',withProductJosa(short,'이','가')+' 도움이 되는 상황은?',short+' 사용 방법을 알아보자'],
-   [short+' 고를 때 확인할 점',short+' 기능을 확인하기 전에 꼭 봐야 할 것',short+' 옵션과 사양 체크리스트'],
-   [short+' 써본 사람 있어?',short+' 어떤 사람에게 필요할까?',short+' 비슷한 제품 써본 경험 있어?'],
-   [short+' 구매 전 확인할 점',short+' 과연 필요한 제품일까?',short+' 옵션 확인 없이 사도 될까?']
-  ]
- };
+ const story=getLifestyleHooks(p),scene=story.scenes;
+ const pain=String(p.problem||'');
+ return {pain:!pain||/입력하세요|확인 필요/.test(pain)?story.subject+' 때 불편한 점':pain,
+  solution:!p.novel||/입력하세요|검증 필요/.test(p.novel)?'사용 환경에 맞는지 확인할 점이 있어':p.novel,
+  hooks:[0,1,2,3,4,5].map((_,i)=>[scene[i],scene[(i+1)%6],scene[(i+3)%6]])};
 }
 function hookVersion(genre,seed,tone){
  const shift={stable:0,balanced:1,creative:2}[tone]??1;
@@ -3091,16 +3125,13 @@ function cycleThread(){threadSeed++;threadCopyIndex=0;threadImageIndex=0;renderT
 async function copyThread(){try{await navigator.clipboard.writeText(getCurrentThreadText()+'\n\n──────── 2/2 ────────\n\n'+getThreadReplyText());toast('Threads 1단·2단 전체 복사 완료')}catch(e){toast('브라우저 복사 권한을 확인해주세요')}}
 
 function coverHooks(p){
- const name=String(p.name||'상품').trim();
- const topic=p.id===1?'선반 수평 확인':p.id===2?'차량 틈새 청소':p.id===3?'산책 후 발 관리':'제품 활용';
- const groups=[
-  [withProductJosa(topic,'이','가')+' 번거로우신가요?',topic+'에 어떤 어려움이 있으셨나요?',topic+'이 필요할 때가 있죠'],
-  [name+', 어떤 제품일까요?',name+', 기능을 살펴보세요',name+'의 사용 방법을 알아보세요'],
-  [topic+'에 필요한 기능은 무엇일까요?',topic+'에는 어떤 기능이 중요할까요?',topic+'에 이런 방법도 있습니다'],
-  [name+' 구매 전 확인해 보세요',name+' 구매 시 무엇을 봐야 할까요?',name+', 구매 전에 확인할 점']
- ];
- const tone={stable:0,balanced:1,creative:2}[instagramDiversity]??1;
- return groups.map((options,index)=>options[(tone+coverSeed+index)%3]);
+ const data=getLifestyleHooks(p),s=data.scenes;
+ return [
+  [s[0],s[1],s[2]],
+  [s[3],s[4],s[5]],
+  [s[1],s[3],s[0]],
+  [s[4],s[2],s[5]]
+ ].map((options,i)=>options[(({stable:0,balanced:1,creative:2})[instagramDiversity]||0)+coverSeed+i)%3]);
 }
 const instagramCoverHeadlineEdits={};
 let instagramCoverEditTimer=null;
