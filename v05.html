@@ -1900,7 +1900,7 @@ function makeCoupangItemId(id){
 async function issueCoupangLink(p){
  if(p.source!=='coupang')return null;
  if(partnerLink(p))return p.affiliateUrl;
- if(isPartnerLink(p.originalUrl)){p.affiliateUrl=p.originalUrl;saveCoupangDrafts();return p.affiliateUrl}
+ if(isPartnerLink(p.originalUrl)){p.affiliateUrl=p.originalUrl;saveCoupangDrafts();renderProductLists();renderAffiliateEditor();return p.affiliateUrl}
  if(!isCoupangProductLink(p.originalUrl)){toast('원본 쿠팡 상품 URL이 없어 자동 변환할 수 없습니다. 파트너스 사이트에서 제휴 링크를 발급해 주세요.');return null}
  try{
   const response=await backendRequest('/api/deeplink',{method:'POST',body:JSON.stringify({url:p.originalUrl})});
@@ -1957,6 +1957,7 @@ function useRemoteProduct(index,addToMulti=false){
  };
  p.name=trimText(remote.name,120);p.price=Number(remote.price)||p.price;
  p.originalUrl=isCoupangProductLink(remote.productUrl)?remote.productUrl:(p.originalUrl||null);
+ if(isPartnerLink(remote.productUrl))p.affiliateUrl=remote.productUrl;
  p.imageUrl=remote.imageUrl||p.imageUrl||null;p.checkedAt=Date.now();
  if(!existing)products.push(p);
  saveCoupangDrafts();
@@ -2090,7 +2091,7 @@ async function requestAiScene(purpose='instagram'){
 }
 function productCard(p){
  const img=liveMedia.get(p.id)?.product?.data;
- const picture=img&&safeDataImage(img)?img:(p.imageUrl&&/^https:\/\//.test(p.imageUrl)?p.imageUrl:null);
+ const picture=img&&safeDataImage(img)?img:(p.imageUrl&&/^https?:\/\//.test(p.imageUrl)?p.imageUrl:null);
  const thumb=picture?'<img alt="상품 사진" src="'+cleanMarkup(picture)+'" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">':'상품 사진<br>미등록';
  const destination=partnerLink(p)||(p.source==='coupang'&&isCoupangProductLink(p.originalUrl)?p.originalUrl:null);
  const imgMarkup=destination&&picture?'<a href="'+cleanMarkup(destination)+'" target="_blank" rel="noopener noreferrer sponsored" onclick="event.stopPropagation()" title="쿠팡 상품 페이지 열기 (제휴 추적은 발급된 링크에만 적용)">'+thumb+'</a>':thumb;
@@ -2635,6 +2636,7 @@ async function refreshCoupangCatalog(force=false){
    }
    p.name=trimText(remote.name,120);p.price=remote.price;p.old=remote.price;
    p.originalUrl=isCoupangProductLink(remote.productUrl)?remote.productUrl:p.originalUrl||null;
+   if(isPartnerLink(remote.productUrl))p.affiliateUrl=remote.productUrl;
    p.imageUrl=remote.imageUrl||p.imageUrl||null;p.checkedAt=Date.now();
   }
   coupangAutoFetchedAt=Date.now();saveCoupangDrafts();renderProductLists();
