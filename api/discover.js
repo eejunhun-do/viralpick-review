@@ -1,3 +1,4 @@
+import {session} from '../lib/account-store.js';
 import {json,preflight,checkAccess} from '../lib/api-guard.js';
 import {partnerRequest,isConfigured,validProductUrl} from '../lib/coupang-partners.js';
 
@@ -14,7 +15,7 @@ export function OPTIONS(req){return preflight(req)}
 export async function GET(req){
  const denied=checkAccess(req);
  if(denied)return json(req,{ok:false,message:denied},denied.includes('설정')?503:401);
- if(!isConfigured())return json(req,{ok:false,message:'쿠팡 파트너스 API 키를 Vercel에 먼저 등록해 주세요.'},503);
+ if(!session(req)&&!isConfigured())return json(req,{ok:false,message:'쿠팡 파트너스 API 키를 Vercel에 먼저 등록해 주세요.'},503);
  const u=new URL(req.url),kind=u.searchParams.get('kind')||'category';
  const limit=Math.max(1,Math.min(100,Number(u.searchParams.get('limit')||20)||20));
  const subId=(u.searchParams.get('subId')||'').trim();
@@ -36,7 +37,7 @@ export async function GET(req){
   path=ROOT+'/coupangPL/'+brandId;
  }else return json(req,{ok:false,message:'지원되지 않는 조회 유형입니다.'},400);
  try{
-  const raw=await partnerRequest('GET',path+(query.size?'?'+query.toString():''));
+  const raw=await partnerRequest('GET',path+(query.size?'?'+query.toString():''),undefined,session(req));
   const rows=Array.isArray(raw.data)?raw.data:Array.isArray(raw.data?.productData)?raw.data.productData:null;
   if(!rows)return json(req,{ok:false,message:'API 상품 목록 형식이 예상과 다릅니다.'},502);
   const products=rows.slice(0,100).map(p=>({
