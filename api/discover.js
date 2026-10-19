@@ -2,7 +2,7 @@ import {session} from '../lib/account-store.js';
 import {json,preflight,checkAccess} from '../lib/api-guard.js';
 import {partnerRequest,isConfigured,validProductUrl} from '../lib/coupang-partners.js';
 
-const ROOT='/v2/providers/affiliate_open_api/apis/openapi/products';
+const ROOT='/v2/providers/affiliate_open_api/apis/openapi/v1/products';
 const CATEGORIES={
  '1001':'여성패션','1002':'남성패션','1010':'뷰티','1011':'출산/유아동','1012':'식품',
  '1013':'주방용품','1014':'생활용품','1015':'홈인테리어','1016':'가전디지털',
