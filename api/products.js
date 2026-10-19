@@ -31,5 +31,5 @@ export async function GET(req){
    provider:'coupang-partners'
   };
  }).filter(p=>p.id&&p.name&&p.price!==null);
- return json(req,{ok:true,provider:'coupang-partners',products,notice:'상품 가격·재고는 조회 시점 기준입니다. 제휴 URL은 딥링크 발급을 완료한 뒤 사용하세요.'});
+ return json(req,{ok:true,provider:'coupang-partners',products,notice:'파트너스 API productUrl은 추적 링크입니다. 가격·재고는 조회 시점 기준이며 게시 전 확인하세요.'});
 }
