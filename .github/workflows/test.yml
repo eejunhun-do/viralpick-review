@@ -13,7 +13,7 @@ jobs:
           node-version: '22'
       - name: Check JavaScript syntax
         run: |
-          for f in api/*.js lib/*.js account-ui.js; do node --check "$f"; done
+          for f in api/*.js lib/*.js account-ui.js studio-layout.js; do node --check "$f"; done
       - name: Validate inline frontend JavaScript
         run: |
           node --input-type=module -e "import{readFileSync,writeFileSync}from 'node:fs';const h=readFileSync('v05.html','utf8');const m=h.match(/<script>([\\s\\S]*?)<\\/script>/);if(!m)throw Error('script not found');writeFileSync('/tmp/viralpick-inline.mjs',m[1]);"
