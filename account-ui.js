@@ -11,7 +11,7 @@
  @media(max-width:650px){#vpKeyGrid{grid-template-columns:1fr}}
  `;document.head.append(styles);
  styles.textContent+=' .vpNewUserGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.vpNewUserGrid input{width:100%;padding:11px;margin-top:6px;border:1px solid #cfd6de;border-radius:9px}@media(max-width:650px){.vpNewUserGrid{grid-template-columns:1fr}}';
- const gate=document.createElement('div');gate.id='vpAuthGate';gate.innerHTML=`<form class="vpBox" id="vpLoginForm"><h2>ViralPick 관리자 로그인</h2><p id="vpAuthTip">계정 확인 중…</p><input id="vpUsername" autocomplete="username" placeholder="아이디" required minlength="3" maxlength="32"><input id="vpPassword" type="password" autocomplete="current-password" placeholder="비밀번호 (12자 이상)" required minlength="12"><input id="vpBootstrap" type="password" placeholder="최초 등록용 서버 연결 암호" style="display:none"><button type="submit" id="vpLoginButton">로그인</button><p id="vpAuthError" role="alert"></p></form>`;document.body.append(gate);
+ const gate=document.createElement('div');gate.id='vpAuthGate';gate.innerHTML=`<form class="vpBox" id="vpLoginForm"><h2>ViralPick 관리자 로그인</h2><p id="vpAuthTip">계정 확인 중…</p><input id="vpUsername" autocomplete="username" placeholder="관리자 아이디 (예: viralpickadmin)" required minlength="3" maxlength="32" pattern="[A-Za-z0-9_-]{3,32}" title="영문, 숫자, 밑줄, 하이픈만 사용하세요" autocapitalize="off" spellcheck="false"><input id="vpPassword" type="password" autocomplete="current-password" placeholder="비밀번호 (12자 이상)" required minlength="12"><input id="vpBootstrap" type="password" placeholder="최초 등록용 서버 연결 암호" style="display:none"><button type="submit" id="vpLoginButton">로그인</button><p id="vpAuthError" role="alert"></p></form>`;document.body.append(gate);
  const nav=$('.nav');if(nav){const btn=document.createElement('button');btn.dataset.view='apiSettings';btn.textContent='🔐 내 API 등록';btn.onclick=()=>{if(!state.token){gate.classList.add('visible');return}show('apiSettings');loadKeys()};nav.append(btn)}
  const root=document.createElement('section');root.id='apiSettings';root.className='view';root.innerHTML=`<div class="top"><div><span class="badge blue">개인정보 암호화 저장</span><h1>내 API 등록</h1><p>로그인한 계정별로 API 키를 암호화해 서버에 저장합니다. 저장한 키 원문은 화면에 다시 표시되지 않습니다.</p></div></div><div class="panel"><div class="pad"><p id="vpAccountLabel">계정 확인 중</p><div id="vpKeyGrid"><label>쿠팡 파트너스 Access Key<input autocomplete="off" id="vpCoupangAccess" type="password" placeholder="새 키 입력"></label><label>쿠팡 파트너스 Secret Key<input autocomplete="off" id="vpCoupangSecret" type="password" placeholder="새 키 입력"></label><label>토스 API Key (추후 API 연동용)<input autocomplete="off" id="vpTossKey" type="password" placeholder="새 키 입력"></label><label>OpenAI API Key<input autocomplete="off" id="vpOpenAIKey" type="password" placeholder="새 키 입력"></label></div><p id="vpKeysStatus" aria-live="polite">등록 상태 확인 중</p><div class="vpKeyActions"><button type="button" id="vpKeysSave">입력한 키 저장</button> <select id="vpDeleteSelect" aria-label="삭제할 API 키"><option value="coupangAccessKey">쿠팡 Access</option><option value="coupangSecretKey">쿠팡 Secret</option><option value="tossApiKey">토스</option><option value="openaiApiKey">OpenAI</option></select> <button type="button" id="vpKeyDelete">선택한 키 삭제</button> <button type="button" id="vpLogout">로그아웃</button></div><div id="vpAdminUsers" style="display:none;margin-top:25px;border-top:1px solid #e2e7ed;padding-top:16px"><h3>사용자 계정 추가 (관리자)</h3><div class="vpNewUserGrid"><label>새 사용자 아이디<input id="vpNewUser" autocomplete="off" placeholder="영문/숫자 3~32자"></label><label>임시 비밀번호<input id="vpNewPassword" type="password" autocomplete="new-password" placeholder="12자 이상"></label></div><p class="queueHint">생성된 사용자는 자신의 아이디로 로그인해 독립된 API 키를 등록할 수 있습니다. 계정 비밀번호는 화면에 다시 표시되지 않습니다.</p><button type="button" id="vpCreateUser" class="btn primary">계정 생성</button><p id="vpUserStatus" role="status"></p></div><p class="queueHint">빈 칸은 기존 저장 값을 유지합니다. 삭제는 등록 상태에서 삭제를 선택하세요. 각 API는 제공자 정책 및 별도 승인에 따라 작동합니다.</p></div></div>`;$('.main')?.append(root);
  const original=backendRequest;
@@ -30,17 +30,20 @@
  }
  let initialSetup=false;
  async function initialize(){
- try{const result=await request(API);initialSetup=!result.initialized;
+ try{const result=await request(API);initialSetup=!result.initialized;$('#vpLoginButton').disabled=false;$('#vpAuthError').textContent='';
  if(state.token){const verify=await request(API);if(verify.loggedIn){state.user=verify.user;state.role=verify.role;gate.classList.remove('visible');return}state.token='';sessionStorage.removeItem('vp_session')}
  $('#vpAuthTip').textContent=initialSetup?'관리자 계정을 최초 생성합니다. 기존 서버 연결 암호를 확인한 후 관리자 비밀번호를 설정하세요.':'아이디와 비밀번호로 로그인하세요.';
  $('#vpBootstrap').style.display=initialSetup?'block':'none';$('#vpLoginButton').textContent=initialSetup?'관리자 계정 생성':'로그인';gate.classList.add('visible');
- }catch(e){$('#vpAuthTip').textContent='계정 저장소 미설정: Vercel에 Redis 저장소와 암호화 키를 등록하면 로그인이 활성화됩니다. 기존 서버 연결은 계속 사용할 수 있습니다.';$('#vpLoginButton').disabled=true;gate.classList.remove('visible');}
+ }catch(e){$('#vpAuthTip').textContent='로그인 서버 연결 실패: Redis 환경변수 및 배포 상태를 확인해 주세요.';$('#vpAuthError').textContent='서버 응답: '+e.message;$('#vpLoginButton').disabled=true;$('#vpLoginButton').textContent='서버 확인 중';gate.classList.add('visible');}
  }
  $('#vpLoginForm').addEventListener('submit',async e=>{
  e.preventDefault();$('#vpAuthError').textContent='';
+ if(!/^[A-Za-z0-9_-]{3,32}$/.test($('#vpUsername').value)){ $('#vpAuthError').textContent='사이트 주소가 아닌 영문 관리자 아이디를 입력해 주세요.';return; }
+ const button=$('#vpLoginButton');button.disabled=true;button.textContent='처리 중…';
  try{const data=await request(API,'POST',{action:initialSetup?'setup':'login',user:$('#vpUsername').value,password:$('#vpPassword').value,...(initialSetup?{bootstrap:$('#vpBootstrap').value}:{})});
  state.token=data.token;state.user=data.user;state.role=data.role||'admin';sessionStorage.setItem('vp_session',data.token);$('#vpPassword').value='';$('#vpBootstrap').value='';gate.classList.remove('visible');show('apiSettings');loadKeys();
  }catch(e){$('#vpAuthError').textContent=e.message}
+ finally{const b=$('#vpLoginButton');b.disabled=false;b.textContent=initialSetup?'관리자 계정 생성':'로그인'}
  });
  async function loadKeys(){
  if(!state.token)return;$('#vpAccountLabel').textContent='로그인: '+state.user;
