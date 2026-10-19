@@ -774,6 +774,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 </section>
 
 <section id="threads" class="view">
+<div class="panel" id="vpAiCopyPanel" style="margin:12px 0"><div class="panelHead"><h2>AI 상품정보 기반 문구 생성</h2></div><div class="pad"><p class="queueHint">제품명·가격은 선택 상품에서 가져옵니다. 상세설명·실제 후기 요약은 확인된 내용을 붙여넣으세요. 쿠팡 파트너스 API는 상세페이지 본문과 댓글을 제공하지 않습니다.</p><div class="field"><label>상품 상세정보 (검증된 사실)</label><textarea id="vpAiDescription" rows="4" placeholder="상세페이지에서 확인한 기능, 규격, 구성, 사용법 등을 붙여넣기"></textarea></div><div class="field"><label>실제 구매후기 요약 (선택)</label><textarea id="vpAiReviews" rows="3" placeholder="직접 확인한 후기의 장단점만 요약. 없으면 비워두세요"></textarea></div><div class="btnrow"><button class="btn primary" type="button" id="vpAiThreads" onclick="generateProductCopy('Threads')">AI Threads 문구 생성</button><button class="btn primary" type="button" id="vpAiInstagram" onclick="generateProductCopy('Instagram')">AI Instagram 문구 생성</button></div><p id="vpAiCopyStatus" class="queueHint" role="status">상품 정보에 근거한 문구를 생성합니다. 생성 비용이 발생할 수 있습니다.</p></div></div>
  <div class="openingHookPanel" id="openingHookThreads">
   <div class="openingHookHeading"><div><b>본문 첫 줄 · 궁금증 유발 후킹</b><small>손해·반박·의문·후기 검증·결론 유보 중 선택하세요.</small></div><span>제품명보다 궁금증을 먼저</span></div>
   <div class="openingHookTools">
@@ -888,6 +889,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 </section>
 
 <section id="instagram" class="view">
+<div class="aiNote" style="margin-bottom:12px">상품 정보 기반 AI 캡션은 Threads 탭의 <b>AI 상품정보 기반 문구 생성</b>에서 만들 수 있습니다. Instagram 문구 생성 버튼으로 바로 Instagram 캡션에 적용됩니다.</div>
  <div class="openingHookPanel" id="openingHookInstagram">
   <div class="openingHookHeading"><div><b>본문 첫 줄 · 궁금증 유발 후킹</b><small>손해·반박·의문·후기 검증·결론 유보 중 선택하세요.</small></div><span>제품명보다 궁금증을 먼저</span></div>
   <div class="openingHookTools">
@@ -2790,6 +2792,31 @@ function threadVisuals(p){
  }).join('');
 }
 function threadEditKey(){return selected.id+':'+threadDiversity+':'+threadSeed+':'+threadCopyIndex}
+async function generateProductCopy(platform){
+ const status=$('#vpAiCopyStatus'),btn=$('#vpAi'+platform);
+ if(!status||!btn)return;
+ const items=(isMultiMode(platform)?multiSelectedProducts():[selected]).filter(Boolean);
+ if(!items.length){status.textContent='먼저 상품을 선택하세요.';return}
+ if(!confirm(platform+' 문구를 OpenAI API로 생성할까요? API 비용이 발생할 수 있으며 현재 편집 중인 문구가 교체됩니다.'))return;
+ btn.disabled=true;status.textContent=platform+' 문구 생성 중…';
+ try{
+  const description=$('#vpAiDescription')?.value.trim()||'';
+  const reviewNotes=$('#vpAiReviews')?.value.trim()||'';
+  const data=await backendRequest('/api/copy',{method:'POST',body:JSON.stringify({platform,products:items.map(p=>({title:p.name,price:p.price,category:p.type,description,reviewNotes}))})});
+  const copy=data.text;
+  if(isMultiMode(platform)){
+   multiStudio.captions[platform]=copy;persistMultiStudio();
+   refreshMultiOutputs();
+  }else if(platform==='Threads'){
+   customThreadEdits[threadEditKey()]=copy;renderThreads();
+  }else{
+   customInstagramCaptions[selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex]=copy;renderInstagram();
+  }
+  status.textContent='AI 문구 생성 완료 · 게시 전에 사실 관계와 광고 고지를 검토하세요.';
+  toast('AI '+platform+' 문구가 적용됐습니다.');
+ }catch(e){status.textContent='AI 생성 실패: '+e.message}
+ finally{btn.disabled=false}
+}
 function getCurrentThreadText(){if(isMultiMode('Threads'))return getMultiCaption('Threads');const key=threadEditKey();return Object.prototype.hasOwnProperty.call(customThreadEdits,key)?customThreadEdits[key]:threadBodies(selected)[threadCopyIndex]}
 function onThreadFinalEdit(){customThreadEdits[threadEditKey()]=$('#threadFinalText').value;renderThreadDupStatus()}
 function getCurrentInstagramCaption(){if(isMultiMode('Instagram'))return getMultiCaption('Instagram');return Object.prototype.hasOwnProperty.call(customInstagramCaptions,selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex)?customInstagramCaptions[selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex]:instaCaption(selected)}
