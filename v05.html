@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111318">
-<title>ViralPick v1.0.1 Prototype</title>
+<title>ViralPick | 상품 발굴 · 콘텐츠 스튜디오 · 성과 대시보드</title>
 <style>
 :root{
   --bg:#f5f6f8;--panel:#fff;--ink:#15171b;--muted:#727985;--line:#e6e8ec;
@@ -644,7 +644,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 <div class="app">
 <aside class="side" id="siteSidebar" aria-label="전체 메뉴">
   <div class="sideHeader"><div class="brand">ViralPick</div><button type="button" class="mobileClose" onclick="closeMobileMenu()" aria-label="전체 메뉴 닫기">✕</button></div>
-  <div class="ver">v0.7.0 · Threads + Instagram + Blog + Scheduler</div>
+  <div class="ver">ViralPick Studio · 상품 발굴 / SNS 제작 / 성과 분석</div>
   <nav class="nav">
     <button data-view="dashboard" class="active">🏠 대시보드</button>
     <button data-view="discover">🔥 상품 발굴</button>
@@ -2644,9 +2644,9 @@ function refreshMultiOutputs(){
 }
 
 function renderProductLists(){
- const ordered=[...products].sort((a,b)=>(b.source==='coupang')-(a.source==='coupang')||(candidateScore(b)||0)-(candidateScore(a)||0));
- $('#dashProducts').innerHTML=ordered.map(productCard).join('');
- $('#discoverProducts').innerHTML=ordered.map(productCard).join('');
+ const ordered=[...products].filter(p=>p.source!=='sample').sort((a,b)=>(b.source==='coupang')-(a.source==='coupang')||(candidateScore(b)||0)-(candidateScore(a)||0));
+ const dash=$('#dashProducts');if(dash&&!dash.hidden)dash.innerHTML=ordered.map(productCard).join('');
+ const discovery=$('#discoverProducts');if(discovery)discovery.innerHTML=ordered.length?ordered.map(productCard).join(''):'<div class="queueHint" style="padding:18px">아직 불러온 실제 상품이 없습니다. 위에서 쿠팡 상품 이름 또는 카테고리로 검색해 주세요. 시연용 샘플은 이 목록에 표시하지 않습니다.</div>';
 }
 let coupangAutoBusy=false,coupangAutoFetchedAt=0;
 async function refreshCoupangCatalog(force=false){
