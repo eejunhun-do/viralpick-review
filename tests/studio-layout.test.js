@@ -9,7 +9,7 @@ const css=readFileSync(new URL('../studio-layout.css',import.meta.url),'utf8');
 
 test('studio resources load on production HTML',()=>{
  assert.match(html,/<link rel="stylesheet" href="\/studio-layout\.css\?v=1">/);
- assert.match(html,/<script src="\/studio-layout\.js\?v=3"><\/script>/);
+ assert.match(html,/<script src="\/studio-layout\.js\?v=4"><\/script>/);
  assert.match(html,/id="vpAiCopyPanel"/);
  assert.match(html,/id="multiStudioThreads"/);
  assert.match(html,/id="multiStudioInstagram"/);
