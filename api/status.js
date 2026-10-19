@@ -1,4 +1,5 @@
 import {json,preflight,checkAccess} from '../lib/api-guard.js';
+import {isConfigured} from '../lib/coupang-partners.js';
 export function OPTIONS(req){return preflight(req)}
 export function GET(req){
  const problem=checkAccess(req);
@@ -6,8 +7,9 @@ export function GET(req){
  return json(req,{
   ok:true,
   imageReady:Boolean(process.env.OPENAI_API_KEY),
-  tossConfigured:Boolean(process.env.TOSS_PRODUCTS_URL&&process.env.TOSS_API_TOKEN),
+  coupangConfigured:isConfigured(),
+  affiliateProvider:'coupang-partners',
   imageModel:'gpt-image-2',
-  notice:'토스 API 세부 요청 명세는 승인 후 별도 설정해야 합니다. 서버는 상품 데이터를 저장하지 않습니다.'
+  notice:'쿠팡 파트너스 API Access Key와 Secret Key는 Vercel 서버 환경변수에만 저장합니다. 쿠팡 파트너스 최종 승인이 필요하며, 실제 API 연결은 키 등록 후 가능합니다.'
  });
 }
