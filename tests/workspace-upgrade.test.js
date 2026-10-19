@@ -7,6 +7,8 @@ import {validProductImage} from '../lib/coupang-partners.js';
 const html=readFileSync(new URL('../v05.html',import.meta.url),'utf8');
 const workspace=readFileSync(new URL('../workspace-upgrade.js',import.meta.url),'utf8');
 const studio=readFileSync(new URL('../studio-layout.js',import.meta.url),'utf8');
+const creator=readFileSync(new URL('../creator-assets.js',import.meta.url),'utf8');
+const hooks=readFileSync(new URL('../api/hooks.js',import.meta.url),'utf8');
 const copy=readFileSync(new URL('../api/copy.js',import.meta.url),'utf8');
 const image=readFileSync(new URL('../api/image.js',import.meta.url),'utf8');
 
@@ -15,6 +17,8 @@ test('new dashboard and creator assets are linked and parse',()=>{
  assert.match(html,/workspace-upgrade\.css\?v=2/);
  assert.doesNotThrow(()=>new Script(workspace));
  assert.doesNotThrow(()=>new Script(studio));
+ assert.doesNotThrow(()=>new Script(creator));
+ assert.match(html,/creator-assets\.js\?v=1/);
 });
 test('dashboard report is not populated from prototype metrics',()=>{
  assert.match(workspace,/PERFORMANCE CENTER/);
@@ -32,8 +36,11 @@ test('selected product evidence and two-part Threads are available',()=>{
 test('reference-based image editing is separate from scene generation',()=>{
  assert.match(image,/\/v1\/images\/edits/);
  assert.match(image,/\/v1\/images\/generations/);
- assert.match(studio,/vpProductRefUpload/);
- assert.match(studio,/vpImageMode/);
+ assert.match(studio,/vpAssetStudio/);
+ assert.match(creator,/vpAssetGrid/);
+ assert.match(creator,/vpHookChoices/);
+ assert.match(creator,/vpThreadFeed/);
+ assert.match(hooks,/hooks\.length!==5/);
 });
 test('Coupang CDN product thumbnails are upgraded to HTTPS',()=>{
  assert.equal(validProductImage('http://thumbnail.coupangcdn.com/x.png'),'https://thumbnail.coupangcdn.com/x.png');
