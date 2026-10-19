@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111318">
-<title>ViralPick v0.9.2 Prototype</title>
+<title>ViralPick v1.0.0 Prototype</title>
 <style>
 :root{
   --bg:#f5f6f8;--panel:#fff;--ink:#15171b;--muted:#727985;--line:#e6e8ec;
@@ -419,7 +419,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
  .hookImagePanel .imageGrid3 .hookChoice{flex:0 0 clamp(184px,47%,242px);min-width:184px}
 }
 
-/* v0.9.2 immersive hook image editor */
+/* v1.0.0 immersive hook image editor */
 .hookMaker{display:grid;gap:10px;background:#f8fafc;border:1px solid #e4e8ed;padding:13px;border-radius:14px;margin-bottom:15px}
 .hookEditLabel{display:grid;gap:7px;font-size:11px;font-weight:900;color:#384354}
 #hookHeadline{width:100%;min-height:70px;resize:vertical;border:1px solid #d9dfe8;border-radius:10px;background:white;padding:12px;font-family:inherit;font-size:14px;line-height:1.5;color:#12171e}
@@ -430,7 +430,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 .hookMakerInfo{font-size:10px;color:#687583;line-height:1.55;margin:0}
 @media(max-width:650px){.hookMakerTools{display:grid;grid-template-columns:1fr}.hookMakerTools .btn{width:100%}.hookMakerTools label{min-width:0}#hookHeadline{font-size:16px}}
 
-/* v0.9.2 AI photo candidates and durable local history */
+/* v1.0.0 AI photo candidates and durable local history */
 .photoHistory{display:grid;gap:9px;margin:0 0 13px}
 .photoHistory .historyHead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .photoHistory .historyHead b{font-size:12px;color:#232a35}
@@ -466,7 +466,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 #carouselArtStatus{margin:10px 0 0;font-size:11px;color:#687482;line-height:1.55;overflow-wrap:anywhere}
 @media(max-width:650px){.carouselImageToolsRow{display:grid;grid-template-columns:1fr}.carouselImageToolsRow .btn{min-width:0;width:100%}}
 
-/* v0.9.2 touch-friendly Instagram carousel and real image thumbnail rail */
+/* v1.0.0 touch-friendly Instagram carousel and real image thumbnail rail */
 .instagramCarouselViewer{width:100%;min-width:0;display:grid;gap:12px}
 .instaSwipeFrame{position:relative;width:100%;max-width:500px;margin:0 auto;touch-action:pan-y;user-select:none;-webkit-user-select:none;outline-offset:5px}
 .instaSwipeFrame:focus-visible{outline:3px solid #4263eb;border-radius:20px}
@@ -502,7 +502,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 }
 @media(prefers-reduced-motion:reduce){.instaCard>img{animation:none}}
 
-/* v0.9.2 one-tap secure server connector */
+/* v1.0.0 one-tap secure server connector */
 .serverConnectButton{border:1px solid #e3e7eb;background:#fff;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:7px;color:#334155;min-height:43px;padding:10px 13px;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s}
 .serverConnectButton.connected{color:#08754c;background:#e6f7ee;border-color:#acdabc}
 .serverConnectButton.connecting{color:#926000;background:#fff6df;border-color:#f1d59e}
@@ -529,7 +529,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 @media(max-width:930px){.desktopConnectionBar{display:none}.mobileTop .mobileConnect{margin-left:auto;flex-shrink:0;font-size:11px;min-height:40px;padding:9px 10px}}
 @media(max-width:370px){.mobileTop .mobileConnect{font-size:10px;padding:9px 8px}.mobileTopBrand{font-size:17px}}
 
-/* v0.9.2: cross-platform multi-product studio */
+/* v1.0.0: cross-platform multi-product studio */
 .multiStudioPanel{margin:12px 0 17px;border:1px solid #dce5ed;background:#fff;border-radius:17px;box-shadow:0 8px 25px rgba(13,30,54,.04);overflow:hidden}
 .multiStudioTop{padding:17px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .multiStudioTop>div:first-child{display:grid;gap:5px}.multiStudioTop strong{font-size:15px;color:#243042}.multiStudioTop small{font-size:11px;color:#748091}
@@ -600,7 +600,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 .multiStoryGuard{font-size:10px;line-height:1.65;color:#7e6870;margin:0}
 @media(max-width:580px){.multiStoryControls{grid-template-columns:1fr}.multiStoryPanel{padding:11px}}
 
-/* v0.9.2: reusable psychological curiosity hooks for Threads and Instagram */
+/* v1.0.0: reusable psychological curiosity hooks for Threads and Instagram */
 .openingHookPanel{margin:12px 0 17px;padding:16px;border:1px solid #e1e6ee;background:linear-gradient(125deg,#fffdf8,#f6f9fc);border-radius:16px;display:grid;gap:12px}
 .openingHookHeading{display:flex;gap:8px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
 .openingHookHeading>div{display:grid;gap:4px}.openingHookHeading b{font-size:14px;color:#283446}.openingHookHeading small{font-size:11px;color:#7a8493}
@@ -637,7 +637,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
     <button data-view="scheduler">📅 자동게시 설정</button>
     
   </nav>
-  <div class="sideFoot"><b>v0.7.0 Prototype</b>토스 API 승인 전 샘플 데이터로 실제 제작 흐름을 점검하는 버전입니다. v0.4 검수 페이지는 그대로 유지됩니다.</div>
+  <div class="sideFoot"><b>v0.7.0 Prototype</b>쿠팡 파트너스 API 연결 전 샘플 데이터로 제작 흐름을 점검하는 버전입니다. v0.4 검수 페이지는 그대로 유지됩니다.</div>
 </aside>
 
 <main class="main">
@@ -668,13 +668,13 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
     <div class="field"><label>개인 연결 암호 (서버의 VIRALPICK_ACCESS_KEY 값)</label><input id="apiAccess" type="password" autocomplete="off" placeholder="연결 암호 (기억하기 선택 가능)" oninput="markBackendDisconnected()"></div>
     <div class="btnrow"><button class="btn primary" type="button" onclick="checkBackendStatus()">서버 연결 확인</button><button class="btn" type="button" onclick="openQuickConnection()">암호 기억하기·연결 관리</button><button class="btn" type="button" onclick="clearBackendAccess()">저장된 암호 삭제</button></div>
     <div class="aiNote" id="apiResult" style="margin-top:11px">Vercel 프로젝트 생성은 확인됐습니다. 이제 서버의 연결 암호와 OpenAI API 키를 Vercel 환경변수에 등록한 뒤 연결을 확인하세요. 배포 보호 설정에 따라 외부 호출이 차단될 수 있습니다.</div>
-    <p class="queueHint">API 키는 여기에 입력하지 마세요. OpenAI·토스 토큰은 Vercel 환경변수에만 저장합니다. Vercel 배포 보호 기능이 모든 접속을 차단하면 GitHub Pages에서 API를 호출할 수 없습니다. 서버 보안 설정을 확인하세요.</p>
+    <p class="queueHint">API 키는 여기에 입력하지 마세요. OpenAI·쿠팡 파트너스 키는 Vercel 환경변수에만 저장합니다. Vercel 배포 보호 기능이 모든 접속을 차단하면 GitHub Pages에서 API를 호출할 수 없습니다. 서버 보안 설정을 확인하세요.</p>
    </div>
   </div>
-  <div class="panel" style="margin-top:0"><div class="panelHead"><h2>토스 상품 가져오기</h2><span class="badge" id="tossHealth">승인 명세 설정 대기</span></div>
-   <div class="pad"><div class="field"><label>상품 검색어</label><input id="tossSearch" placeholder="예: 무선 청소기"></div>
-    <div class="btnrow"><button class="btn primary" onclick="fetchTossProducts()">토스 상품 불러오기</button></div>
-    <div class="aiNote" style="margin-top:10px">현재는 공식 승인 API의 조회 URL·인증 형식을 서버에 설정해야 동작합니다. 실제 상품 데이터를 축적한 공개 쇼핑몰이나 가격비교 서비스는 만들지 않습니다.</div>
+  <div class="panel" style="margin-top:0"><div class="panelHead"><h2>쿠팡 파트너스 상품 가져오기</h2><span class="badge" id="tossHealth">파트너스 API 키 대기</span></div>
+   <div class="pad"><div class="field"><label>상품 검색어</label><input id="tossSearch" placeholder="예: 무선 청소기" onkeydown="if(event.key==='Enter')fetchCoupangProducts()"></div>
+    <div class="btnrow"><button class="btn primary" onclick="fetchCoupangProducts()">쿠팡 상품 검색</button></div>
+    <div class="aiNote" style="margin-top:10px">쿠팡 파트너스 최종 승인 후 발급한 Access Key·Secret Key를 Vercel 서버 환경변수에 등록해야 상품 검색·제휴 링크 발급이 동작합니다. 키는 이 브라우저에 입력하지 마세요. 가격·재고는 변경될 수 있습니다.</div>
     <div class="importedProducts" id="importedProducts"></div>
    </div>
   </div>
@@ -802,7 +802,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
   <div class="multiEditHead"><strong>선택한 상품 · 문구와 사진</strong><small>상단부터 게시 순서로 출력됩니다.</small></div>
   <div class="multiSelectedItems" id="multiSelectedItemsThreads"></div>
   <label class="multiTitleLabel">마지막 요약 카드 문구<textarea class="multiSummaryInput" rows="2" maxlength="210" oninput="editMultiSummary(this.value)" placeholder="예: 구매 전 가격·옵션·재고를 확인하세요."></textarea></label>
-  <div class="multiPolicyMessage"><b>토스 이미지 정책 준수</b> — 토스 API 썸네일·상세 이미지는 <b>크롭·합성·텍스트 삽입 없이 원본 그대로</b>만 노출할 수 있습니다. 모음형 카드 합성에는 직접 촬영했거나 상업적 편집을 허락받은 사진만 사용합니다. 권한 없는 상품은 사진을 제외하고 상품명·설명으로 구성합니다. AI 시연 이미지는 실제 판매 상품으로 표시하지 않습니다.</div>
+  <div class="multiPolicyMessage"><b>제휴 상품 이미지 이용</b> — 쿠팡 파트너스 상품 사진의 <b>편집·합성 권한은 자동으로 부여되지 않습니다.</b> API 원본은 별도 가공 허락 없이 카드에 합성하지 않습니다. 모음형 카드 합성에는 직접 촬영했거나 상업적 편집을 허락받은 사진만 사용합니다. 권한 없는 상품은 사진을 제외하고 상품명·설명으로 구성합니다. AI 시연 이미지는 실제 판매 상품으로 표시하지 않습니다.</div>
   <div class="multiPersistStatus" id="multiPersistStatusThreads" aria-live="polite">선택·문구는 이 브라우저에 자동 저장합니다.</div>
  </div>
 </div>
@@ -916,7 +916,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
   <div class="multiEditHead"><strong>선택한 상품 · 문구와 사진</strong><small>상단부터 게시 순서로 출력됩니다.</small></div>
   <div class="multiSelectedItems" id="multiSelectedItemsInstagram"></div>
   <label class="multiTitleLabel">마지막 요약 카드 문구<textarea class="multiSummaryInput" rows="2" maxlength="210" oninput="editMultiSummary(this.value)" placeholder="예: 구매 전 가격·옵션·재고를 확인하세요."></textarea></label>
-  <div class="multiPolicyMessage"><b>토스 이미지 정책 준수</b> — 토스 API 썸네일·상세 이미지는 <b>크롭·합성·텍스트 삽입 없이 원본 그대로</b>만 노출할 수 있습니다. 모음형 카드 합성에는 직접 촬영했거나 상업적 편집을 허락받은 사진만 사용합니다. 권한 없는 상품은 사진을 제외하고 상품명·설명으로 구성합니다. AI 시연 이미지는 실제 판매 상품으로 표시하지 않습니다.</div>
+  <div class="multiPolicyMessage"><b>제휴 상품 이미지 이용</b> — 쿠팡 파트너스 상품 사진의 <b>편집·합성 권한은 자동으로 부여되지 않습니다.</b> API 원본은 별도 가공 허락 없이 카드에 합성하지 않습니다. 모음형 카드 합성에는 직접 촬영했거나 상업적 편집을 허락받은 사진만 사용합니다. 권한 없는 상품은 사진을 제외하고 상품명·설명으로 구성합니다. AI 시연 이미지는 실제 판매 상품으로 표시하지 않습니다.</div>
   <div class="multiPersistStatus" id="multiPersistStatusInstagram" aria-live="polite">선택·문구는 이 브라우저에 자동 저장합니다.</div>
  </div>
 </div>
@@ -981,7 +981,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
   <div class="analyticsGrid" style="margin-top:15px">
     <div class="analyticsMetric"><div class="ak">게시물</div><div class="av" id="anPosts">0</div><div class="as">선택 기간</div></div>
     <div class="analyticsMetric"><div class="ak">총 도달/조회</div><div class="av" id="anReach">0</div><div class="as">Threads 조회 + Instagram 도달</div></div>
-    <div class="analyticsMetric"><div class="ak">링크 클릭</div><div class="av" id="anClicks">0</div><div class="as">쉐어링크 이동</div></div>
+    <div class="analyticsMetric"><div class="ak">링크 클릭</div><div class="av" id="anClicks">0</div><div class="as">파트너스 링크 이동</div></div>
     <div class="analyticsMetric"><div class="ak">구매</div><div class="av" id="anSales">0</div><div class="as">전환 발생</div></div>
     <div class="analyticsMetric"><div class="ak">예상 제휴수익</div><div class="av" id="anRevenue">0원</div><div class="as">샘플 수익 데이터</div></div>
   </div>
@@ -1003,7 +1003,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 
   <div class="performanceHero">
     <div class="perfBox"><div class="pk">분석 게시물</div><div class="pv" id="perfPosts">42</div><div class="ps">최근 7일 Threads + Instagram</div></div>
-    <div class="perfBox"><div class="pk">총 링크 클릭</div><div class="pv" id="perfClicks">1,284</div><div class="ps">쉐어링크 이동</div></div>
+    <div class="perfBox"><div class="pk">총 링크 클릭</div><div class="pv" id="perfClicks">1,284</div><div class="ps">파트너스 링크 이동</div></div>
     <div class="perfBox"><div class="pk">구매 발생</div><div class="pv" id="perfSales">37</div><div class="ps">성과 데이터 연결 예정</div></div>
     <div class="perfBox"><div class="pk">블로그 확장 추천</div><div class="pv" id="perfRecommended">3</div><div class="ps">성과점수 70 이상</div></div>
   </div>
@@ -1174,7 +1174,7 @@ function withProductJosa(name,withFinal,withoutFinal){
  const code=hits[hits.length-1].charCodeAt(0);
  return s+((code-0xac00)%28?withFinal:withoutFinal);
 }
-const affiliateDisclosure='※ 이 게시물은 토스쇼핑 쉐어링크 활동의 일환으로, 구매 발생 시 일정 수수료를 제공받을 수 있습니다.';
+const affiliateDisclosure='※ 이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.';
 
 
 const liveMedia=new Map();
@@ -1525,7 +1525,7 @@ function syncProductInputs(){
   manualNovel:p.novel,manualAudience:p.audience,manualVisual:p.visual,
   scenePrompt:p.visual||''
  })){const e=$('#'+id);if(e)e.value=v||''}
- if($('#liveProductStatus'))$('#liveProductStatus').textContent=({sample:'시연용 샘플',manual:'직접 입력',toss:'토스 API 수신'}[p.source]||'시연용 샘플');
+ if($('#liveProductStatus'))$('#liveProductStatus').textContent=({sample:'시연용 샘플',manual:'직접 입력',coupang:'쿠팡 파트너스 API 수신'}[p.source]||'시연용 샘플');
  renderMediaPreview();renderPhotoHistories();
 }
 function renderMediaPreview(){
@@ -1539,7 +1539,7 @@ function renderMediaPreview(){
  }).join('');
 }
 
-/* v0.9.2: explicitly opted-in, browser-local encrypted access vault. */
+/* v1.0.0: explicitly opted-in, browser-local encrypted access vault. */
 const CONNECTION_VAULT_NAME='viralpick-connection-vault',CONNECTION_VAULT_STORE='secrets',CONNECTION_VAULT_ID='backend-access-v1';
 let backendConnectionState='disconnected',backendConnectionBusy=false,rememberedAccessEnabled=false;
 let connectionRestoreTask=Promise.resolve();
@@ -1732,9 +1732,9 @@ async function checkBackendStatus({fromHeader=false,remember=undefined}={}){
  const submit=$('#quickConnectSubmit');if(submit){submit.disabled=true;submit.textContent='연결 확인 중…'}
  try{
   const data=await backendRequest('/api/status');
-  const note='보호된 서버 연결 정상 · GPT Image 2: '+(data.imageReady?'사용 준비':'API 키 설정 필요')+' / 토스: '+(data.tossConfigured?'서버 명세 설정됨':'승인 명세 설정 필요');
+  const note='보호된 서버 연결 정상 · GPT Image 2: '+(data.imageReady?'사용 준비':'API 키 설정 필요')+' / 쿠팡 파트너스: '+(data.coupangConfigured?'API 키 설정됨':'키 등록 필요');
   showBackendState('connected',note);
-  const toss=$('#tossHealth');if(toss)toss.textContent=data.tossConfigured?'서버 설정 있음':'토스 연동 대기';
+  const coupang=$('#tossHealth');if(coupang)coupang.textContent=data.coupangConfigured?'API 키 설정됨':'API 키 등록 필요';
   let reminder='';
   if(remember===true){
    try{await saveRememberedAccess($('#apiAccess').value,persistBackendUrl());reminder=' 암호도 이 브라우저에 암호화해 기억했습니다.'}
@@ -1830,7 +1830,7 @@ function saveManualProduct(){
   visual:trimText($('#manualVisual').value,220)
  };
  if(!p.name||!Number.isSafeInteger(p.price)||p.price<=0||!p.problem||!p.novel||!p.visual){toast('상품명·판매가·문제상황·확인된 기능·이미지 설명을 입력하세요.');return}
- const base=selected.source==='manual'||selected.source==='toss'?selected:null;
+ const base=selected.source==='manual'||selected.source==='coupang'?selected:null;
  if(base){Object.assign(base,p)}
  else{
   const id=Math.max(...products.map(item=>Number(item.id)||0),10)+1;
@@ -1860,7 +1860,7 @@ async function setMediaSlot(slot,data,kind='ai'){
  renderProductLists();renderMediaPreview();renderThreads();renderInstagram();
 }
 async function uploadProductImage(file){
- if(!window.confirm('직접 촬영했거나 상업적 홍보·합성·편집을 허락받은 사진인가요? 토스쇼핑 API 원본은 가공할 수 없습니다.'))return;
+ if(!window.confirm('직접 촬영했거나 상업적 홍보·합성·편집을 허락받은 사진인가요? 쿠팡 API 원본도 별도 편집 허락 없이 가공할 수 없습니다.'))return;
  try{const media=await readImageFile(file);await setMediaSlot('product',media.data,'licensed-upload');toast('상품 사진이 3번째 카드와 출력 이미지에 반영됐습니다.')}
  catch(e){toast('업로드 오류: '+e.message)}
 }
@@ -1916,17 +1916,17 @@ async function requestAiScene(purpose='instagram'){
 }
 function productCard(p){
  const img=liveMedia.get(p.id)?.product?.data;
- const picture=img&&safeDataImage(img)?img:(p.source!=='toss'||multiStudio.allowedToss[String(p.id)]===true)&&p.imageUrl&&/^https:\/\//.test(p.imageUrl)?p.imageUrl:null;
+ const picture=img&&safeDataImage(img)?img:(p.source!=='coupang'||multiStudio.allowedToss[String(p.id)]===true)&&p.imageUrl&&/^https:\/\//.test(p.imageUrl)?p.imageUrl:null;
  const thumb=picture?'<img alt="상품 사진" src="'+cleanMarkup(picture)+'" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">':'상품 사진<br>미등록';
  return `<div class="product ${p.id===selected.id?'selected':''}" onclick="selectProduct(${p.id})">
   <div class="prodTop"><div class="thumb">${thumb}</div><div><span class="badge ${p.source==='sample'?'orange':'green'}">${cleanMarkup(p.type)}</span><h3>${cleanMarkup(p.name)}</h3><div class="old">${p.old!==p.price?fmt(p.old):''}</div><div class="price">${fmt(p.price)}</div></div></div>
-  <div class="meta"><span class="badge blue">${p.source==='manual'?'직접 입력':p.source==='toss'?'API 수신 · 검수 필요':'시연용 샘플'}</span><span class="badge">SNS 분석: ${p.source?'데이터 수집 전':'샘플'}</span></div>
+  <div class="meta"><span class="badge blue">${p.source==='manual'?'직접 입력':p.source==='coupang'?'쿠팡 API 수신 · 검수 필요':'시연용 샘플'}</span><span class="badge">SNS 분석: ${p.source?'데이터 수집 전':'샘플'}</span></div>
   <div class="reason">${cleanMarkup(p.reason)}</div>
   <div class="score"><div><div style="font-size:9px;color:#7b838e;margin-bottom:5px">바이럴 점수 ${p.viral?'시연용':'실측 데이터 없음'}</div><div class="bar"><i style="width:${Number(p.viral)||0}%"></i></div></div><b>${p.viral||'–'}</b></div>
  </div>`;
 }
 
-/* v0.9.2 shared multi-product studio: browser-private, content output rights aware. */
+/* v1.0.0 shared multi-product studio: browser-private, content output rights aware. */
 
 const MULTI_STORY_PRESETS={
 solo:{headline:'자취하면 은근 신경 쓰이는 불편, 이런 꿀템 어때?',title:'혼자 살면 더 크게 느껴지는 작은 불편',
@@ -2209,8 +2209,8 @@ function toggleMultiProduct(id,checked){
 function toggleTossOriginalApproval(id,approved){
  id=Number(id);
  const p=products.find(x=>x.id===id);
- if(!p||p.source!=='toss')return;
- if(approved&&!window.confirm('해당 판매 페이지에서 이미지 사용 금지 표시가 없는지 확인하셨나요? 확인 후에도 토스 원본은 편집·합성할 수 없습니다.')){renderMultiStudios();return}
+ if(!p||p.source!=='coupang')return;
+ if(approved&&!window.confirm('쿠팡 파트너스 상품 이미지 이용 조건을 확인하셨나요? 원본 표시 확인은 편집 권한 허용을 뜻하지 않습니다.')){renderMultiStudios();return}
  if(approved)multiStudio.allowedToss[String(id)]=true;else delete multiStudio.allowedToss[String(id)];
  multiStudio.revision++;persistMultiStudio();renderMultiStudios();renderProductLists();
 }
@@ -2253,12 +2253,12 @@ function multiMediaFor(p){
 }
 function multiProductRow(p,i){
  const licensed=multiEditableAssets.get(p.id),generated=multiSceneAssets.get(p.id);
- const approvedOriginal=p.source==='toss'&&multiStudio.allowedToss[String(p.id)]===true&&/^https:\/\//.test(p.imageUrl||'');
+ const approvedOriginal=p.source==='coupang'&&multiStudio.allowedToss[String(p.id)]===true&&/^https:\/\//.test(p.imageUrl||'');
  const src=licensed?.data||generated?.data||(approvedOriginal?p.imageUrl:null);
  const note=multiItemNote(p),name=cleanMarkup(p.name);
- const photo=src?'<img src="'+cleanMarkup(src)+'" alt="'+name+' '+(licensed?'편집 허가 이미지':generated?'AI 생성 상황 예시':'토스 원본 미리보기')+'" loading="lazy">':'<span aria-label="등록된 사진 없음">▧</span>';
- const link=approvedOriginal?'<a href="'+cleanMarkup(p.imageUrl)+'" rel="noopener noreferrer" target="_blank">토스 원본 별도 보기</a>':'';
- const tossReview=p.source==='toss'?'<label class="multiTossApproval"><input type="checkbox" '+(approvedOriginal?'checked':'')+' onchange="toggleTossOriginalApproval('+p.id+',this.checked)">상세페이지 이미지 사용 금지 표시가 없는지 직접 확인했습니다 (원본 미리보기만 허용)</label>':'';
+ const photo=src?'<img src="'+cleanMarkup(src)+'" alt="'+name+' '+(licensed?'편집 허가 이미지':generated?'AI 생성 상황 예시':'쿠팡 원본 미리보기')+'" loading="lazy">':'<span aria-label="등록된 사진 없음">▧</span>';
+ const link=approvedOriginal?'<a href="'+cleanMarkup(p.imageUrl)+'" rel="noopener noreferrer" target="_blank">쿠팡 원본 별도 보기</a>':'';
+ const tossReview=p.source==='coupang'?'<label class="multiTossApproval"><input type="checkbox" '+(approvedOriginal?'checked':'')+' onchange="toggleTossOriginalApproval('+p.id+',this.checked)">쿠팡 파트너스 이미지 사용 조건을 확인했습니다 (원본 미리보기만)</label>':'';
  return '<div class="multiItemRow">'+
   '<div class="multiItemPicture">'+photo+'</div>'+
   '<div class="multiItemInfo">'+
@@ -2270,7 +2270,7 @@ function multiProductRow(p,i){
    '<div class="multiItemPhotoControls"><label>편집 허가 사진 업로드 <input type="file" accept="image/png,image/jpeg,image/webp" onchange="uploadMultiLicensedPhoto(event,'+p.id+')"></label>'+
    '<button type="button" onclick="generateMultiSceneImage('+p.id+')" '+(multiAiBusy.has(p.id)?'disabled':'')+'>'+(multiAiBusy.has(p.id)?'AI 생성 중…':'✨ AI 상황 예시 1장')+'</button>'+
    (licensed?'<button type="button" onclick="removeMultiLicensedPhoto('+p.id+')">업로드 사진 제거</button>':'')+(generated?'<button type="button" onclick="removeMultiSceneImage('+p.id+')">AI 예시 삭제</button>':'')+link+'</div>'+
-   (tossReview||'')+'<p class="multiItemRights">'+(licensed?'✓ 별도 편집 권한 확인 사진':generated?'AI로 만든 상황 예시입니다. 실제 판매 상품 모습과 다를 수 있습니다.':'토스 API 원본은 편집 카드에 자동 합성하지 않습니다. 편집 허가 사진이나 AI 예시 이미지를 별도로 사용해 주세요.')+'</p>'+
+   (tossReview||'')+'<p class="multiItemRights">'+(licensed?'✓ 별도 편집 권한 확인 사진':generated?'AI로 만든 상황 예시입니다. 실제 판매 상품 모습과 다를 수 있습니다.':'쿠팡 API 이미지는 별도 편집 허가 없이 카드에 합성하지 않습니다. 편집 허가 사진이나 AI 예시 이미지를 별도로 사용해 주세요.')+'</p>'+
   '</div></div>';
 }
 function renderMultiProductPicker(query=undefined){
@@ -2283,7 +2283,7 @@ function renderMultiProductPicker(query=undefined){
   target.innerHTML=filtered.map(p=>{
    const checked=multiStudio.selectedIds.includes(p.id);
    return '<label class="multiProductOption"><input type="checkbox" '+(checked?'checked':'')+
-    ' onchange="toggleMultiProduct('+p.id+',this.checked)"><span><b>'+cleanMarkup(p.name)+'</b><small>'+cleanMarkup(multiItemPrice(p))+(p.source==='toss'?' · 토스 원본 편집 불가':'')+'</small></span></label>';
+    ' onchange="toggleMultiProduct('+p.id+',this.checked)"><span><b>'+cleanMarkup(p.name)+'</b><small>'+cleanMarkup(multiItemPrice(p))+(p.source==='coupang'?' · 쿠팡 원본 편집 권한 확인 필요':'')+'</small></span></label>';
   }).join('')||'<p class="multiHelperText">검색 결과가 없습니다.</p>';
  }
 }
@@ -2322,7 +2322,7 @@ async function uploadMultiLicensedPhoto(event,id){
  if(!file)return;
  id=Number(id);
  if(!products.some(p=>p.id===id)){if(input)input.value='';return}
- if(!window.confirm('이 사진을 직접 촬영했거나, 권리자로부터 상업적 홍보 및 크롭·텍스트 합성·수정 허락을 받았습니까? 토스 API에서 받은 원본 사진은 업로드하면 안 됩니다.')){
+ if(!window.confirm('이 사진을 직접 촬영했거나, 권리자로부터 상업적 홍보 및 크롭·텍스트 합성·수정 허락을 받았습니까? API 제공 이미지는 별도로 편집 허락받은 경우에만 업로드하세요.')){
   if(input)input.value='';return;
  }
  try{
@@ -2567,7 +2567,7 @@ function getCurrentInstagramCaption(){if(isMultiMode('Instagram'))return getMult
 function onInstagramFinalEdit(){if(isMultiMode('Instagram')){editMultiCaption('Instagram',$('#instaCaption').value);return}customInstagramCaptions[selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex]=$('#instaCaption').value;renderInstagramDupStatus()}
 
 function dupNormalize(text){
- const lines=String(text||'').split('\n').filter(line=>!/(토스쇼핑 쉐어링크 활동|구매 발생 시 일정 수수료|#생활템|#제품정보)/.test(line));
+ const lines=String(text||'').split('\n').filter(line=>!/(쿠팡 파트너스 활동|토스쇼핑 쉐어링크 활동|구매 발생 시 일정 수수료|#생활템|#제품정보)/.test(line));
  return lines.join(' ').normalize('NFKC').toLowerCase().replace(/[^a-z0-9가-힣]+/g,' ').replace(/\s+/g,' ').trim().slice(0,2000);
 }
 function getBigrams(str){
@@ -2842,7 +2842,7 @@ function instaCards(p){
  {short:'문제 공감',html:`<div class="bg scene2"></div><div class="content"><div><div class="num">02 / 05</div><h3>은근 반복되는<br>이 불편</h3><p>${p.problem}</p></div><div class="productBox">${p.visual}<br><span style="font-size:10px;font-weight:700">이미지 연동 전 시안</span></div></div>`},
  {short:'상품 등장',html:`<div class="bg" style="background:#f7f8fa"></div><div class="content"><div><div class="num">03 / 05</div><h3>그래서<br>찾아본 게 이거</h3></div><div class="productBox">실제 상품 사진<br>미연결</div><p>${p.name}</p></div>`},
  {short:'핵심 장점',html:`<div class="bg scene3"></div><div class="content"><div><div class="num">04 / 05</div><h3>왜 괜찮아<br>보였냐면</h3><p>✓ ${p.novel}<br><br>✓ ${p.audience}에게 특히 잘 맞음<br><br>✓ 문제 하나를 단순하게 줄여주는 타입</p></div><div class="cta">핵심만 짧게 정리</div></div>`},
- {short:'가격·CTA',html:`<div class="bg" style="background:#fff"></div><div class="content"><div><div class="num">05 / 05</div><h3>필요한 사람은<br>가격만 체크</h3><p>현재 토스쇼핑 기준</p><div style="font-size:38px;font-weight:950;margin-top:8px">${fmt(p.price)}</div><p>정상가 ${fmt(p.old)} · ${p.discount}% 할인<br>가격·판매 상태는 변동될 수 있음</p></div><div class="cta">저장해두고 필요할 때 확인</div></div>`}
+ {short:'가격·CTA',html:`<div class="bg" style="background:#fff"></div><div class="content"><div><div class="num">05 / 05</div><h3>필요한 사람은<br>가격만 체크</h3><p>현재 쿠팡 조회 기준</p><div style="font-size:38px;font-weight:950;margin-top:8px">${fmt(p.price)}</div><p>정상가 ${fmt(p.old)} · ${p.discount}% 할인<br>가격·판매 상태는 변동될 수 있음</p></div><div class="cta">저장해두고 필요할 때 확인</div></div>`}
  ];}
 function instaCaption(p){
  const profile=getHookProfile(p);
@@ -2869,7 +2869,7 @@ ${lines[instagramDiversity]}
 
 #생활템 #제품정보 #사용팁 #구매가이드
 
-※ 이 게시물은 토스쇼핑 쉐어링크 활동의 일환으로, 구매 발생 시 일정 수수료를 제공받을 수 있습니다.`;
+※ 이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.`;
 }
 
 /* No external image API: fully local, downloadable 1080x1350 graphics */
@@ -3772,8 +3772,8 @@ function openReservation(platform){
  $('#reserveApproved').checked=false;
  $('#reserveProductCheck').checked=false;
  $('#reserveLinkCheck').checked=false;
- $('#reserveWarning').textContent=(many?'※ 모음형 카드는 권한이 확인된 편집 이미지만 합성합니다. 토스 원본 이미지 가공은 금지됩니다. ':'')+
-  '실제 자동게시가 아닌 브라우저 저장용 모의 예약입니다. 각 상품의 가격·재고·이미지 사용권·제휴 링크를 직접 검수해 주세요.';
+ $('#reserveWarning').textContent=(many?'※ 모음형 카드는 권한이 확인된 편집 이미지만 합성합니다. 쿠팡 API 사진은 편집 허가 없이는 합성하지 않습니다. ':'')+
+  '실제 자동게시가 아닌 브라우저 저장용 모의 예약입니다. 각 상품의 가격·재고·이미지 사용권·쿠팡 파트너스 링크를 직접 검수해 주세요.';
  $('#reserveWarning').classList.remove('error');
  updateReservationButton();
  $('#reservationOverlay').hidden=false;
