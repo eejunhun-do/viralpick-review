@@ -1,9 +1,11 @@
+import {session,getKeys} from '../lib/account-store.js';
 import {json,preflight,checkAccess,safePayload} from '../lib/api-guard.js';
 export function OPTIONS(req){return preflight(req)}
 export async function POST(req){
  const problem=checkAccess(req);
  if(problem)return json(req,{ok:false,message:problem},problem.includes('설정')?503:401);
- const key=process.env.OPENAI_API_KEY;
+ const user=session(req);
+ const key=user?(await getKeys(user)).openaiApiKey:process.env.OPENAI_API_KEY;
  if(!key)return json(req,{ok:false,message:'서버에 OPENAI_API_KEY를 설정해 주세요.'},503);
  let data;
  try{data=await safePayload(req)}catch(e){return json(req,{ok:false,message:'요청 형식 오류: '+e.message},400)}
