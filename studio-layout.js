@@ -129,6 +129,19 @@ function build(platform){
   if(cover)stages.visual.insertBefore(cover,stages.visual.children[1]||null);
   append(stages.visual,direct(root,'.singleOnlyInstagram.aiNote'));
  }
+ const quick=el('div','vpStudioStageQuick');
+ if(key==='threads'){
+  const copy=el('button','btn','본문 복사');copy.type='button';copy.onclick=()=>window.copyThread();
+  const save=el('button','btn primary','후킹 이미지 PNG 저장');save.type='button';save.onclick=()=>window.downloadThreadPNG();
+  stages.copy.insertBefore(copy,stages.copy.children[2]||null);
+  quick.appendChild(save);
+ }else{
+  const coverNew=el('button','btn','표지 시안 새로 만들기');coverNew.type='button';coverNew.onclick=()=>window.cycleCover();
+  const coverAi=el('button','btn','✨ AI 실사 표지 생성');coverAi.type='button';coverAi.onclick=()=>window.requestAiScene('instagram');
+  const zip=el('button','btn primary','캐러셀 ZIP 저장');zip.type='button';zip.onclick=()=>window.downloadInstagramZIP();
+  quick.appendChild(coverNew);quick.appendChild(coverAi);quick.appendChild(zip);
+ }
+ stages.visual.insertBefore(quick,stages.visual.children[1]||null);
  const reminders=el('div','vpStudioReviewNote');
  reminders.appendChild(el('strong','','게시 전 확인 사항'));
  const checklist=el('p','',
