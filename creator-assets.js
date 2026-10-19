@@ -5,7 +5,7 @@ const HOOK_KEY='vp-creator-hooks-v1';
 const ALIAS_KEY='vp-creator-alias-v1';
 const $=s=>document.querySelector(s);
 const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const state={threads:{chosen:'thumb',rights:false,busy:false},instagram:{chosen:'thumb',rights:false,busy:false}};
+const state={threads:{chosen:'',rights:false,busy:false,owner:''},instagram:{chosen:'',rights:false,busy:false,owner:''}};
 const fields=['threads','instagram'];
 function ownerKey(){return String(typeof selected==='undefined'?'':selected?.id||'')}
 function storageValue(key,backup={}){
@@ -36,6 +36,7 @@ function assets(){
 }
 function selection(platform){
  const items=assets(),s=state[platform];
+ if(s.owner!==ownerKey()){s.owner=ownerKey();s.chosen='';s.rights=false}
  const valid=items.find(x=>x.id===s.chosen);
  if(valid)return valid;
  const cached=(()=>{try{return sessionStorage.getItem('vp-creator-photo:'+ownerKey()+':'+platform)}catch{return null}})();
@@ -163,9 +164,9 @@ function creatorNode(platform){
  '<div class="vpHookChoices" role="group" aria-label="후킹 문구 선택"></div><label class="vpCreatorDirect">후킹 문구 직접 수정<input class="vpCustomHook" maxlength="120" type="text" placeholder="직접 후킹 문구 입력"></label><p class="vpHookStatus" role="status">기본 생활형 후보 5개 제공 · AI 재생성 시 API 비용 발생</p>'+
  '<div class="vpCreatorSceneRow"><label>제품을 사용하는 장면 설명<textarea class="vpCreatorScene" maxlength="500" rows="2" placeholder="예: 외식 중 보호자가 아기에게 일회용 턱받이를 착용시키는 자연스러운 장면"></textarea></label><button type="button" class="btn primary vpImageCreate">선택한 제품으로 실사 배경 2장 생성</button></div><p class="vpAssetStatus" role="status">제품 이미지를 선택하고 편집 권한을 확인한 뒤 생성하세요. AI 생성물은 원본과 차이가 날 수 있습니다.</p>';
  root.querySelector('.vpAssetRights input').onchange=e=>{state[platform].rights=e.target.checked};
- root.querySelector('.vpAssetUpload').onchange=async e=>{if(e.target.files?.[0]){await uploadProductImage(e.target.files[0]);state[platform].chosen='upload';state[platform].rights=true;renderGallery(platform)}};
+ root.querySelector('.vpAssetUpload').onchange=async e=>{if(e.target.files?.[0]){await uploadProductImage(e.target.files[0]);if(currentMedia()?.product?.kind==='licensed-upload'){state[platform].chosen='upload';state[platform].rights=true}else{state[platform].rights=false}renderGallery(platform)}};
  root.querySelector('.vpAssetSceneUpload').onchange=e=>{if(e.target.files?.[0])void uploadSceneImage(e.target.files[0])};
- root.querySelector('.vpAssetClear').onclick=()=>{clearAsset('product');state[platform].chosen='thumb';renderGallery(platform)};
+ root.querySelector('.vpAssetClear').onclick=()=>{clearAsset('product');state[platform].chosen='';state[platform].rights=false;renderGallery(platform)};
  root.querySelector('.vpHookRegenerate').onclick=()=>regenerateHooks(platform);
  root.querySelector('.vpImageCreate').onclick=()=>generate(platform);
  root.querySelector('.vpCustomHook').onchange=e=>applyHook(platform,e.target.value);
