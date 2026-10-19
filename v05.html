@@ -1399,6 +1399,10 @@ async function runCarouselArtworkGeneration(slides){
  let done=0,saved=0;
  const status=$('#carouselArtStatus');
  try{
+  const imageMode=$('#instagram .vpImageMode')?.value||'scene';
+  const reference=imageMode==='product'?liveMedia.get(targetId)?.product:null;
+  if(imageMode==='product'&&reference?.kind!=='licensed-upload')throw Error('제품 사용 사진 모드에는 권한 있는 제품 사진을 먼저 업로드해야 합니다.');
+  const referenceImage=reference?await vpResizeReferenceImage(reference.data):undefined;
   for(const slide of slides){
    if(status)status.textContent=slide+'번 카드 AI 사진 생성 중… ('+(done+1)+'/'+count+')';
    const data=await backendRequest('/api/image',{
@@ -1406,7 +1410,7 @@ async function runCarouselArtworkGeneration(slides){
      product:product.name,
      scene:carouselSceneForSlide(product,slide),purpose:'carousel',slide,
      hook:slide===2?product.problem:slide===3?product.name:slide===4?product.novel:'구매 전 확인할 것',
-     style:hookPhotoStyle
+     style:hookPhotoStyle,imageMode,referenceImage
     })
    });
    const image=data.image||(Array.isArray(data.images)?data.images[0]:null);
