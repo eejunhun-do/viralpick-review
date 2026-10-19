@@ -4,7 +4,7 @@ import {accountReady,session,getAdmin,createAdmin,getAccount,hashPassword,makeTo
 export function OPTIONS(req){return preflight(req)}
 export async function GET(req){
  if(!responseHeaders(req).originAllowed)return json(req,{ok:false,message:'출처 제한'},403);
- if(!accountReady())return json(req,{ok:false,ready:false,message:'계정 저장소 서버 설정이 필요합니다.'},503);
+ if(!accountReady())return json(req,{ok:false,ready:false,message:'계정 저장소 서버 설정이 필요합니다.',diagnostics:{appSecretPresent:Boolean(process.env.VIRALPICK_APP_SECRET),appSecretLengthValid:Boolean((process.env.VIRALPICK_APP_SECRET||'').length>=32),redisUrlPresent:Boolean(process.env.UPSTASH_REDIS_REST_URL||process.env.UPSTASH_KV_REST_API_URL),redisTokenPresent:Boolean(process.env.UPSTASH_REDIS_REST_TOKEN||process.env.UPSTASH_KV_REST_API_TOKEN)}},503);
  try{
  const admin=await getAdmin(),user=session(req);
  const record=user?await getAccount(user):null;
