@@ -631,6 +631,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 .coupangBrowseControls [hidden]{display:none!important}
 @media(max-width:600px){.coupangBrowseControls{grid-template-columns:1fr}}
 </style>
+<link rel="stylesheet" href="/workspace-upgrade.css?v=2">
 <link rel="stylesheet" href="/studio-layout.css?v=1">
 </head>
 <body>
@@ -1969,7 +1970,7 @@ function useRemoteProduct(index,addToMulti=false){
   multiStudio.modes.Threads='multi';multiStudio.modes.Instagram='multi';
   persistMultiStudio();renderMultiStudios();refreshMultiOutputs();
   toast('추천 상품 모음에 추가했습니다.');
- }else{selectProduct(id);show('integrations')}
+ }else{selectProduct(id);show('threads');if(window.vpStudioGo)window.vpStudioGo('threads','source')}
  renderAffiliateEditor();
  if(!partnerLink(p))void issueCoupangLink(p);
 }
@@ -2054,6 +2055,20 @@ function clearAsset(slot){
  toast('해당 이미지를 현재 작업에서 지웠습니다.');
 }
 
+async function vpResizeReferenceImage(data){
+ if(!/^data:image\/(?:jpeg|png|webp);base64,/.test(String(data)))throw Error('권한 있는 JPEG/PNG/WebP 제품 사진을 업로드하세요.');
+ const img=new Image();
+ await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(Error('제품 사진 로딩 실패'));img.src=data});
+ for(const dimension of [1000,820,650,500]){
+  const ratio=Math.min(1,dimension/Math.max(img.width,img.height));
+  const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.width*ratio));canvas.height=Math.max(1,Math.round(img.height*ratio));
+  canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+  const encoded=canvas.toDataURL('image/jpeg',dimension>820?.72:.64);
+  if(encoded.length<800000)return encoded;
+ }
+ throw Error('제품 사진이 너무 큽니다. 용량을 줄인 후 다시 업로드하세요.');
+}
+function throwStopImageMode(){toast('제품 사용 사진 모드에서는 권한 있는 실제 제품 사진을 먼저 첨부해 주세요.');}
 async function requestAiScene(purpose='instagram'){
  if(sceneGenerationBusy)return;
  const targetId=selected.id;
@@ -2071,17 +2086,24 @@ async function requestAiScene(purpose='instagram'){
   2:'A person cleaning crumbs from gaps between car seats with a small cordless handheld cleaner, realistic sunlit car interior, hands and vehicle seats prominent, authentic dust and interior details. Upper portion naturally uncluttered and bright for headline.',
   3:'A pet guardian gently washing muddy dog paws after a walk using a generic washable cup at a bright home entryway, dog calm and comfortable, warm natural daylight. Upper portion uncluttered and bright for headline.'
  };
- const source=$('#scenePrompt')?.value?.trim()||selected.visual||'';
+ const studio=$('#'+(purpose==='threads'?'threads':'instagram'));
+ const imageMode=studio?.querySelector('.vpImageMode')?.value||'scene';
+ const reference=imageMode==='product'?currentMedia()?.product:null;
+ if(imageMode==='product'&&(!reference||reference.kind!=='licensed-upload')){
+  throwStopImageMode();return;
+ }
+ const referenceImage=reference?await vpResizeReferenceImage(reference.data):undefined;
+ const source=studio?.querySelector('.vpImagePrompt')?.value?.trim()||$('#scenePrompt')?.value?.trim()||selected.visual||'';
  const scene=(hints[selected.id]?hints[selected.id]+' Additional user context: '+source:source).slice(0,500);
  const hook=inThreads?getHookHeadline():coverHooks(selected)[coverIndex];
  const style=hookPhotoStyle;
  try{
   const data=await backendRequest('/api/image',{
-   method:'POST',body:JSON.stringify({product:selected.name,scene,purpose,hook,style})
+   method:'POST',body:JSON.stringify({product:selected.name,scene,purpose,hook,style,imageMode,referenceImage})
   });
   const images=Array.isArray(data.images)?data.images:(data.image?[data.image]:[]);
   if(images.length!==2)throw new Error('서버에서 이미지 2장을 받지 못했습니다. Vercel에 최신 코드가 배포됐는지 확인하세요.');
-  const saved=await savePhotoBatch(targetId,images,{purpose,hook,style});
+  const saved=await savePhotoBatch(targetId,images,{purpose,hook,style,imageMode});
   if(selected.id!==targetId){toast('원래 상품의 사진 기록에 2장을 저장했습니다.');return}
   toast(saved.saved?'AI 사진 2장을 생성하고 기록에 저장했습니다. 원하는 사진을 선택하세요.':'사진 2장 생성 완료. 다만 저장에 실패해 기록을 보존하지 못했습니다.');
  }catch(e){
@@ -2652,7 +2674,7 @@ function selectProduct(id){
  selected=products.find(p=>p.id===id)||products[0];
  threadImageIndex=0;coverIndex=0;
  renderProductLists();renderLab();renderThreads();renderInstagram();syncProductInputs();
- renderPhotoHistories();show('lab');void restorePhotoHistory(selected.id);
+ renderPhotoHistories();show('threads');void restorePhotoHistory(selected.id);
 }
 function candidateScore(p){
  if(p.source!=='coupang')return Number(p.viral)||null;
@@ -4303,5 +4325,6 @@ const q=new URLSearchParams(location.search).get('view');if(['dashboard','discov
 </script>
 <script src="/studio-layout.js?v=1"></script>
 <script src="/account-ui.js"></script>
+<script src="/workspace-upgrade.js?v=2"></script>
 </body>
 </html>
