@@ -673,8 +673,8 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 </section>
 
 <section id="discover" class="view">
-  <div class="top"><div><span class="badge blue">상품 발굴</span><h1>콘텐츠로 만들 만한 상품 찾기</h1><p>가격만 보는 것이 아니라 문제해결력·신기함·시각성·SNS 적합도를 함께 평가합니다.</p></div><div class="btnrow"><button class="btn">필터</button><button class="btn primary" onclick="toast('샘플 데이터 새로고침 완료')">샘플 새로고침</button></div></div>
-  <div class="panel"><div class="panelHead"><h2>추천 상품</h2><div class="statusline"><span class="status">바이럴 70+</span><span class="status">생활/DIY</span><span class="status">반려동물</span></div></div><div class="pad products" id="discoverProducts"></div></div>
+  <div class="top"><div><span class="badge blue">상품 발굴</span><h1>콘텐츠로 만들 만한 상품 찾기</h1><p>가격만 보는 것이 아니라 문제해결력·신기함·시각성·SNS 적합도를 함께 평가합니다.</p></div><div class="btnrow"><button class="btn">필터</button><button class="btn primary" onclick="refreshCoupangCatalog(true)">쿠팡 상품 새로고침</button></div></div>
+  <div class="panel"><div class="panelHead"><h2>추천 상품</h2><div class="statusline"><span class="status">추정 점수 · 실측 아님</span><span class="status">생활/DIY</span><span class="status">반려동물</span></div></div><div class="pad"><p class="queueHint" id="vpCatalogStatus">쿠팡 상품 자동 조회 준비 중 · 점수는 추정치입니다.</p></div><div class="pad products" id="discoverProducts"></div></div>
 </section>
 
 <section id="integrations" class="view">
@@ -755,7 +755,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
   <div class="top"><div><span class="badge orange">AI 상품 분석</span><h1>이 상품은 Threads와 Instagram 중 어디에 잘 맞을까?</h1><p>상품 자체의 바이럴 가능성과 플랫폼 적합도를 보고 SNS 콘텐츠 제작 방향을 결정합니다. Blog는 실제 SNS 성과가 쌓인 뒤 별도 추천합니다.</p></div><div class="btnrow"><button class="btn" onclick="show('integrations')">실제 이미지 추가</button><button class="btn primary" onclick="show('threads')">콘텐츠 만들기</button></div></div>
   <div class="twocol">
     <div class="panel" style="margin-top:0"><div class="pad">
-      <div class="detail"><div class="heroImg">상품 원본<br>이미지 자리</div><div><span class="badge green" id="labType">-</span><h3 id="labName">-</h3><div class="price" id="labPrice">-</div><p id="labReason">-</p></div></div>
+      <div class="detail"><div class="heroImg" id="labHeroImage">상품 원본<br>이미지 자리</div><div><span class="badge green" id="labType">-</span><h3 id="labName">-</h3><div class="price" id="labPrice">-</div><p id="labReason">-</p></div></div>
       <div class="scoreGrid">
         <div class="mini"><b id="viralScore">-</b><span>바이럴 점수</span></div>
         <div class="mini"><b id="threadScore">-</b><span>Threads 적합도</span></div>
@@ -2099,7 +2099,7 @@ function productCard(p){
   <div class="prodTop"><div class="thumb">${imgMarkup}</div><div><span class="badge ${p.source==='sample'?'orange':'green'}">${cleanMarkup(p.type)}</span><h3>${cleanMarkup(p.name)}</h3><div class="old">${p.old!==p.price?fmt(p.old):''}</div><div class="price">${fmt(p.price)}</div></div></div>
   <div class="meta"><span class="badge blue">${p.source==='manual'?'직접 입력':p.source==='coupang'?'쿠팡 API 수신 · 검수 필요':'시연용 샘플'}</span><span class="badge">SNS 분석: ${p.source?'데이터 수집 전':'샘플'}</span></div>
   <div class="reason">${cleanMarkup(p.reason)}</div>
-  <div class="score"><div><div style="font-size:9px;color:#7b838e;margin-bottom:5px">바이럴 점수 ${p.viral?'시연용':'실측 데이터 없음'}</div><div class="bar"><i style="width:${Number(p.viral)||0}%"></i></div></div><b>${p.viral||'–'}</b></div>
+  <div class="score"><div><div style="font-size:9px;color:#7b838e;margin-bottom:5px">${p.source==='coupang'?'예상 바이럴 점수 · 추정치':(p.source==='sample'?'시연용 바이럴 점수':'실측 데이터 없음')}</div><div class="bar"><i style="width:${candidateScore(p)||0}%"></i></div></div><b>${candidateScore(p)??'–'}</b></div>
  </div>`;
 }
 
@@ -2614,7 +2614,7 @@ function refreshMultiOutputs(){
 }
 
 function renderProductLists(){
- const ordered=[...products].sort((a,b)=>(b.source==='coupang')-(a.source==='coupang'));
+ const ordered=[...products].sort((a,b)=>(b.source==='coupang')-(a.source==='coupang')||(candidateScore(b)||0)-(candidateScore(a)||0));
  $('#dashProducts').innerHTML=ordered.map(productCard).join('');
  $('#discoverProducts').innerHTML=ordered.map(productCard).join('');
 }
@@ -2651,7 +2651,28 @@ function selectProduct(id){
  renderProductLists();renderLab();renderThreads();renderInstagram();syncProductInputs();
  renderPhotoHistories();show('lab');void restorePhotoHistory(selected.id);
 }
-function renderLab(){ const p=selected; $('#labType').textContent=p.type; $('#labName').textContent=p.name; $('#labPrice').textContent=fmt(p.price); $('#labReason').textContent=p.reason; $('#viralScore').textContent=p.viral; $('#threadScore').textContent=p.thread; $('#instaScore').textContent=p.insta; $('#adScore').textContent=p.ad+'%'; $('#analysisText').innerHTML=`<b>추천 유형: ${cleanMarkup(p.type)}</b><br><br>문제 상황: ${cleanMarkup(p.problem)}<br>신기/해결 포인트: ${cleanMarkup(p.novel)}<br>주요 타깃: ${cleanMarkup(p.audience)}<br>추천 시각: ${cleanMarkup(p.visual)}`; }
+function candidateScore(p){
+ if(p.source!=='coupang')return Number(p.viral)||null;
+ const name=String(p.name||'');
+ const useful=/정리|청소|수납|휴대|자동|무선|접이|미니|절약|세척|스마트|충전|다용도/.test(name)?14:5;
+ const visual=/자동|무선|접이|세척|조명|LED|변신|회전|분리|흡입|거치/.test(name)?13:5;
+ const price=Number(p.price)>0&&Number(p.price)<=30000?12:Number(p.price)<=80000?8:4;
+ return Math.min(95,25+useful+visual+price+(p.imageUrl?13:0)+(partnerLink(p)?12:0));
+}
+function renderLab(){
+ const p=selected;
+ $('#labType').textContent=p.type;$('#labName').textContent=p.name;$('#labPrice').textContent=fmt(p.price);$('#labReason').textContent=p.reason;
+ $('#viralScore').textContent=candidateScore(p)??'–';
+ $('#viralScore').title=p.source==='coupang'?'상품명·가격·이미지·추적링크 기반 추정 콘텐츠 점수. 실제 SNS 바이럴 측정값 아님':'시연용 점수';
+ $('#threadScore').textContent=p.source==='coupang'?'미측정':p.thread;
+ $('#instaScore').textContent=p.source==='coupang'?'미측정':p.insta;
+ $('#adScore').textContent=p.source==='coupang'?'미측정':p.ad+'%';
+ const uploaded=liveMedia.get(p.id)?.product?.data;
+ const picture=uploaded&&safeDataImage(uploaded)?uploaded:(typeof p.imageUrl==='string'&&/^https?:\/\//.test(p.imageUrl)?p.imageUrl:null);
+ const hero=$('#labHeroImage');
+ if(hero)hero.innerHTML=picture?'<img loading="lazy" alt="상품 사진" src="'+cleanMarkup(picture)+'" style="display:block;width:100%;height:100%;max-height:280px;object-fit:contain">':'상품 이미지가 등록되지 않았습니다.';
+ $('#analysisText').innerHTML='<b>추천 유형: '+cleanMarkup(p.type)+'</b>'+(p.source==='coupang'?'<p>예상 바이럴 점수는 상품명·가격·이미지·링크 기반의 제작 우선순위 추정치입니다. 실제 SNS 조회수나 판매실적은 포함하지 않습니다.</p>':'')+'<p>문제 상황: '+cleanMarkup(p.problem)+'</p><p>신기/해결 포인트: '+cleanMarkup(p.novel)+'</p><p>주요 타깃: '+cleanMarkup(p.audience)+'</p><p>추천 시각: '+cleanMarkup(p.visual)+'</p>';
+}
 
 const hookKinds=['공감형','발견형','문제해결형','정보형','질문형','구매판단형'];
 const hookProfiles={
