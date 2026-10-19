@@ -612,6 +612,17 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 .openingHookPreview{padding:15px 16px;border-left:5px solid #d17c47;border-radius:0 11px 11px 0;background:#fff;font-size:17px;color:#243042;font-weight:900;line-height:1.5;word-break:keep-all;overflow-wrap:anywhere}
 .openingHookTip{margin:0;font-size:10px;color:#718092;line-height:1.65}
 @media(max-width:520px){.openingHookPanel{padding:12px}.openingHookTools label{width:100%;flex-basis:100%}.openingHookTools button{flex:1}.openingHookPreview{font-size:15px}}
+
+.coupangSearchItem{display:flex;gap:11px;padding:12px;align-items:center;background:#fff;border:1px solid #e3e9ef;border-radius:12px;margin:9px 0}
+.coupangSearchItem img{width:78px;height:85px;object-fit:contain;flex-shrink:0;border-radius:9px;background:#f5f6f8}
+.coupangSearchDescription{display:grid;gap:7px;min-width:0}
+.coupangSearchDescription strong{font-size:12px;line-height:1.45;color:#253442}
+.coupangSearchDescription>span{font-size:12px;font-weight:800;color:#21754f}
+.coupangSearchActions{display:flex;gap:6px;flex-wrap:wrap}
+.coupangSearchActions button{border:1px solid #dce4ea;border-radius:9px;padding:8px 10px;background:#f7fafb;font-size:11px;cursor:pointer;font-weight:850}
+.affiliateLinkValue{font-size:11px;color:#196846;background:#eef8f2;padding:11px;border-radius:9px;overflow-wrap:anywhere}
+.affiliateManualLabel{display:grid;gap:6px;font-size:11px;color:#4f6074;margin:10px 0}
+.affiliateManualLabel input{width:100%;border:1px solid #dae0e8;padding:11px;border-radius:8px;font-size:12px}
 </style>
 </head>
 <body>
@@ -1758,42 +1769,140 @@ async function checkBackendStatus({fromHeader=false,remember=undefined}={}){
  }
 }
 async function clearBackendAccess(){await forgetConnectionSecret()}
-async function fetchTossProducts(){
- const root=$('#importedProducts');root.textContent='조회 중…';
+
+const COUPANG_DRAFTS_KEY='viralpick-coupang-drafts-v1';
+function isPartnerLink(value){
+ try{const u=new URL(value);return u.protocol==='https:'&&['coupa.ng','link.coupang.com'].includes(u.hostname)&&value.length<2100}catch{return false}
+}
+function isCoupangProductLink(value){
+ try{const u=new URL(value);return u.protocol==='https:'&&['www.coupang.com','m.coupang.com','coupang.com','coupa.ng','link.coupang.com'].includes(u.hostname)}catch{return false}
+}
+function partnerLink(p){return p?.source==='coupang'&&isPartnerLink(p.affiliateUrl)?p.affiliateUrl:null}
+function saveCoupangDrafts(){
+ try{
+  const saved=products.filter(p=>p.source==='coupang').slice(-30).map(p=>({
+   id:p.id,source:'coupang',coupangProductId:p.coupangProductId,name:p.name,price:p.price,
+   originalUrl:p.originalUrl||null,affiliateUrl:partnerLink(p),imageUrl:p.imageUrl||null,
+   checkedAt:p.checkedAt||0,problem:p.problem,novel:p.novel,audience:p.audience,visual:p.visual,
+   old:p.price,discount:0,viral:0,thread:0,insta:0,blog:0,ad:0,
+   type:'쿠팡 상품 · 재검수 필요',reason:'이전에 검색한 상품입니다. 가격·재고는 게시 전에 다시 확인해야 합니다.'
+  }));
+  localStorage.setItem(COUPANG_DRAFTS_KEY,JSON.stringify(saved));
+ }catch(e){toast('쿠팡 상품의 브라우저 기록 저장에 실패했습니다.')}
+}
+function restoreCoupangDrafts(){
+ try{
+  const list=JSON.parse(localStorage.getItem(COUPANG_DRAFTS_KEY)||'[]');
+  if(!Array.isArray(list))return;
+  for(const item of list.slice(-30)){
+   if(item.source!=='coupang'||!Number.isSafeInteger(item.id)||item.id<1e9||
+    !/^[0-9]+$/.test(String(item.coupangProductId||''))||products.some(p=>p.id===item.id))continue;
+   products.push({...item,name:trimText(item.name,120),
+    price:Number(item.price)||0,affiliateUrl:isPartnerLink(item.affiliateUrl)?item.affiliateUrl:null,
+    originalUrl:isCoupangProductLink(item.originalUrl)?item.originalUrl:null,
+    imageUrl:typeof item.imageUrl==='string'&&/^https:\/\//.test(item.imageUrl)?item.imageUrl:null});
+  }
+ }catch(e){}
+}
+async function fetchCoupangProducts(){
+ const root=$('#importedProducts'),health=$('#tossHealth');
+ if(!root)return;
+ root.textContent='쿠팡 상품 검색 중…';
  try{
   const q=($('#tossSearch')?.value||'').trim();
-  const data=await backendRequest('/api/products?q='+encodeURIComponent(q));
-  remoteProducts=data.products||[];
-  if(!remoteProducts.length){root.textContent='조회 결과가 없습니다. 응답 형식과 필터를 확인하세요.';return}
-  root.innerHTML=remoteProducts.map((p,i)=>'<button onclick="useRemoteProduct('+i+')">'+(p.imageUrl?'<img alt="" src="'+cleanMarkup(p.imageUrl)+'">':'')+'<span>'+cleanMarkup(p.name)+' · '+fmt(p.price)+'</span></button>').join('');
-  $('#tossHealth').textContent='상품 '+remoteProducts.length+'개 수신';
- }catch(e){root.textContent='상품 조회 불가: '+e.message;$('#tossHealth').textContent='연동 확인 필요'}
-}
-function useRemoteProduct(index){
- const remote=remoteProducts[index];if(!remote)return;
- // Stable ID from approved Toss product identifier: permits local photo history
- // without keeping an API-derived public product catalog.
- let hash=2166136261;
- for(const ch of String(remote.id)){hash^=ch.charCodeAt(0);hash=Math.imul(hash,16777619)>>>0}
- const id=1000000000+(hash>>>0);
- const previous=products.find(p=>p.id===id);
- if(previous&&previous.tossProductId===String(remote.id)){
-  selectProduct(id);show('integrations');toast('이전에 작업한 상품을 다시 선택했습니다. 저장된 사진 기록을 확인하세요.');return;
+  if(q.length<2){root.textContent='검색어를 두 글자 이상 입력하세요.';return}
+  const data=await backendRequest('/api/products?q='+encodeURIComponent(q)+'&limit=10');
+  remoteProducts=Array.isArray(data.products)?data.products:[];
+  if(health)health.textContent='검색 결과 '+remoteProducts.length+'개';
+  if(!remoteProducts.length){root.textContent='검색 결과가 없습니다. 다른 검색어를 입력해 보세요.';return}
+  root.innerHTML=remoteProducts.map((p,i)=>{
+   const image=typeof p.imageUrl==='string'&&/^https:\/\//.test(p.imageUrl)?
+    '<img loading="lazy" alt="'+cleanMarkup(p.name)+' 썸네일" src="'+cleanMarkup(p.imageUrl)+'">':'';
+   return '<div class="coupangSearchItem">'+image+
+    '<div class="coupangSearchDescription"><strong>'+cleanMarkup(p.name)+'</strong><span>'+fmt(p.price)+'</span>'+
+    '<div class="coupangSearchActions"><button type="button" onclick="useRemoteProduct('+i+',false)">단일 상품 제작</button>'+
+    '<button type="button" onclick="useRemoteProduct('+i+',true)">모음형에 추가</button></div></div></div>';
+  }).join('');
+ }catch(e){
+  root.textContent='쿠팡 상품 조회 실패: '+e.message;
+  if(health)health.textContent='조회 불가';
  }
- if(previous){toast('상품 식별번호가 겹쳤습니다. 다른 상품을 선택하거나 다시 조회하세요.');return;}
- const p={
+}
+function makeCoupangItemId(id){
+ let h=2166136261;
+ for(const char of 'coupang:'+String(id)){h^=char.charCodeAt(0);h=Math.imul(h,16777619)>>>0}
+ return 1000000000+(h>>>0);
+}
+async function issueCoupangLink(p){
+ if(p.source!=='coupang')return null;
+ if(partnerLink(p))return p.affiliateUrl;
+ if(!isCoupangProductLink(p.originalUrl)){toast('원본 쿠팡 상품 URL이 없어 자동 변환할 수 없습니다. 파트너스 사이트에서 제휴 링크를 발급해 주세요.');return null}
+ try{
+  const response=await backendRequest('/api/deeplink',{method:'POST',body:JSON.stringify({url:p.originalUrl})});
+  const link=response?.links?.[0]?.affiliateUrl;
+  if(!isPartnerLink(link))throw Error('발급된 파트너스 추적 링크를 확인할 수 없습니다.');
+  p.affiliateUrl=link;saveCoupangDrafts();
+  renderProductLists();renderMultiStudios();renderAffiliateEditor();
+  toast('쿠팡 파트너스 링크가 발급됐습니다.');
+  return link;
+ }catch(e){toast('제휴 링크 발급 실패: '+e.message);return null}
+}
+function saveCoupangManualLink(id,link){
+ const p=products.find(x=>x.id===Number(id));
+ if(!p||p.source!=='coupang')return;
+ link=String(link||'').trim();
+ if(!isPartnerLink(link)){toast('쿠팡 파트너스에서 발급받은 coupa.ng 또는 link.coupang.com URL만 입력해 주세요.');return}
+ p.affiliateUrl=link;saveCoupangDrafts();
+ renderAffiliateEditor();renderMultiStudios();refreshMultiOutputs();
+ toast('파트너스 링크를 저장했습니다.');
+}
+function copyCoupangLink(id){
+ const p=products.find(x=>x.id===Number(id)),link=partnerLink(p);
+ if(!link){toast('먼저 파트너스 링크를 발급해 주세요.');return}
+ navigator.clipboard.writeText(link).then(()=>toast('파트너스 링크를 복사했습니다.')).catch(()=>toast('복사 권한을 확인해 주세요.'));
+}
+function renderAffiliateEditor(){
+ const root=$('#selectedAffiliateLink');if(!root)return;
+ const p=selected;
+ if(p.source!=='coupang'){root.textContent='쿠팡 상품을 선택하면 파트너스 링크 발급·복사 기능이 표시됩니다.';return}
+ const link=partnerLink(p);
+ root.innerHTML='<p><strong>'+cleanMarkup(p.name)+'</strong> · '+(link?'링크 발급 완료':'파트너스 링크 미발급')+'</p>'+
+  (link?'<div class="affiliateLinkValue">'+cleanMarkup(link)+'</div>':'')+
+  '<div class="btnrow"><button class="btn" type="button" onclick="issueCoupangLink(selected)">딥링크 발급</button>'+
+  '<button class="btn" type="button" '+(link?'':'disabled')+' onclick="copyCoupangLink(selected.id)">링크 복사</button>'+
+  '<a class="btn" href="https://partners.coupang.com/" target="_blank" rel="noopener noreferrer">파트너스 사이트</a></div>'+
+  '<label class="affiliateManualLabel">직접 발급한 파트너스 링크<input type="url" id="manualCoupangLink" placeholder="https://link.coupang.com/a/... 또는 https://coupa.ng/..."></label>'+
+  '<button class="btn" type="button" onclick="saveCoupangManualLink(selected.id,document.getElementById('+
+  "'manualCoupangLink'"+').value)">링크 저장</button>'+
+  '<p class="queueHint">일반 상품 URL은 파트너스 추적 링크가 아닙니다. 게시 전 가격·재고를 확인해 주세요.</p>';
+}
+function useRemoteProduct(index,addToMulti=false){
+ const remote=remoteProducts[index];if(!remote)return;
+ const id=makeCoupangItemId(remote.id);
+ const existing=products.find(p=>p.id===id);
+ if(existing&&existing.coupangProductId!==String(remote.id)){toast('상품 식별번호가 겹쳤습니다.');return}
+ const p=existing||{
   id,name:trimText(remote.name,120),price:remote.price,old:remote.price,discount:0,
-  viral:0,thread:0,insta:0,blog:0,ad:0,
-  source:'toss',tossProductId:String(remote.id),
-  type:'상품 검수 필요',reason:'토스 API 수신 상품 · 상세 기능/효과/재고 확인 전',
-  problem:'구매자가 실제로 겪는 문제 상황을 직접 입력하세요',
-  novel:'확인된 상품 사양과 특장점을 입력하세요',
-  audience:'상품에 맞는 사용 대상을 입력하세요',
-  visual:'실제 사용 상황을 설명해 주세요',
-  imageUrl:remote.imageUrl
+  viral:0,thread:0,insta:0,blog:0,ad:0,source:'coupang',coupangProductId:String(remote.id),
+  type:'쿠팡 상품 · 검수 필요',reason:'쿠팡 파트너스 검색 상품 · 기능·효과·재고 미검수',
+  problem:'제품이 필요한 불편 상황을 직접 입력하세요',
+  novel:'확인된 상품 기능만 직접 입력하세요',
+  audience:'대상 사용자를 입력하세요',
+  visual:'실제 사용 장면을 설명해 주세요'
  };
- products.push(p);selectProduct(id);show('integrations');
- toast('상품을 가져왔습니다. 확인된 기능을 입력하고 상품 사진의 사용 권한을 확인하세요.');
+ p.name=trimText(remote.name,120);p.price=Number(remote.price)||p.price;
+ p.originalUrl=isCoupangProductLink(remote.productUrl)?remote.productUrl:(p.originalUrl||null);
+ p.imageUrl=remote.imageUrl||p.imageUrl||null;p.checkedAt=Date.now();
+ if(!existing)products.push(p);
+ saveCoupangDrafts();
+ if(addToMulti){
+  if(!multiStudio.selectedIds.includes(id))toggleMultiProduct(id,true);
+  multiStudio.modes.Threads='multi';multiStudio.modes.Instagram='multi';
+  persistMultiStudio();renderMultiStudios();refreshMultiOutputs();
+  toast('추천 상품 모음에 추가했습니다.');
+ }else{selectProduct(id);show('integrations')}
+ renderAffiliateEditor();
+ void issueCoupangLink(p);
 }
 function persistManualProducts(){
  try{
