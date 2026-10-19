@@ -99,6 +99,11 @@ function build(platform){
    if(left){left.classList.add('singleOnlyThreads','vpStudioThreadArt');append(stages.visual,left);}
    preview.remove();
   }
+  const reply=el('div','panel vpThreadReplyPanel singleOnlyThreads');
+  reply.innerHTML='<div class="panelHead"><h2>2단 · 댓글 답글</h2><span class="badge">링크·고지는 이곳만</span></div><div class="pad"><p>첫 게시글(1/2)은 공감·상황 후킹, 답글(2/2)은 제품 특징·링크·수수료 고지로 구성됩니다. 첫 줄의 단독 광고 표시는 넣지 않습니다.</p><textarea id="vpThreadReplyEditor" aria-label="Threads 2단 답글 편집" placeholder="실제 후기와 제품 특징을 바탕으로 2단을 작성하세요."></textarea><div class="btnrow" style="margin-top:10px"><button class="btn" type="button" onclick="copyThreadPart(1)">1단 복사</button><button class="btn primary" type="button" onclick="copyThreadPart(2)">2단 복사 · 링크 포함</button><button class="btn" type="button" onclick="copyThread()">전체 복사</button></div><div id="vpThreadLinkStatus" class="vpLinkDisclosure"></div></div>';
+  reply.querySelector('textarea').addEventListener('input',event=>window.onThreadReplyEdit(event.target.value));
+  append(stages.copy,reply);
+  if(typeof window.renderThreadReplyEditor==='function')window.renderThreadReplyEditor();
   if(hook||variants)append(stages.copy,advanced('기존 템플릿 6안 · 첫 문장 후킹 설정',[hook,variants]));
   const multiResult=direct(root,'#multiThreadsResult');
   if(multiResult){
@@ -129,6 +134,11 @@ function build(platform){
   if(cover)stages.visual.insertBefore(cover,stages.visual.children[1]||null);
   append(stages.visual,direct(root,'.singleOnlyInstagram.aiNote'));
  }
+ const mode=el('div','vpImageModeBox');
+ mode.innerHTML='<strong>AI 실사 이미지 생성 방식</strong><p>① 상황사진: 실제 상품 외형은 재현하지 않습니다. ② 실제 제품 사용 사진: 직접 촬영 또는 편집·광고 이용이 허락된 제품 사진을 참고 이미지로 사용합니다.</p><label>생성 유형<select class="vpImageMode"><option value="scene">상황사진 생성 · 일상 배경</option><option value="product">실제 제품 사진 활용 · 착용/사용 장면</option></select></label><label>실제 제품 사진 첨부 (제품 사진 활용 모드)<input type="file" class="vpProductRefUpload" accept="image/jpeg,image/png,image/webp"></label><label>상황 설명<textarea class="vpImagePrompt" rows="2" maxlength="500" placeholder="예: 외출한 아기에게 턱받이를 착용시키는 자연스러운 식사 장면"></textarea></label><p>업로드한 이미지는 생성 요청 시에만 OpenAI로 전달됩니다. 저작권·상업적 편집 권한이 없는 상품 상세 이미지는 사용하지 마세요.</p><button type="button" class="btn primary vpGeneratePhoto">선택한 방식으로 실사 이미지 생성</button>';
+ mode.querySelector('.vpProductRefUpload').addEventListener('change',e=>{if(e.target.files?.[0])window.uploadProductImage(e.target.files[0])});
+ mode.querySelector('.vpGeneratePhoto').onclick=()=>window.requestAiScene(key);
+ append(stages.visual,mode);
  const quick=el('div','vpStudioStageQuick');
  if(key==='threads'){
   const copy=el('button','btn','본문 복사');copy.type='button';copy.onclick=()=>window.copyThread();
