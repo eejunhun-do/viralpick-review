@@ -1900,11 +1900,12 @@ function makeCoupangItemId(id){
 async function issueCoupangLink(p){
  if(p.source!=='coupang')return null;
  if(partnerLink(p))return p.affiliateUrl;
+ if(isPartnerLink(p.originalUrl)){p.affiliateUrl=p.originalUrl;saveCoupangDrafts();return p.affiliateUrl}
  if(!isCoupangProductLink(p.originalUrl)){toast('원본 쿠팡 상품 URL이 없어 자동 변환할 수 없습니다. 파트너스 사이트에서 제휴 링크를 발급해 주세요.');return null}
  try{
   const response=await backendRequest('/api/deeplink',{method:'POST',body:JSON.stringify({url:p.originalUrl})});
   const link=response?.links?.[0]?.affiliateUrl;
-  if(!isPartnerLink(link))throw Error('발급된 파트너스 추적 링크를 확인할 수 없습니다.');
+  if(!isPartnerLink(link))throw Error('파트너스 응답에 정상 추적 링크가 없습니다.');
   p.affiliateUrl=link;saveCoupangDrafts();
   renderProductLists();renderMultiStudios();renderAffiliateEditor();
   toast('쿠팡 파트너스 링크가 발급됐습니다.');
@@ -1966,7 +1967,7 @@ function useRemoteProduct(index,addToMulti=false){
   toast('추천 상품 모음에 추가했습니다.');
  }else{selectProduct(id);show('integrations')}
  renderAffiliateEditor();
- void issueCoupangLink(p);
+ if(!partnerLink(p))void issueCoupangLink(p);
 }
 function persistManualProducts(){
  try{
@@ -2089,10 +2090,12 @@ async function requestAiScene(purpose='instagram'){
 }
 function productCard(p){
  const img=liveMedia.get(p.id)?.product?.data;
- const picture=img&&safeDataImage(img)?img:(p.source!=='coupang'||multiStudio.allowedToss[String(p.id)]===true)&&p.imageUrl&&/^https:\/\//.test(p.imageUrl)?p.imageUrl:null;
+ const picture=img&&safeDataImage(img)?img:(p.imageUrl&&/^https:\/\//.test(p.imageUrl)?p.imageUrl:null);
  const thumb=picture?'<img alt="상품 사진" src="'+cleanMarkup(picture)+'" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">':'상품 사진<br>미등록';
+ const destination=partnerLink(p)||null;
+ const imgMarkup=destination&&picture?'<a href="'+cleanMarkup(destination)+'" target="_blank" rel="noopener noreferrer sponsored" onclick="event.stopPropagation()" title="쿠팡 제휴링크로 상품 열기">'+thumb+'</a>':thumb;
  return `<div class="product ${p.id===selected.id?'selected':''}" onclick="selectProduct(${p.id})">
-  <div class="prodTop"><div class="thumb">${thumb}</div><div><span class="badge ${p.source==='sample'?'orange':'green'}">${cleanMarkup(p.type)}</span><h3>${cleanMarkup(p.name)}</h3><div class="old">${p.old!==p.price?fmt(p.old):''}</div><div class="price">${fmt(p.price)}</div></div></div>
+  <div class="prodTop"><div class="thumb">${imgMarkup}</div><div><span class="badge ${p.source==='sample'?'orange':'green'}">${cleanMarkup(p.type)}</span><h3>${cleanMarkup(p.name)}</h3><div class="old">${p.old!==p.price?fmt(p.old):''}</div><div class="price">${fmt(p.price)}</div></div></div>
   <div class="meta"><span class="badge blue">${p.source==='manual'?'직접 입력':p.source==='coupang'?'쿠팡 API 수신 · 검수 필요':'시연용 샘플'}</span><span class="badge">SNS 분석: ${p.source?'데이터 수집 전':'샘플'}</span></div>
   <div class="reason">${cleanMarkup(p.reason)}</div>
   <div class="score"><div><div style="font-size:9px;color:#7b838e;margin-bottom:5px">바이럴 점수 ${p.viral?'시연용':'실측 데이터 없음'}</div><div class="bar"><i style="width:${Number(p.viral)||0}%"></i></div></div><b>${p.viral||'–'}</b></div>
@@ -2609,7 +2612,37 @@ function refreshMultiOutputs(){
  if(isMultiMode('Instagram'))renderMultiInstagram();
 }
 
-function renderProductLists(){ $('#dashProducts').innerHTML=products.map(productCard).join(''); $('#discoverProducts').innerHTML=products.map(productCard).join(''); }
+function renderProductLists(){
+ const ordered=[...products].sort((a,b)=>(b.source==='coupang')-(a.source==='coupang'));
+ $('#dashProducts').innerHTML=ordered.map(productCard).join('');
+ $('#discoverProducts').innerHTML=ordered.map(productCard).join('');
+}
+let coupangAutoBusy=false,coupangAutoFetchedAt=0;
+async function refreshCoupangCatalog(force=false){
+ if(coupangAutoBusy||(!force&&Date.now()-coupangAutoFetchedAt<15*60*1000))return;
+ coupangAutoBusy=true;
+ try{
+  const data=await backendRequest('/api/discover?kind=category&categoryId=1014&limit=20');
+  const items=Array.isArray(data.products)?data.products:[];
+  if(!items.length)throw Error('조회된 상품이 없습니다.');
+  for(const remote of items){
+   const id=makeCoupangItemId(remote.id);
+   let p=products.find(x=>x.id===id);
+   if(p&&p.coupangProductId!==String(remote.id))continue;
+   if(!p){
+    p={id,name:'',price:0,old:0,discount:0,viral:0,thread:0,insta:0,blog:0,ad:0,source:'coupang',coupangProductId:String(remote.id),type:'쿠팡 베스트',reason:'쿠팡 카테고리 베스트 상품 · 실제 성과 점수는 미측정',problem:'상품 사용 불편 상황을 확인하세요',novel:'검증된 기능만 입력하세요',audience:'추천 대상 확인 필요',visual:'실제 상품 사용 상황'};
+    products.push(p);
+   }
+   p.name=trimText(remote.name,120);p.price=remote.price;p.old=remote.price;
+   p.originalUrl=isCoupangProductLink(remote.productUrl)?remote.productUrl:p.originalUrl||null;
+   p.imageUrl=remote.imageUrl||p.imageUrl||null;p.checkedAt=Date.now();
+  }
+  coupangAutoFetchedAt=Date.now();saveCoupangDrafts();renderProductLists();
+  const status=$('#vpCatalogStatus');if(status)status.textContent='쿠팡 베스트 '+items.length+'개 조회 완료 · 이미지 클릭은 발급된 제휴링크가 있을 때 활성화';
+ }catch(e){
+  const status=$('#vpCatalogStatus');if(status)status.textContent='쿠팡 자동 발굴 대기: '+e.message;
+ }finally{coupangAutoBusy=false}
+}
 function selectProduct(id){
  selected=products.find(p=>p.id===id)||products[0];
  threadImageIndex=0;coverIndex=0;
@@ -4032,6 +4065,7 @@ function show(id){
  const current=$('#mobileCurrentView');if(current)current.textContent=viewLabels[id]||'ViralPick';
  closeMobileMenu();
  window.scrollTo({top:0,behavior:'auto'});
+ if(['dashboard','discover'].includes(id))void refreshCoupangCatalog();
  if(id==='scheduler')renderPostingSettings();
  if(id==='analytics')renderAnalytics();
  if(['threads','instagram','integrations'].includes(id))renderPhotoHistories();
