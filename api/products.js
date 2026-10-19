@@ -1,6 +1,6 @@
 import {session} from '../lib/account-store.js';
 import {json,preflight,checkAccess} from '../lib/api-guard.js';
-import {SEARCH_PATH,partnerRequest,isConfigured,validProductUrl} from '../lib/coupang-partners.js';
+import {SEARCH_PATH,partnerRequest,isConfigured,validProductUrl,validProductImage} from '../lib/coupang-partners.js';
 
 export function OPTIONS(req){return preflight(req)}
 export async function GET(req){
@@ -26,7 +26,7 @@ export async function GET(req){
    id:id===undefined||id===null?null:String(id),
    name:typeof name==='string'?name.slice(0,160):'',
    price:Number.isFinite(price)&&price>0?price:null,
-   imageUrl:image&&/^https:\/\//.test(image)?image.slice(0,1600):null,
+   imageUrl:validProductImage(image),
    productUrl:validProductUrl(p.productUrl),isRocket:!!p.isRocket,
    provider:'coupang-partners'
   };
