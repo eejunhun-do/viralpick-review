@@ -2985,37 +2985,39 @@ async function generateProductCopy(platform){
 const THREAD_REPLY_STORE='viralpick-threads-replies-v1';
 function threadReplyKey(){return String(selected?.id||'')+':'+threadDiversity+':'+threadSeed+':'+threadCopyIndex}
 function saveThreadReply(body){
- const text=String(body||'').replace(/^\\s*광고\\s*\\n?/i,'').trim();
- try{const map=JSON.parse(localStorage.getItem(THREAD_REPLY_STORE)||'{}');map[threadReplyKey()]=text;localStorage.setItem(THREAD_REPLY_STORE,JSON.stringify(map))}catch{}
+ const raw=String(body||'');
+ const text=raw.replace(/^\s*광고\s*\n?/i,'').trim();
+ try{const stored=JSON.parse(localStorage.getItem(THREAD_REPLY_STORE)||'{}');stored[threadReplyKey()]=text;localStorage.setItem(THREAD_REPLY_STORE,JSON.stringify(stored))}catch{}
 }
 function readThreadReply(){
  try{return JSON.parse(localStorage.getItem(THREAD_REPLY_STORE)||'{}')[threadReplyKey()]||''}catch{return ''}
 }
 function cleanThreadPart(text){
- return String(text||'').split('\\n').filter(line=>!/(쿠팡 파트너스 활동|이 포스팅은 쿠팡|link\\.coupang\\.com|coupa\\.ng|https?:\\/\\/)/i.test(line)).join('\\n').trim();
+ return String(text||'').split(/\r?\n/).filter(line=>{
+  const t=line.trim().toLowerCase();
+  return !t.includes('쿠팡 파트너스 활동')&&!t.includes('이 포스팅은 쿠팡')&&!t.includes('link.coupang.com')&&!t.includes('coupa.ng')&&!t.startsWith('http://')&&!t.startsWith('https://');
+ }).join('\n').trim();
 }
 function getCurrentThreadText(){
  if(isMultiMode('Threads'))return cleanThreadPart(getMultiCaption('Threads'));
  const key=threadEditKey();
- const content=Object.prototype.hasOwnProperty.call(customThreadEdits,key)?customThreadEdits[key]:threadBodies(selected)[threadCopyIndex];
- return cleanThreadPart(content);
+ return cleanThreadPart(Object.prototype.hasOwnProperty.call(customThreadEdits,key)?customThreadEdits[key]:threadBodies(selected)[threadCopyIndex]);
 }
 function getThreadReplyText(){
- const base=readThreadReply()||'상품 정보를 확인해 봤는데 이런 상황에서 쓸만한지 비교해 볼 수 있겠더라.\\n구매 전에 실제 후기와 옵션도 꼭 확인해 봐.';
+ const base=readThreadReply()||'이런 상황에 쓸 만한지 제품 정보랑 실제 후기를 비교해 봤어.\n옵션과 후기의 아쉬운 점도 꼭 확인해 봐.';
  const link=partnerLink(selected);
- return base.trim()+'\\n\\n'+(link?link+'\\n':'제휴 링크 미등록 · 상품 발굴에서 링크 등록 필요\\n')+affiliateDisclosure;
+ return base.trim()+'\n\n'+(link?link+'\n':'제휴 링크 미등록 · 상품 발굴에서 링크 등록 필요\n')+affiliateDisclosure;
 }
 function renderThreadReplyEditor(){
  const area=$('#vpThreadReplyEditor'),note=$('#vpThreadLinkStatus');
- if(area&&document.activeElement!==area)area.value=readThreadReply()||'상품 정보를 확인해 봤는데 이런 상황에서 쓸만한지 비교해 볼 수 있겠더라.\\n구매 전에 실제 후기와 옵션도 꼭 확인해 봐.';
- if(note)note.textContent=partnerLink(selected)?'쿠팡 제휴링크 자동 첨부됨 · 수수료 고지는 2단 마지막에만 표시됩니다.':'쿠팡 제휴링크가 없습니다. 상품 발굴에서 등록해야 합니다.';
+ if(area&&document.activeElement!==area)area.value=readThreadReply()||'이런 상황에 쓸 만한지 제품 정보랑 실제 후기를 비교해 봤어.\n옵션과 후기의 아쉬운 점도 꼭 확인해 봐.';
+ if(note)note.textContent=partnerLink(selected)?'제휴링크와 수수료 고지가 2단 마지막에 자동으로 붙습니다.':'제휴링크가 없습니다. 상품 발굴에서 등록해야 합니다.';
 }
 function onThreadReplyEdit(value){saveThreadReply(value)}
 async function copyThreadPart(part){
  const text=part===2?getThreadReplyText():getCurrentThreadText();
- try{await navigator.clipboard.writeText(text);toast('Threads '+part+'단 복사 완료')}catch{toast('클립보드 권한을 확인해 주세요')}
+ try{await navigator.clipboard.writeText(text);toast('Threads '+part+'단 복사 완료')}catch{toast('브라우저 복사 권한을 확인해 주세요')}
 }
-
 function onThreadFinalEdit(){customThreadEdits[threadEditKey()]=$('#threadFinalText').value;renderThreadDupStatus()}
 function getCurrentInstagramCaption(){if(isMultiMode('Instagram'))return getMultiCaption('Instagram');return Object.prototype.hasOwnProperty.call(customInstagramCaptions,selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex)?customInstagramCaptions[selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex]:instaCaption(selected)}
 function onInstagramFinalEdit(){if(isMultiMode('Instagram')){editMultiCaption('Instagram',$('#instaCaption').value);return}customInstagramCaptions[selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex]=$('#instaCaption').value;renderInstagramDupStatus()}
