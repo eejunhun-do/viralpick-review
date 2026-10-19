@@ -7,7 +7,7 @@ export async function POST(req){
  if(auth)return json(req,{ok:false,message:auth},auth.includes('설정')?503:401);
  if(!isConfigured())return json(req,{ok:false,message:'쿠팡 파트너스 API 키를 서버에 먼저 등록하세요.'},503);
  let body;try{body=await safePayload(req,5000)}catch(e){return json(req,{ok:false,message:'요청 형식 오류: '+e.message},400)}
- const urls=Array.isArray(body.urls)?body.urls.slice(0,10):[body.url];
+ const urls=Array.isArray(body.urls)?body.urls:[body.url];
  if(urls.length===0||urls.length>10)return json(req,{ok:false,message:'한 번에 1~10개 URL만 변환할 수 있습니다.'},400);
  const originals=urls.map(validProductUrl);
  if(originals.some(s=>!s))return json(req,{ok:false,message:'쿠팡 상품 또는 쿠팡 검색 페이지의 https URL만 허용됩니다.'},400);
