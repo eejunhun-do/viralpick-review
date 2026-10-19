@@ -156,7 +156,7 @@ function build(platform){
  root.classList.add('vpStudioReady');
 }
 function sync(){
- const p=window.selected;
+ const p=typeof selected==='undefined'?null:selected;
  for(const studio of Object.values(studios)){
   studio.productName.textContent=p?.name||'상품이 선택되지 않았습니다';
   const id=p?.coupangProductId?' · 쿠팡 ID '+p.coupangProductId:'';
