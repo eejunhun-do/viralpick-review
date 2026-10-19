@@ -631,6 +631,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 .coupangBrowseControls [hidden]{display:none!important}
 @media(max-width:600px){.coupangBrowseControls{grid-template-columns:1fr}}
 </style>
+<link rel="stylesheet" href="/studio-layout.css?v=1">
 </head>
 <body>
 <header class="mobileTop" aria-label="모바일 상단 메뉴">
@@ -2916,6 +2917,7 @@ async function generateProductCopy(platform){
   }
   status.textContent='AI 문구 생성 완료 · 게시 전에 사실 관계와 광고 고지를 검토하세요.';
   toast('AI '+platform+' 문구가 적용됐습니다.');
+  if(typeof window.vpStudioAfterCopyGenerated==='function')window.vpStudioAfterCopyGenerated(platform);
  }catch(e){status.textContent='AI 생성 실패: '+e.message}
  finally{btn.disabled=false}
 }
@@ -4229,6 +4231,7 @@ loadPostingSettings();restoreManualProducts();loadMultiStudio();loadInstagramCov
 connectionRestoreTask=loadRememberedAccess();
 const q=new URLSearchParams(location.search).get('view');if(['dashboard','discover','integrations','lab','threads','instagram','analytics','blog','scheduler'].includes(q))show(q);
 </script>
+<script src="/studio-layout.js?v=1"></script>
 <script src="/account-ui.js"></script>
 </body>
 </html>
