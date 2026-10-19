@@ -23,7 +23,7 @@ export async function POST(req){
  }[style];
  const referenceMode=data.imageMode==='product'?'product':'scene';
  const imageData=referenceMode==='product'?String(data.referenceImage||''):'';
- const match=referenceMode==='product'?imageData.match(new RegExp('^data:image/(png|jpeg|webp);base64,([A-Za-z0-9+/=]+):null;
+ const match=referenceMode==='product'?imageData.match(/^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/=]+)$/):null;
  if(referenceMode==='product'&&(!match||match[2].length>850000||match[2].length<300))
   return json(req,{ok:false,message:'제품 실사 모드에는 직접 사용·편집 권한이 있는 상품 사진(JPG/PNG/WebP)이 필요합니다. 600KB 이하로 축소해서 다시 시도하세요.'},400);
  const hook=String(data.hook||'').trim().slice(0,160);
