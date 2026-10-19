@@ -3319,7 +3319,7 @@ function drawMultiContentCanvas(ctx,platform,slide){
  ctx.fillText(number,135,61);
  if(card.kind==='cover'){
   ctx.fillStyle=scheme.ink;
-  multiDrawText(ctx,multiTitle(),76,180,927,380,{size:100,min:56,lines:4,color:scheme.ink});
+  multiDrawText(ctx,multiStudio.storyPreset!=='none'?getOpeningText(platform):multiTitle(),76,180,927,380,{size:88,min:51,lines:5,color:scheme.ink});
   roundedFill(ctx,72,657,936,495,29,'rgba(255,255,255,.83)');
   ctx.fillStyle=scheme.accent;ctx.font='950 38px "Noto Sans KR","Malgun Gothic",sans-serif';
   ctx.fillText('이번에 함께 살펴볼 '+card.items.length+'개 상품',103,695);
