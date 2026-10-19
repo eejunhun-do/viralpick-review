@@ -89,7 +89,7 @@ function discovery(){
   const link=document.createElement('div');link.className='vpLinkInput';
   link.innerHTML='<b>상품 URL로 조회 · 등록</b><p>상품 ID가 포함된 원본 링크라면 기존 상품을 찾거나 상품명과 함께 등록합니다. 짧은 제휴링크는 상품명 검색을 사용하세요.</p><div class="vpLinkFields"><input id="vpProductURL" type="url" placeholder="https://www.coupang.com/vp/products/..." aria-label="쿠팡 상품 URL"><input id="vpProductTitle" placeholder="상품명 (신규 URL 등록 시 필요)" aria-label="등록할 상품명"><button class="btn primary" type="button" id="vpLookup">링크 확인</button></div><p id="vpLinkStatus" class="queueHint"></p>';
   controls.prepend(link);$('#vpLookup').onclick=lookup;
-  const current=panel.querySelector('#tossSearch')?.closest('.field');if(current)current.querySelector('label').textContent='이름으로 상품 검색';
+  const current=panel.querySelector('#tossSearch')?.closest('.field');if(current){const label=current.querySelector('label');if(label&&label.firstChild&&label.firstChild.nodeType===3)label.firstChild.textContent='이름으로 상품 검색';}
   root.insertBefore(panel,root.querySelector('#discoverProducts')?.closest('.panel')||null);
  }
  const storedPanel=root.querySelector('#discoverProducts')?.closest('.panel');if(storedPanel)storedPanel.querySelector('.panelHead h2').textContent='조회·저장한 상품 후보';
