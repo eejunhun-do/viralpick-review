@@ -774,7 +774,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 </section>
 
 <section id="threads" class="view">
-<div class="panel" id="vpAiCopyPanel" style="margin:12px 0"><div class="panelHead"><h2>AI 상품정보 기반 문구 생성</h2></div><div class="pad"><p class="queueHint">제품명·가격은 선택 상품에서 가져옵니다. 상세설명·실제 후기 요약은 확인된 내용을 붙여넣으세요. 쿠팡 파트너스 API는 상세페이지 본문과 댓글을 제공하지 않습니다.</p><div class="field"><label>상품 상세정보 (검증된 사실)</label><textarea id="vpAiDescription" rows="4" placeholder="상세페이지에서 확인한 기능, 규격, 구성, 사용법 등을 붙여넣기"></textarea></div><div class="field"><label>실제 구매후기 요약 (선택)</label><textarea id="vpAiReviews" rows="3" placeholder="직접 확인한 후기의 장단점만 요약. 없으면 비워두세요"></textarea></div><div class="btnrow"><button class="btn primary" type="button" id="vpAiThreads" onclick="generateProductCopy('Threads')">AI Threads 문구 생성</button><button class="btn primary" type="button" id="vpAiInstagram" onclick="generateProductCopy('Instagram')">AI Instagram 문구 생성</button></div><p id="vpAiCopyStatus" class="queueHint" role="status">상품 정보에 근거한 문구를 생성합니다. 생성 비용이 발생할 수 있습니다.</p></div></div>
+<div class="panel" id="vpAiCopyPanel" style="margin:12px 0"><div class="panelHead"><h2>AI 상품정보 기반 문구 생성</h2></div><div class="pad"><p class="queueHint">제품명·가격은 선택 상품에서 가져옵니다. 상세설명·실제 후기 요약은 확인된 내용을 붙여넣으세요. 쿠팡 파트너스 API는 상세페이지 본문과 댓글을 제공하지 않습니다.</p><div class="btnrow"><button class="btn" type="button" id="vpAutoScrape" onclick="fetchSelectedProductPage()">상품 상세페이지 자동 읽기</button></div><p class="queueHint" id="vpScrapeStatus">공개 페이지의 접근 가능한 설명을 읽습니다. 구매후기는 확인되지 않으면 비워둡니다.</p><div class="field"><label>상품 상세정보 (검증된 사실)</label><textarea id="vpAiDescription" rows="4" placeholder="상세페이지에서 확인한 기능, 규격, 구성, 사용법 등을 붙여넣기"></textarea></div><div class="field"><label>실제 구매후기 요약 (선택)</label><textarea id="vpAiReviews" rows="3" placeholder="직접 확인한 후기의 장단점만 요약. 없으면 비워두세요"></textarea></div><div class="btnrow"><button class="btn primary" type="button" id="vpAiThreads" onclick="generateProductCopy('Threads')">AI Threads 문구 생성</button><button class="btn primary" type="button" id="vpAiInstagram" onclick="generateProductCopy('Instagram')">AI Instagram 문구 생성</button></div><p id="vpAiCopyStatus" class="queueHint" role="status">상품 정보에 근거한 문구를 생성합니다. 생성 비용이 발생할 수 있습니다.</p></div></div>
  <div class="openingHookPanel" id="openingHookThreads">
   <div class="openingHookHeading"><div><b>본문 첫 줄 · 궁금증 유발 후킹</b><small>손해·반박·의문·후기 검증·결론 유보 중 선택하세요.</small></div><span>제품명보다 궁금증을 먼저</span></div>
   <div class="openingHookTools">
@@ -2792,6 +2792,20 @@ function threadVisuals(p){
  }).join('');
 }
 function threadEditKey(){return selected.id+':'+threadDiversity+':'+threadSeed+':'+threadCopyIndex}
+async function fetchSelectedProductPage(){
+ const p=selected,btn=$('#vpAutoScrape'),status=$('#vpScrapeStatus');
+ if(!p||!btn||!status)return;
+ const url=p.originalUrl||p.affiliateUrl;
+ if(!url){status.textContent='상품 URL이 없습니다. 쿠팡 상품을 먼저 선택하세요.';return}
+ btn.disabled=true;status.textContent='쿠팡 상품 공개 페이지 분석 중…';
+ try{
+  const data=await backendRequest('/api/product-page',{method:'POST',body:JSON.stringify({url})});
+  if(data.title&&(!p.name||p.source==='coupang'))p.name=data.title;
+  if(data.description)$('#vpAiDescription').value=data.description;
+  status.textContent='상품 페이지 확인 완료. '+(data.description?'설명 추출 성공. ':'설명 추출 불가. ')+ '구매후기는 접근 가능한 검증 자료가 없어 자동 입력하지 않았습니다.';
+ }catch(e){status.textContent='자동 분석 실패: '+e.message+' · 상세 설명이나 실제 후기 요약을 직접 입력할 수 있습니다.'}
+ finally{btn.disabled=false}
+}
 async function generateProductCopy(platform){
  const status=$('#vpAiCopyStatus'),btn=$('#vpAi'+platform);
  if(!status||!btn)return;
