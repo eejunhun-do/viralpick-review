@@ -2092,8 +2092,8 @@ function productCard(p){
  const img=liveMedia.get(p.id)?.product?.data;
  const picture=img&&safeDataImage(img)?img:(p.imageUrl&&/^https:\/\//.test(p.imageUrl)?p.imageUrl:null);
  const thumb=picture?'<img alt="상품 사진" src="'+cleanMarkup(picture)+'" style="width:100%;height:100%;object-fit:contain;border-radius:inherit">':'상품 사진<br>미등록';
- const destination=partnerLink(p)||null;
- const imgMarkup=destination&&picture?'<a href="'+cleanMarkup(destination)+'" target="_blank" rel="noopener noreferrer sponsored" onclick="event.stopPropagation()" title="쿠팡 제휴링크로 상품 열기">'+thumb+'</a>':thumb;
+ const destination=partnerLink(p)||(p.source==='coupang'&&isCoupangProductLink(p.originalUrl)?p.originalUrl:null);
+ const imgMarkup=destination&&picture?'<a href="'+cleanMarkup(destination)+'" target="_blank" rel="noopener noreferrer sponsored" onclick="event.stopPropagation()" title="쿠팡 상품 페이지 열기 (제휴 추적은 발급된 링크에만 적용)">'+thumb+'</a>':thumb;
  return `<div class="product ${p.id===selected.id?'selected':''}" onclick="selectProduct(${p.id})">
   <div class="prodTop"><div class="thumb">${imgMarkup}</div><div><span class="badge ${p.source==='sample'?'orange':'green'}">${cleanMarkup(p.type)}</span><h3>${cleanMarkup(p.name)}</h3><div class="old">${p.old!==p.price?fmt(p.old):''}</div><div class="price">${fmt(p.price)}</div></div></div>
   <div class="meta"><span class="badge blue">${p.source==='manual'?'직접 입력':p.source==='coupang'?'쿠팡 API 수신 · 검수 필요':'시연용 샘플'}</span><span class="badge">SNS 분석: ${p.source?'데이터 수집 전':'샘플'}</span></div>
