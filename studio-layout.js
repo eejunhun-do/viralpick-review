@@ -134,14 +134,9 @@ function build(platform){
   if(cover)stages.visual.insertBefore(cover,stages.visual.children[1]||null);
   append(stages.visual,direct(root,'.singleOnlyInstagram.aiNote'));
  }
- const mode=el('div','vpImageModeBox');
- mode.innerHTML='<strong>AI 실사 이미지 생성 방식</strong><p>① 상황사진: 실제 상품 외형은 재현하지 않습니다. ② 실제 제품 사용 사진: 직접 촬영 또는 편집·광고 이용이 허락된 제품 사진을 참고 이미지로 사용합니다.</p><label>생성 유형<select class="vpImageMode"><option value="scene">상황사진 생성 · 일상 배경</option><option value="product">실제 제품 사진 활용 · 착용/사용 장면</option></select></label><label>실제 제품 사진 첨부 (제품 사진 활용 모드)<input type="file" class="vpProductRefUpload" accept="image/jpeg,image/png,image/webp"></label><label>배경·상황 사진 직접 업로드 (선택)<input type="file" class="vpSceneUpload" accept="image/jpeg,image/png,image/webp"></label><div class="btnrow"><button type="button" class="btn vpClearProduct">제품 사진 제거</button><button type="button" class="btn vpClearScene">상황 사진 제거</button></div><label>상황 설명<textarea class="vpImagePrompt" rows="2" maxlength="500" placeholder="예: 외출한 아기에게 턱받이를 착용시키는 자연스러운 식사 장면"></textarea></label><p>업로드한 이미지는 생성 요청 시에만 OpenAI로 전달됩니다. 저작권·상업적 편집 권한이 없는 상품 상세 이미지는 사용하지 마세요.</p><button type="button" class="btn primary vpGeneratePhoto">선택한 방식으로 실사 이미지 생성</button>';
- mode.querySelector('.vpProductRefUpload').addEventListener('change',e=>{if(e.target.files?.[0])window.uploadProductImage(e.target.files[0])});
- mode.querySelector('.vpSceneUpload').addEventListener('change',e=>{if(e.target.files?.[0])window.uploadSceneImage(e.target.files[0])});
- mode.querySelector('.vpClearProduct').onclick=()=>window.clearAsset('product');
- mode.querySelector('.vpClearScene').onclick=()=>window.clearAsset('scene');
- mode.querySelector('.vpGeneratePhoto').onclick=()=>window.requestAiScene(key);
- append(stages.visual,mode);
+ const assetsRoot=el('div','vpCreatorAssetSlot');
+ assetsRoot.id='vpAssetStudio'+platform;
+ append(stages.visual,assetsRoot);
  const quick=el('div','vpStudioStageQuick');
  if(key==='threads'){
   const copy=el('button','btn','본문 복사');copy.type='button';copy.onclick=()=>window.copyThread();
@@ -203,6 +198,7 @@ function go(platform,step){
   studio.buttons[candidate].setAttribute('aria-current',active?'step':'false');
  }
  sync();
+ if(step==='visual'||step==='final'){window.vpCreatorRefresh?.();window.vpCreatorRenderReview?.()}
  try{sessionStorage.setItem('vpStudioStep_'+platform,step);}catch{}
  if(document.getElementById(platform)?.classList.contains('active')){
   studio.root.querySelector('.vpStudioSteps')?.scrollIntoView({block:'nearest',behavior:'instant'});
