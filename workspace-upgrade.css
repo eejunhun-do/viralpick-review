@@ -1,0 +1,47 @@
+/* ViralPick workspace v2 */
+.vpDashHead{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:16px}
+.vpDashHead h1{font-size:30px;margin:8px 0}.vpDashHead p{color:#6b7689;margin:0;font-size:13px}
+.vpOrigin{font-size:11px;color:#53688a;background:#eaf0ff;border-radius:999px;padding:9px 12px}
+.vpDashActions{display:flex;gap:12px;justify-content:space-between;align-items:center;margin:16px 0}
+.vpDashActions label{font-weight:700;font-size:12px;color:#526074}
+.vpDashActions select{padding:9px;border:1px solid #dae0e8;border-radius:10px;background:#fff}
+.vpSummary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.vpStat,.vpChannel{border:1px solid #e4e8ee;background:#fff;border-radius:16px;padding:17px;min-width:0}
+.vpStat small,.vpChannel small{display:block;font-size:11px;color:#758297}
+.vpStat strong{display:block;font-weight:900;font-size:clamp(17px,2vw,27px);margin:11px 0 6px;overflow-wrap:anywhere}
+.vpStat span,.vpChannel span{font-size:10px;color:#8793a2}
+.vpChannelGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:13px}
+.vpChannel b{display:block;font-size:13px;color:#3e577d;margin-bottom:12px}
+.vpChannel strong{display:block;font-size:22px;margin-bottom:6px;overflow-wrap:anywhere}
+.vpChannel span{display:block;margin-top:13px;border-top:1px solid #eef0f4;padding-top:9px}
+.vpDashColumns{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,.85fr);gap:16px;margin-top:16px}
+.vpRecordForm{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:14px 0}
+.vpRecordForm label{font-size:11px;font-weight:800;color:#506078}
+.vpRecordForm input,.vpRecordForm select{margin-top:5px;display:block;width:100%;padding:10px;border:1px solid #dce2ea;border-radius:9px;background:#fff}
+.vpRecordForm .wide{grid-column:1/-1}
+.vpDataTable{overflow-x:auto}.vpDataTable table{width:100%;border-collapse:collapse;font-size:12px}
+.vpDataTable th,.vpDataTable td{text-align:left;white-space:nowrap;border-bottom:1px solid #edf0f5;padding:12px}
+.vpDataTable .btn{padding:4px 8px;font-size:11px}
+.vpEmpty{color:#8792a4;font-size:13px;padding:32px 10px;text-align:center}
+.vpBars{min-height:178px;display:flex;align-items:flex-end;justify-content:space-evenly;gap:12px;overflow-x:auto;padding:20px 4px}
+.vpBar{min-width:44px;display:flex;flex-direction:column;align-items:center;gap:7px}
+.vpBar i{display:block;width:30px;background:linear-gradient(180deg,#536fdd,#b4c0ef);border-radius:7px 7px 0 0}
+.vpBar span{font-size:10px;font-weight:800}.vpBar small{font-size:10px;color:#75849b}
+.vpLinkInput{border:1px solid #dce6fb;background:#f6f9ff;padding:17px;border-radius:13px;margin-bottom:15px}
+.vpLinkInput b{font-size:14px}.vpLinkInput p{font-size:12px;color:#627087;line-height:1.6}
+.vpLinkFields{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) auto;gap:8px}
+.vpLinkFields input{padding:10px;min-width:0;border:1px solid #d4deec;border-radius:9px;background:#fff}
+.vpExtra{background:white;border-radius:14px;margin:18px 0;border:1px solid #e3e7ef;overflow:hidden}
+.vpExtra summary{cursor:pointer;padding:16px 20px;font-weight:800}
+.vpExtra>.panel{margin:0;border:0;box-shadow:none}
+.vpThreadReplyPanel{margin-top:15px}
+.vpThreadReplyPanel textarea{width:100%;resize:vertical;min-height:158px;border:1px solid #d7dee8;border-radius:10px;padding:13px;line-height:1.65}
+.vpThreadReplyPanel .pad p{font-size:12px;color:#798394}
+.vpThreadReplyPanel .vpLinkDisclosure{font-size:11px;color:#566b83;white-space:pre-wrap;overflow-wrap:anywhere;background:#f4f7fa;padding:12px;border-radius:10px;margin-top:11px}
+.vpImageModeBox{background:#f8faff;border:1px solid #dee6f7;border-radius:13px;padding:16px;margin:12px 0}
+.vpImageModeBox>strong{font-size:14px}.vpImageModeBox p{font-size:12px;color:#66758d;line-height:1.6}
+.vpImageModeBox select,.vpImageModeBox textarea{width:100%;background:#fff;border:1px solid #d5dce8;border-radius:9px;padding:10px;margin:7px 0}
+.vpImageModeBox input[type=file]{max-width:100%;margin:5px 0 12px}
+.vpImageModeBox label{display:block;font-size:12px;font-weight:750}
+@media(max-width:1050px){.vpSummary{grid-template-columns:repeat(3,1fr)}.vpChannelGrid{grid-template-columns:repeat(2,1fr)}.vpDashColumns{grid-template-columns:1fr}}
+@media(max-width:600px){.vpDashHead{align-items:flex-start;flex-direction:column}.vpSummary{grid-template-columns:repeat(2,1fr)}.vpChannelGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.vpChannel strong{font-size:16px}.vpDashActions{flex-wrap:wrap}.vpLinkFields{grid-template-columns:1fr}.vpRecordForm{gap:8px}}
