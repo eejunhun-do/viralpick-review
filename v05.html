@@ -2876,7 +2876,7 @@ function parseReviewMarkdown(raw){
  const get=(label)=>productBlock.match(new RegExp('^\\s*-\\s*'+label+'\\s*:\\s*(.*?)\\s*$','im'))?.[1]?.trim()||'';
  const id=get('상품 ID'),name=get('상품명'),rating=get('평점'),count=get('리뷰 수');
  if(!/^\d{5,18}$/.test(id)||!name)throw Error('상품명 또는 숫자형 상품 ID를 확인할 수 없습니다.');
- const imgs=[...new Set([...productBlock.matchAll(/https?:\\/\\/[^\\s<>"'()]+/gi)]
+ const imgs=[...new Set([...productBlock.matchAll(/https?:\/\/[^\s<>"'()]+/gi)]
   .map(m=>m[0].replace(/[.,;]+$/,'')).map(src=>{try{
    const u=new URL(src);
    if(!['http:','https:'].includes(u.protocol)||!(u.hostname==='coupangcdn.com'||u.hostname.endsWith('.coupangcdn.com')))return null;
