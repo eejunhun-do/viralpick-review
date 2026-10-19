@@ -1,6 +1,6 @@
 import {session} from '../lib/account-store.js';
 import {json,preflight,checkAccess} from '../lib/api-guard.js';
-import {partnerRequest,isConfigured,validProductUrl} from '../lib/coupang-partners.js';
+import {partnerRequest,isConfigured,validProductUrl,validProductImage} from '../lib/coupang-partners.js';
 
 const ROOT='/v2/providers/affiliate_open_api/apis/openapi/v1/products';
 const CATEGORIES={
@@ -44,7 +44,7 @@ export async function GET(req){
    id:p.productId==null?null:String(p.productId),
    name:String(p.productName||'').slice(0,200),
    price:Number.isFinite(Number(p.productPrice))?Number(p.productPrice):null,
-   imageUrl:typeof p.productImage==='string'&&/^https?:\/\//i.test(p.productImage)?p.productImage.slice(0,2000):null,
+   imageUrl:validProductImage(p.productImage),
    productUrl:validProductUrl(p.productUrl),
    isRocket:!!p.isRocket,isFreeShipping:!!p.isFreeShipping,
    categoryName:typeof p.categoryName==='string'?p.categoryName.slice(0,80):'',
