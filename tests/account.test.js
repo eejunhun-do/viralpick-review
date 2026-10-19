@@ -8,6 +8,7 @@ process.env.UPSTASH_REDIS_REST_TOKEN='test-only';
 test('HMAC signing is deterministic and includes query',()=>{
  const date=new Date('2026-10-19T10:11:12Z');
  assert.equal(signingDate(date),'261019T101112Z');
+ assert.equal(SEARCH_PATH,'/v2/providers/affiliate_open_api/apis/openapi/v1/products/search');
  const h=hmacAuthorization('GET',SEARCH_PATH+'?keyword=test&limit=2','ak','sk',date);
  assert.match(h,/^CEA algorithm=HmacSHA256, access-key=ak, signed-date=261019T101112Z, signature=[a-f0-9]{64}$/);
  assert.notEqual(h,hmacAuthorization('GET',SEARCH_PATH+'?keyword=other&limit=2','ak','sk',date));
