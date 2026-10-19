@@ -105,6 +105,8 @@ function init(){
  if(typeof nativeShow==='function')window.show=function(id){nativeShow(['integrations','lab','analytics'].includes(id)?'discover':id);if(id==='dashboard')render()};
  const originalSelect=window.selectProduct;
  if(typeof originalSelect==='function')window.selectProduct=function(id){originalSelect(id);window.show('threads');window.vpStudioGo?.('threads','source')};
+ const current=document.querySelector('.view.active')?.id;
+ if(['integrations','lab','analytics'].includes(current))window.show('dashboard');
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
