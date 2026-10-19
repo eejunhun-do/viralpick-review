@@ -2090,14 +2090,15 @@ async function requestAiScene(purpose='instagram'){
  const imageMode=studio?.querySelector('.vpImageMode')?.value||'scene';
  const reference=imageMode==='product'?currentMedia()?.product:null;
  if(imageMode==='product'&&(!reference||reference.kind!=='licensed-upload')){
-  throwStopImageMode();return;
+  throwStopImageMode();sceneGenerationBusy=false;
+  allButtons.forEach((b,i)=>{b.disabled=false;b.textContent=labels[i]});return;
  }
- const referenceImage=reference?await vpResizeReferenceImage(reference.data):undefined;
  const source=studio?.querySelector('.vpImagePrompt')?.value?.trim()||$('#scenePrompt')?.value?.trim()||selected.visual||'';
  const scene=(hints[selected.id]?hints[selected.id]+' Additional user context: '+source:source).slice(0,500);
  const hook=inThreads?getHookHeadline():coverHooks(selected)[coverIndex];
  const style=hookPhotoStyle;
  try{
+  const referenceImage=reference?await vpResizeReferenceImage(reference.data):undefined;
   const data=await backendRequest('/api/image',{
    method:'POST',body:JSON.stringify({product:selected.name,scene,purpose,hook,style,imageMode,referenceImage})
   });
@@ -4313,7 +4314,7 @@ function show(id){
  const current=$('#mobileCurrentView');if(current)current.textContent=viewLabels[id]||'ViralPick';
  closeMobileMenu();
  window.scrollTo({top:0,behavior:'auto'});
- if(['dashboard','discover'].includes(id))void refreshCoupangCatalog();
+ // Product discovery runs on explicit user search; dashboard never triggers background product requests.
  if(id==='scheduler')renderPostingSettings();
  if(id==='analytics')renderAnalytics();
  if(['threads','instagram','integrations'].includes(id))renderPhotoHistories();
