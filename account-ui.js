@@ -39,7 +39,7 @@
  $('#vpLoginForm').addEventListener('submit',async e=>{
  e.preventDefault();$('#vpAuthError').textContent='';
  try{const data=await request(API,'POST',{action:initialSetup?'setup':'login',user:$('#vpUsername').value,password:$('#vpPassword').value,...(initialSetup?{bootstrap:$('#vpBootstrap').value}:{})});
- state.token=data.token;state.user=data.user;state.role=initialSetup?'admin':'user';sessionStorage.setItem('vp_session',data.token);$('#vpPassword').value='';$('#vpBootstrap').value='';gate.classList.remove('visible');show('apiSettings');loadKeys();
+ state.token=data.token;state.user=data.user;state.role=data.role||'admin';sessionStorage.setItem('vp_session',data.token);$('#vpPassword').value='';$('#vpBootstrap').value='';gate.classList.remove('visible');show('apiSettings');loadKeys();
  }catch(e){$('#vpAuthError').textContent=e.message}
  });
  async function loadKeys(){
