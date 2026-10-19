@@ -3155,7 +3155,7 @@ function coverHooks(p){
   [s[3],s[4],s[5]],
   [s[1],s[3],s[0]],
   [s[4],s[2],s[5]]
- ].map((options,i)=>options[(({stable:0,balanced:1,creative:2})[instagramDiversity]||0)+coverSeed+i)%3]);
+ ].map((options,i)=>options[((({stable:0,balanced:1,creative:2})[instagramDiversity]||0)+coverSeed+i)%3]);
 }
 const instagramCoverHeadlineEdits={};
 let instagramCoverEditTimer=null;
