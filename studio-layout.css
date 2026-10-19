@@ -72,3 +72,8 @@
  .vpStudioCopyLead{padding:13px}
  .vpStudioLeadActions{width:100%}
 }
+.vpStudioStageQuick{display:flex;justify-content:flex-end;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 0 4px}
+.vpStudioStage>button.btn{margin:13px 0 0}
+.vpStudioThreadText>.panel{max-width:860px}
+.vpStudioStage .vpStudioCopyLead+.vpStudioThreadText{margin-top:12px}
+@media(max-width:580px){.vpStudioStageQuick{justify-content:stretch}.vpStudioStageQuick>.btn{flex:1 1 135px}}
