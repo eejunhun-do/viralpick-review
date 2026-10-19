@@ -2906,12 +2906,17 @@ async function generateProductCopy(platform){
   const reviewNotes=$('#vpAiReviews')?.value.trim()||'';
   const evidence=loadReviewEvidence(reviewEvidenceKey(selected));
   const data=await backendRequest('/api/copy',{method:'POST',body:JSON.stringify({platform,products:items.map(p=>({title:p.name,price:p.price,category:p.type,description,reviewNotes: p.id===selected.id?reviewNotes:'',reviewStats:p.id===selected.id&&evidence?{rating:evidence.rating,reviewCount:evidence.count,writtenCount:evidence.writtenCount,images:evidence.images}:null}))})});
-  const copy=data.text;
+  const copy=platform==='Threads'?data.part1:data.text;
+  if(platform==='Threads'&&!copy)throw new Error('Threads 1단 응답이 비어 있습니다.');
   if(useMulti){
    multiStudio.captions[platform]=copy;persistMultiStudio();
+   if(platform==='Threads'&&data.part2)saveThreadReply(data.part2);
    refreshMultiOutputs();
   }else if(platform==='Threads'){
-   customThreadEdits[threadEditKey()]=copy;renderThreads();
+   customThreadEdits[threadEditKey()]=copy;
+   if(typeof data.part2==='string')saveThreadReply(data.part2);
+   if(data.hook&&typeof hookHeadlineEdits==='object')hookHeadlineEdits[hookEditKey()]=data.hook;
+   renderThreads();
   }else{
    customInstagramCaptions[selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex]=copy;renderInstagram();
   }
@@ -2921,7 +2926,40 @@ async function generateProductCopy(platform){
  }catch(e){status.textContent='AI 생성 실패: '+e.message}
  finally{btn.disabled=false}
 }
-function getCurrentThreadText(){if(isMultiMode('Threads'))return getMultiCaption('Threads');const key=threadEditKey();return Object.prototype.hasOwnProperty.call(customThreadEdits,key)?customThreadEdits[key]:threadBodies(selected)[threadCopyIndex]}
+const THREAD_REPLY_STORE='viralpick-threads-replies-v1';
+function threadReplyKey(){return String(selected?.id||'')+':'+threadDiversity+':'+threadSeed+':'+threadCopyIndex}
+function saveThreadReply(body){
+ const text=String(body||'').replace(/^\\s*광고\\s*\\n?/i,'').trim();
+ try{const map=JSON.parse(localStorage.getItem(THREAD_REPLY_STORE)||'{}');map[threadReplyKey()]=text;localStorage.setItem(THREAD_REPLY_STORE,JSON.stringify(map))}catch{}
+}
+function readThreadReply(){
+ try{return JSON.parse(localStorage.getItem(THREAD_REPLY_STORE)||'{}')[threadReplyKey()]||''}catch{return ''}
+}
+function cleanThreadPart(text){
+ return String(text||'').split('\\n').filter(line=>!/(쿠팡 파트너스 활동|이 포스팅은 쿠팡|link\\.coupang\\.com|coupa\\.ng|https?:\\/\\/)/i.test(line)).join('\\n').trim();
+}
+function getCurrentThreadText(){
+ if(isMultiMode('Threads'))return cleanThreadPart(getMultiCaption('Threads'));
+ const key=threadEditKey();
+ const content=Object.prototype.hasOwnProperty.call(customThreadEdits,key)?customThreadEdits[key]:threadBodies(selected)[threadCopyIndex];
+ return cleanThreadPart(content);
+}
+function getThreadReplyText(){
+ const base=readThreadReply()||'상품 정보를 확인해 봤는데 이런 상황에서 쓸만한지 비교해 볼 수 있겠더라.\\n구매 전에 실제 후기와 옵션도 꼭 확인해 봐.';
+ const link=partnerLink(selected);
+ return base.trim()+'\\n\\n'+(link?link+'\\n':'제휴 링크 미등록 · 상품 발굴에서 링크 등록 필요\\n')+affiliateDisclosure;
+}
+function renderThreadReplyEditor(){
+ const area=$('#vpThreadReplyEditor'),note=$('#vpThreadLinkStatus');
+ if(area&&document.activeElement!==area)area.value=readThreadReply()||'상품 정보를 확인해 봤는데 이런 상황에서 쓸만한지 비교해 볼 수 있겠더라.\\n구매 전에 실제 후기와 옵션도 꼭 확인해 봐.';
+ if(note)note.textContent=partnerLink(selected)?'쿠팡 제휴링크 자동 첨부됨 · 수수료 고지는 2단 마지막에만 표시됩니다.':'쿠팡 제휴링크가 없습니다. 상품 발굴에서 등록해야 합니다.';
+}
+function onThreadReplyEdit(value){saveThreadReply(value)}
+async function copyThreadPart(part){
+ const text=part===2?getThreadReplyText():getCurrentThreadText();
+ try{await navigator.clipboard.writeText(text);toast('Threads '+part+'단 복사 완료')}catch{toast('클립보드 권한을 확인해 주세요')}
+}
+
 function onThreadFinalEdit(){customThreadEdits[threadEditKey()]=$('#threadFinalText').value;renderThreadDupStatus()}
 function getCurrentInstagramCaption(){if(isMultiMode('Instagram'))return getMultiCaption('Instagram');return Object.prototype.hasOwnProperty.call(customInstagramCaptions,selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex)?customInstagramCaptions[selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex]:instaCaption(selected)}
 function onInstagramFinalEdit(){if(isMultiMode('Instagram')){editMultiCaption('Instagram',$('#instaCaption').value);return}customInstagramCaptions[selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex]=$('#instaCaption').value;renderInstagramDupStatus()}
@@ -3027,6 +3065,7 @@ function renderThreads(){
  $('#hookHeadline').value=getHookHeadline();
  $('#hookPhotoStyle').value=hookPhotoStyle;
  $('#threadFinalText').value=getCurrentThreadText();
+ renderThreadReplyEditor();
  const i=threadImageIndex;
  $('#threadImages').innerHTML=threadVisuals(p);
  try{
@@ -3049,7 +3088,7 @@ function refreshHookPreviews(){
  }catch(e){toast('후킹 이미지 미리보기 오류: '+e.message)}
 }
 function cycleThread(){threadSeed++;threadCopyIndex=0;threadImageIndex=0;renderThreads();toast('상품별 후킹 6안을 새로 구성했습니다')}
-async function copyThread(){ try{await navigator.clipboard.writeText(getCurrentThreadText());toast('Threads 본문을 복사했습니다')}catch(e){toast('브라우저 복사 권한을 확인해주세요')} }
+async function copyThread(){try{await navigator.clipboard.writeText(getCurrentThreadText()+'\n\n──────── 2/2 ────────\n\n'+getThreadReplyText());toast('Threads 1단·2단 전체 복사 완료')}catch(e){toast('브라우저 복사 권한을 확인해주세요')}}
 
 function coverHooks(p){
  const name=String(p.name||'상품').trim();
