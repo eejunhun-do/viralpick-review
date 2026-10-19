@@ -2888,8 +2888,16 @@ async function fetchSelectedProductPage(){
 async function generateProductCopy(platform){
  const status=$('#vpAiCopyStatus'),btn=$('#vpAi'+platform);
  if(!status||!btn)return;
- const items=(isMultiMode(platform)?multiSelectedProducts():[selected]).filter(Boolean);
- if(!items.length){status.textContent='먼저 상품을 선택하세요.';return}
+ let useMulti=isMultiMode(platform);
+ let items=(useMulti?multiSelectedProducts():[selected]).filter(Boolean);
+ if(useMulti&&!items.length&&selected){
+  // A persisted multi-mode tab may have zero selected products.
+  // This button belongs to the single-product evidence panel: use the current product.
+  useMulti=false;items=[selected];
+  multiStudio.modes[platform]='single';persistMultiStudio();
+  status.textContent='모음형에 선택된 상품이 없어 현재 상품의 단일 문구 생성으로 전환했습니다.';
+ }
+ if(!items.length){status.textContent='선택한 상품을 찾을 수 없습니다. 상품 발굴에서 상품을 선택해 주세요.';return}
  if(!confirm(platform+' 문구를 OpenAI API로 생성할까요? API 비용이 발생할 수 있으며 현재 편집 중인 문구가 교체됩니다.'))return;
  btn.disabled=true;status.textContent=platform+' 문구 생성 중…';
  try{
@@ -2898,7 +2906,7 @@ async function generateProductCopy(platform){
   const evidence=loadReviewEvidence(reviewEvidenceKey(selected));
   const data=await backendRequest('/api/copy',{method:'POST',body:JSON.stringify({platform,products:items.map(p=>({title:p.name,price:p.price,category:p.type,description,reviewNotes: p.id===selected.id?reviewNotes:'',reviewStats:p.id===selected.id&&evidence?{rating:evidence.rating,reviewCount:evidence.count,writtenCount:evidence.writtenCount,images:evidence.images}:null}))})});
   const copy=data.text;
-  if(isMultiMode(platform)){
+  if(useMulti){
    multiStudio.captions[platform]=copy;persistMultiStudio();
    refreshMultiOutputs();
   }else if(platform==='Threads'){
