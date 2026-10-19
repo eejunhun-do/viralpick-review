@@ -136,7 +136,19 @@ function build(platform){
  }
  const assetsRoot=el('div','vpCreatorAssetSlot');
  assetsRoot.id='vpAssetStudio'+platform;
- append(stages.visual,assetsRoot);
+ // Visual creation is a linear workflow: choose hook, select photo and generate,
+ // then compare the three composite layouts. Keep the legacy editor DOM intact.
+ stages.visual.insertBefore(assetsRoot,stages.visual.children[1]||null);
+ if(key==='threads'){
+  const legacyLayouts=stages.visual.querySelector('.vpStudioThreadArt');
+  if(legacyLayouts){
+   const title=legacyLayouts.querySelector('.hookImagePanel .panelHead h2');
+   if(title)title.textContent='③ 후킹 이미지 3가지 레이아웃';
+   stages.visual.appendChild(legacyLayouts);
+  }
+  const note=stages.visual.querySelector('.singleOnlyThreads.aiNote');
+  if(note)stages.visual.appendChild(note);
+ }
  const quick=el('div','vpStudioStageQuick');
  if(key==='threads'){
   const copy=el('button','btn','본문 복사');copy.type='button';copy.onclick=()=>window.copyThread();
@@ -148,7 +160,8 @@ function build(platform){
   const zip=el('button','btn primary','캐러셀 ZIP 저장');zip.type='button';zip.onclick=()=>window.downloadInstagramZIP();
   quick.appendChild(coverNew);quick.appendChild(zip);
  }
- stages.visual.insertBefore(quick,stages.visual.children[1]||null);
+ // Actions such as PNG export follow the image/layout review, never precede the hook choices.
+ append(stages.visual,quick);
  const reminders=el('div','vpStudioReviewNote');
  reminders.appendChild(el('strong','','게시 전 확인 사항'));
  const checklist=el('p','',
