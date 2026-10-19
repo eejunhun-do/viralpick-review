@@ -55,3 +55,25 @@
 
 /* The selected-image gallery is the only primary AI photo generation control. */
 #threads.vpStudioReady #threadGenerateButton,#instagram.vpStudioReady #instagramGenerateButton{display:none!important}
+
+/* Sequential image creation: 01 hook -> 02 reference photo / generation -> 03 layout comparison. */
+.vpCreatorReference{display:flex;flex-direction:column;gap:14px}
+.vpCreatorPhase{min-width:0;padding:14px 16px;border:1px solid #e2e8f1;border-radius:15px;background:#fff}
+.vpCreatorHookStep{order:1;background:#f8fbff;border-color:#dbe6ff}
+.vpCreatorPhotoStep{order:2}
+.vpCreatorPhaseLabel{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.vpCreatorPhaseLabel>span{display:grid;place-items:center;min-width:34px;height:34px;border-radius:10px;background:#3c67c8;color:white;font-size:12px;font-weight:900}
+.vpCreatorPhaseLabel>strong{font-size:17px;letter-spacing:-.4px}
+.vpCreatorPhaseLabel>small{flex-basis:100%;padding-left:44px;color:#657489;font-size:12px;line-height:1.5}
+.vpCreatorHookStep .vpCreatorHookHeader{margin-top:4px}
+.vpCreatorPhotoStep .vpCreatorTitle{margin-top:6px}
+#threads.vpStudioReady .vpStudioThreadArt .hookMaker{display:none!important}
+#threads.vpStudioReady .vpStudioThreadArt{margin-top:14px}
+#threads.vpStudioReady .vpStudioThreadArt .hookImagePanel{max-width:none}
+.vpCreatorStylePicker{display:grid;gap:6px;font-size:12px;font-weight:800;color:#53647b;margin:14px 0}
+.vpCreatorStylePicker select{width:100%;border:1px solid #dce3ef;border-radius:10px;padding:10px;background:#fff}
+@media(max-width:650px){
+ .vpCreatorPhase{padding:12px}
+ .vpCreatorPhaseLabel>strong{font-size:15px}
+ .vpCreatorPhaseLabel>small{padding-left:0}
+}
