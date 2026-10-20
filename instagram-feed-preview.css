@@ -1,0 +1,50 @@
+/* Instagram-inspired visual preview shared by creator and final inspection. */
+#instagram:not(.multiEnabled) .instagramCarouselViewer>.instaSwipeFrame,
+#instagram:not(.multiEnabled) .instagramCarouselViewer>.instaSlideControls{display:none!important}
+#instagram .vpInstagramFeedCard[hidden]{display:none!important}
+#instagram .vpInstagramFeedCard{width:min(100%,490px);border:1px solid #e4e7ed;background:white;border-radius:13px;overflow:hidden;margin:0 auto 15px;box-shadow:0 9px 27px rgba(20,30,45,.06);color:#17202d}
+.vpInstagramFeedHeader{height:61px;display:flex;align-items:center;gap:10px;padding:9px 13px}
+.vpInstagramFeedAvatar{height:38px;width:38px;flex:0 0 38px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(125deg,#f9b762,#cb3b89,#6d57e4);border:3px solid white;box-shadow:0 0 0 2px #e27a8f;color:white;font-size:15px;font-weight:950}
+.vpInstagramFeedWho{display:grid;gap:2px;min-width:0;flex:1}
+.vpInstagramFeedWho strong{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vpInstagramFeedWho small{font-size:10px;color:#8b929b}
+.vpInstagramFeedMore{font-size:22px;letter-spacing:2px;line-height:1;color:#292f3a}
+.vpInstagramFeedMedia{position:relative;aspect-ratio:4/5;background:#e5e9ef;overflow:hidden;touch-action:pan-y;outline-offset:-3px}
+.vpInstagramFeedMedia img{width:100%;height:100%;object-fit:cover;display:block;user-select:none}
+.vpInstagramFeedCounter{position:absolute;top:13px;right:13px;border-radius:99px;background:#202329bb;color:white;font-size:11px;font-weight:850;padding:6px 9px;font-variant-numeric:tabular-nums}
+.vpInstagramFeedNav{position:absolute;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;background:#fffdf6d9;color:#202b3a;font-size:24px;display:grid;place-items:center;border:0;cursor:pointer;line-height:1;box-shadow:0 2px 8px #0002}
+.vpInstagramFeedNav.previous{left:9px}.vpInstagramFeedNav.next{right:9px}.vpInstagramFeedNav:disabled{opacity:0;pointer-events:none}
+.vpInstagramFeedActions{padding:10px 13px 1px;display:flex;align-items:center;justify-content:space-between;gap:8px;height:39px}
+.vpInstagramFeedIcons{display:flex;align-items:center;gap:13px;color:#263040;font-size:25px;line-height:1}
+.vpInstagramFeedDots{font-size:12px;letter-spacing:3px;color:#71849a;text-align:center;white-space:nowrap}
+.vpInstagramFeedBookmark{font-size:26px;color:#263040}
+.vpInstagramFeedCaption{padding:8px 13px 0;font-size:12px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere;display:block;max-height:65px;overflow:hidden}
+.vpInstagramFeedCard.expanded .vpInstagramFeedCaption{max-height:none}
+.vpInstagramFeedCaption strong{margin-right:5px;font-weight:850}
+.vpInstagramFeedExpand{border:0;background:transparent;color:#929aa6;padding:6px 13px 10px;font-size:11px;cursor:pointer}
+.vpInstagramAliasLabel{display:flex;align-items:center;gap:10px;border-top:1px solid #f0f1f5;color:#7f8a9b;font-size:11px;padding:10px 13px;background:#fafbfc}
+.vpInstagramAliasInput{height:35px;border:1px solid #e0e5eb;background:#fff;border-radius:9px;padding:6px 9px;flex:1;min-width:0;font-size:12px;color:#344153}
+#instagram:not(.multiEnabled) #vpAssetStudioInstagram .vpCreatorReference,
+#instagram:not(.multiEnabled) #vpAssetStudioInstagram.vpCreatorReference{margin:0 0 13px}
+#instagram:not(.multiEnabled) .vpInstagramPhotoPicker .vpCreatorHookStep,
+#instagram:not(.multiEnabled) .vpInstagramPhotoPicker .vpCreatorSceneRow{display:none!important}
+#instagram .instagramCarouselViewer{min-width:0}
+#instagram .vpInstagramPhotoPicker .vpCreatorPhotoStep{border:0;padding:0;background:transparent}
+#instagram .vpInstagramPhotoPicker .vpCreatorPhaseLabel{margin-bottom:10px}
+#instagram .vpInstagramPhotoPicker .vpCreatorUpload{margin-bottom:6px}
+#instagram .carouselImageTools{padding:14px;border:1px solid #e3e7ef;border-radius:14px;background:#f7f9fc;margin-bottom:14px}
+#instagram .carouselImageToolsRow{display:flex;gap:8px;flex-wrap:wrap}
+#instagram .carouselImageToolsRow button{flex:1;min-width:150px}
+#instagram #carouselArtStatus{font-size:11px;line-height:1.6;color:#647189;margin:10px 0 0}
+#instagram .vpStudioStage[data-studio-stage=final]>.vpInstagramFeedCard{margin:18px auto;max-width:490px}
+#instagram:not(.multiEnabled) .vpStudioStage[data-studio-stage=visual] .singleOnlyInstagram.panel:has(#coverGrid){display:none}
+#instagram:not(.multiEnabled) .vpStudioStage[data-studio-stage=visual] .singleOnlyInstagram.aiNote{display:none}
+#instagram:not(.multiEnabled) .vpStudioStage[data-studio-stage=visual] .carouselPreviewSection{padding-top:4px}
+#instagram:not(.multiEnabled) .vpStudioStage[data-studio-stage=visual] .vpStudioStageQuick button:first-child{display:none}
+@media(max-width:580px){
+ .vpInstagramFeedHeader{height:55px;padding:9px 11px}
+ .vpInstagramFeedAvatar{height:33px;width:33px;flex-basis:33px}
+ .vpInstagramFeedNav{height:31px;width:31px}
+ .vpInstagramFeedCaption{font-size:11px}
+ #instagram .carouselImageToolsRow button{min-width:100%;flex:1}
+}
