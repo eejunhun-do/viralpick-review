@@ -21,7 +21,7 @@ test('five distinct linked hook pairs required',()=>{
 });
 test('client script parses and is loaded only after the existing creator gallery',()=>{
  assert.doesNotThrow(()=>new Script(frontend));
- assert.match(html,/creator-assets\.js\?v=2"><\/script>\s*<script src="\/thread-pairs\.js\?v=1"/);
+ assert.match(html,/creator-assets\.js\?v=2"><\/script>\s*<script src="\/thread-pairs\.js\?v=2"/);
  assert.match(frontend,/window\.vpCreatorReferencePayload\('threads'\)/);
  assert.match(frontend,/purpose:slot==='pain'\?'threads-pain':'threads-solve'/);
  assert.match(frontend,/slot==='solve'\?await window\.vpCreatorReferencePayload\('threads'\):\{imageMode:'scene'\}/);
@@ -52,4 +52,12 @@ test('image storage is browser local IndexedDB rather than localStorage large ba
  assert.match(frontend,/createObjectStore\(STORE\)/);
  assert.match(frontend,/tx\.objectStore\(STORE\)\.put\(value,key\)/);
  assert.ok(frontend.includes("delete r.images[index+':'+slot];"));
+});
+
+test('story stages are nested in the correct creator container and both hooks can update Threads post opening lines',()=>{
+ assert.match(frontend,/const container=root\.querySelector\('\.vpCreatorReference'\)\|\|root/);
+ assert.match(frontend,/container\.insertBefore\(problem,photo\)/);
+ assert.match(frontend,/function applyHooksToPosts\(/);
+ assert.match(frontend,/customThreadEdits\[threadEditKey\(\)\]=first/);
+ assert.match(frontend,/saveThreadReply\(second\)/);
 });
