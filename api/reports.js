@@ -14,13 +14,13 @@ export async function GET(req){
  if(b<a||b-a>29*86400000||b>Date.now())return json(req,{ok:false,message:'조회 기간은 최대 30일이며 미래 날짜는 조회할 수 없습니다.'},400);
  const subId=u.searchParams.get('subId')||'';
  if(subId&&!/^[A-Za-z0-9_-]{1,48}$/.test(subId))return json(req,{ok:false,message:'subId 형식이 올바르지 않습니다.'},400);
- const query=new URLSearchParams({startDate:start,endDate:end});if(subId)query.set('subId',subId);
+ const query=new URLSearchParams({startDate:start,endDate:end,page:'0'});if(subId)query.set('subId',subId);
  const reports={},errors={};
  // Make independent requests: one failed report must not fabricate zero-valued performance.
  const outcome=await Promise.all(KINDS.map(async kind=>{
   try{
    const response=await partnerRequest('GET',ROOT+kind+'?'+query.toString(),undefined,session(req));
-   const rows=Array.isArray(response?.data)?response.data:Array.isArray(response?.data?.data)?response.data.data:null;
+   const rows=Array.isArray(response?.data)?response.data:Array.isArray(response?.data?.data)?response.data.data:Array.isArray(response?.data?.items)?response.data.items:null;
    if(!rows)throw Error('리포트 데이터 형식을 확인하지 못했습니다.');
    return {kind,rows:rows.slice(0,1000)};
   }catch(e){return {kind,error:String(e.message||'조회 실패').slice(0,200)}}
