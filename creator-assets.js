@@ -64,6 +64,17 @@ async function payload(platform){
  if(ref.type==='upload')return {imageMode:'product',referenceImage:await vpResizeReferenceImage(ref.src),referenceRightsConfirmed:true,referenceLabel:ref.label};
  return {imageMode:'product',referenceUrl:ref.src,referenceRightsConfirmed:true,referenceLabel:ref.label};
 }
+async function payloadForInstagramSlide(slide){
+ if(![3,4,5].includes(slide))throw Error('3~5번 카드만 상품 참조 사진을 사용합니다.');
+ const first=getReference('instagram'),items=assets();
+ const compatible=items.filter(x=>x.type==='upload'||(x.type==='remote'&&(()=>{try{const u=new URL(x.src);return u.hostname==='coupangcdn.com'||u.hostname.endsWith('.coupangcdn.com')}catch{return false}})()));
+ // 3 uses the selected thumbnail/detail photo; 4-5 rotate other original product photo sources when available.
+ const others=compatible.filter(x=>x.id!==first.id);
+ const ref=slide===3||!others.length?first:others[(slide-4)%others.length];
+ if(ref.type==='remote'&&!state.instagram.rights)throw Error('상품 이미지의 상업적 편집·AI 활용 권한을 확인한 뒤 3~5번 카드를 생성해 주세요.');
+ if(ref.type==='upload')return {imageMode:'product',referenceImage:await vpResizeReferenceImage(ref.src),referenceRightsConfirmed:true,referenceLabel:ref.label};
+ return {imageMode:'product',referenceUrl:ref.src,referenceRightsConfirmed:true,referenceLabel:ref.label};
+}
 function hookKey(platform){return ownerKey()+':'+platform}
 function hooks(platform){
  const stored=storageValue(HOOK_KEY),existing=stored[hookKey(platform)];
@@ -263,6 +274,15 @@ function init(){
  if(!threads||!insta)return;
  threads.replaceChildren(creatorNode('threads'));
  insta.replaceChildren(creatorNode('instagram'));
+ insta.classList.add('vpInstagramPhotoPicker');
+ // Instagram generates five slide-specific visuals, not a separate lifestyle background.
+ insta.querySelector('.vpCreatorHookStep')?.remove();
+ insta.querySelector('.vpCreatorSceneRow')?.remove();
+ insta.querySelector('.vpCreatorUpload details')?.remove();
+ const photoHeading=insta.querySelector('.vpCreatorPhotoStep .vpCreatorPhaseLabel');
+ if(photoHeading)photoHeading.innerHTML='<span>01</span><strong>상품 썸네일 · 상세 이미지 선택</strong><small>3~5번은 실제 상품 사진의 외형을 참고합니다. 1~2번은 제품 없는 상황으로 만듭니다.</small>';
+ const title=insta.querySelector('.vpCreatorTitle h3');if(title)title.textContent='상품 이미지 소스';
+ const status=insta.querySelector('.vpAssetStatus');if(status)status.textContent='권한을 확인한 상품 사진으로 3~5번의 문구별 상황을 생성합니다. AI 생성물의 외형을 게시 전 검토하세요.';
  // Preserve the legacy photo-style dropdown; it belongs to image generation, not the 3 layout previews.
  const stylePicker=$('#threads .vpStudioThreadArt .hookMakerTools label');
  const photoSection=$('#vpAssetStudioThreads .vpCreatorPhotoStep');
@@ -286,6 +306,7 @@ function init(){
  if(second){const panel=makeInstagramPreview();panel.id='vpInstagramSocialReview';second.insertBefore(panel,second.querySelector('.vpStudioReviewNote')||second.children[1])}
  window.vpCreatorSetGenerating=setGenerating;
  window.vpCreatorReferencePayload=payload;
+ window.vpCreatorReferencePayloadForInstagramSlide=payloadForInstagramSlide;
  window.vpCreatorSceneText=sceneText;
  window.vpCreatorRefresh=refresh;
  window.vpCreatorRenderReview=renderFinalPreviews;
