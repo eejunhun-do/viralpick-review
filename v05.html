@@ -1920,12 +1920,18 @@ async function issueCoupangLink(p){
   const response=await backendRequest('/api/deeplink',{method:'POST',body:JSON.stringify({url:source})});
   const link=response?.links?.[0]?.affiliateUrl;
   if(!isPartnerLink(link))throw Error('파트너스 응답에 정상 제휴 URL이 없습니다.');
-  if(!isShortPartnerLink(link))throw Error('쿠팡 API가 짧은 제휴 URL을 반환하지 않았습니다. API 응답을 확인해 주세요.');
+  if(!isShortPartnerLink(link))throw Error('쿠팡 API가 긴 추적 URL을 반환했습니다 ('+new URL(link).hostname+new URL(link).pathname+'). 짧은 링크는 파트너스 사이트에서 발급하거나 별도 단축 서비스를 연결해야 합니다.');
   p.affiliateUrl=link;saveCoupangDrafts();
   renderProductLists();renderMultiStudios();renderAffiliateEditor();
   toast('쿠팡 파트너스 단축 링크 발급 완료');
   return link;
- }catch(e){toast('쿠팡 단축 링크 발급 실패: '+e.message);return isShortPartnerLink(current)?current:null}
+ }catch(e){
+  const message='쿠팡 단축 링크 미발급: '+e.message;
+  const status=$('#vpThreadLinkStatus');if(status)status.textContent=message;
+  const output=$('#selectedAffiliateLink');if(output){const note=document.createElement('p');note.className='queueHint';note.textContent=message;output.append(note)}
+  toast('단축 링크 미발급 · 제휴 링크 영역에서 원인을 확인하세요.');
+  return isShortPartnerLink(current)?current:null
+ }
 }
 function saveCoupangManualLink(id,link){
  const p=products.find(x=>x.id===Number(id));
@@ -3043,7 +3049,7 @@ function getThreadReplyText(){
 function renderThreadReplyEditor(){
  const area=$('#vpThreadReplyEditor'),note=$('#vpThreadLinkStatus');
  if(area&&document.activeElement!==area)area.value=readThreadReply()||'이런 상황에 쓸 만한지 제품 정보랑 실제 후기를 비교해 봤어.\n옵션과 후기의 아쉬운 점도 꼭 확인해 봐.';
- if(note)note.textContent=partnerLink(selected)?'제휴링크와 수수료 고지가 2단 마지막에 자동으로 붙습니다.':'제휴링크가 없습니다. 상품 발굴에서 등록해야 합니다.';
+ if(note)note.textContent=publishPartnerLink(selected)?'짧은 제휴링크와 수수료 고지가 2단 마지막에 자동으로 붙습니다.':partnerLink(selected)?'긴 제휴링크만 발급된 상태입니다. 단축 링크 발급을 다시 시도하거나 파트너스 사이트에서 짧은 주소를 등록하세요.':'제휴링크가 없습니다. 상품 발굴에서 등록해야 합니다.';
 }
 function onThreadReplyEdit(value){saveThreadReply(value);window.vpCreatorRenderReview?.()}
 async function copyThreadPart(part){
