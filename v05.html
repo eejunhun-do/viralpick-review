@@ -1396,10 +1396,11 @@ function carouselSceneForSlide(p,slide){
  if(planned?.scene)return ('Photorealistic Korean Instagram product-story slide '+slide+' of 5. '+planned.scene+' Product category: '+p.name+'. No overlay text, logos, fake claims or watermarks. Natural empty upper region for Korean app typography.').slice(0,500);
  const context='Product context: '+p.name+'. Actual use problem: '+(p.problem||'ordinary inconvenience')+'. Verified feature description: '+(p.novel||'check function')+'.';
  const direction={
+  1:'A curiosity-building everyday moment before a solution, without the advertised product.',
   2:'Photograph the everyday PROBLEM before any solution. Show a person in a relatable setting dealing with this inconvenience, with honest natural body language. Close-up story, important objects clearly visible. '+(p.visual||''),
-  3:'Photograph a generic product-category tool or accessory naturally being used in the everyday setting. Make the usage context clear, subject large, authentic photographic detail. Do not pretend to depict an exact listed SKU or brand.',
-  4:'Photograph an honest, plausible close-up of a person evaluating or demonstrating the CATEGORY of feature or use context. Emphasize hands, useful everyday action, and a beautiful realistic environment. Do not illustrate an unsupported benefit.',
-  5:'Photograph an elegant editorial lifestyle decision moment: calm completed everyday scene and someone evaluating a product option on a smartphone with an intentionally blank or unreadable screen, naturally lit. Do not include prices, discounts or text.'
+  3:'Show the precise reference product in a plausible everyday solution scene with its identity and proportions preserved.',
+  4:'Show a credible close-up with the same reference product, using only confirmed visible features and no fabricated functions.',
+  5:'Show the same recognizable reference product in another realistic positive usage scene, without prices or unsupported claims.'
  }[slide];
  return (direction+' '+context+' No letters, text, captions, symbols, watermarks, product logos or prices. Top third has naturally uncluttered background for Korean headline overlay.').slice(0,500);
 }
@@ -1428,6 +1429,7 @@ async function runCarouselArtworkGeneration(slides){
  try{
   // Slide 2 is the inconvenience BEFORE the solution and must not depend on the product reference.
   for(const slide of slides){
+   if(selected.id!==targetId)throw new Error('작업 상품이 변경되었습니다. 기존 이미지 생성은 중단합니다.');
    const refPayload=slide<=2?{imageMode:'scene'}:await window.vpCreatorReferencePayloadForInstagramSlide(slide);
    if(status)status.textContent=slide+'번 카드 AI 사진 생성 중… ('+(done+1)+'/'+count+')';
    const data=await backendRequest('/api/image',{
@@ -3628,7 +3630,7 @@ function drawInstagramStorySlide(ctx,p,slide,variant=0){
   2:'이런 불편, 자주 겪나요?',
   3:'이 제품은 어떨까요?',
   4:'어떤 기능을 살펴볼까?',
-  5:'구매 전 꼭 확인하세요'
+  5:'이런 순간에도 활용해요'
  }[slide]);
  const detail=story?.detail||({
   2:p.problem||'생활 속 불편을 먼저 살펴봅니다.',
