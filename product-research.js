@@ -22,10 +22,10 @@
   if(!research||!Array.isArray(research.facts)||!Array.isArray(research.sources))return null;
   const sources=research.sources.slice(0,8).map(x=>({title:trim(x.title,110),url:trim(x.url,1600)}));
   const known=new Set(sources.map(x=>x.url));
-  const facts=research.facts.filter(x=>known.has(x.source_url)&&['feature','advantage','usage'].includes(x.type)&&!negative.test(String(x.claim||''))).slice(0,12).map(x=>({type:trim(x.type,24),claim:trim(x.claim,270),source_url:trim(x.source_url,1600)}));
+  const facts=research.facts.filter(x=>x.confidence!=='unverified-lead'&&known.has(x.source_url)&&['feature','advantage','usage'].includes(x.type)&&!/(?:검색 결과 후보|검색된 자료 후보|확인된 제품 장점으로 사용하지 않습니다)/.test(String(x.claim||''))&&!negative.test(String(x.claim||''))).slice(0,12).map(x=>({type:trim(x.type,24),claim:trim(x.claim,270),source_url:trim(x.source_url,1600)}));
    return {summary:facts.length?facts.slice(0,3).map(f=>f.claim).join(' ').slice(0,550):'검증 가능한 장점 자료가 부족합니다. 추가 조사가 필요합니다.',model:trim(research.model,140),
    facts,
-   sources,notCustomerReviews:true};
+   sources:facts.length?sources:[],notCustomerReviews:true};
  }
  function root(){return $('#vpProductWebResearch')}
  function buttonBusy(value){
@@ -84,7 +84,7 @@
   working=true;currentMessage='AI가 제품 정보를 조사하고 출처를 확인하는 중입니다. 잠시 기다려 주세요.';render();
   try{
    const response=await backendRequest('/api/copy',{method:'POST',body:JSON.stringify({action:'product-research',product:name,model:q})});
-   if(!response?.research?.facts?.length||!response.research.sources?.length)throw Error('출처가 있는 자료를 받지 못했습니다.');
+   if(response?.verificationIncomplete||response?.mode==='web-search-leads'||!response?.research?.facts?.some(f=>f.confidence!=='unverified-lead'&&!/검색 결과 후보|검색된 자료 후보/.test(String(f.claim||'')))||!response.research.sources?.length)throw Error('출처로 확인된 제품 장점이 없습니다. 후보 링크는 저장하지 않습니다. 검색어를 구체화하거나 다른 제품 자료를 입력해 주세요.');
    if(id()!==productId){currentMessage='조사 중 다른 상품을 선택했습니다. 이전 상품 결과를 현재 상품에 적용하지 않았습니다.';return}
    const all=retrieve();
    all[productId]={productName:name,query:q,research:response.research,createdAt:response.generatedAt||new Date().toISOString()};
