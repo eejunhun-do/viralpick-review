@@ -10,14 +10,15 @@ function render(){
   let url='';
   try{
    const parsed=new URL(p?.imageUrl||'');
-   if(parsed.protocol==='https:'&&(parsed.hostname==='coupangcdn.com'||parsed.hostname.endsWith('.coupangcdn.com')))url=parsed.href;
+   if(parsed.protocol==='https:'&&!parsed.username&&!parsed.password&&parsed.hostname.includes('.')&&!['localhost','127.0.0.1'].includes(parsed.hostname))url=parsed.href;
   }catch{}
   if(!url){
    const own=typeof liveMedia!=='undefined'?liveMedia.get(p?.id)?.product:null;
    if(own?.kind==='licensed-upload'&&/^data:image\/(?:png|webp|jpeg);base64,/.test(own.data||''))url=own.data;
   }
+  img.onerror=()=>{img.hidden=true;img.title='상품 이미지 서버에서 사진을 불러오지 못했습니다.'};
   img.hidden=!url;
-  if(url){if(img.src!==url)img.src=url}else img.removeAttribute('src');
+  if(url){if(img.src!==url){img.hidden=false;img.src=url}}else img.removeAttribute('src');
   let page=box.querySelector('.vpStudioProductLink');
   if(!page){
    page=document.createElement('button');page.type='button';page.className='btn vpStudioProductLink';
