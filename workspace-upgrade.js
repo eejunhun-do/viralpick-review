@@ -1,84 +1,11 @@
 /* Unified ViralPick discovery and real-data dashboard. */
 (function(){
 'use strict';
-const KEY='viralpick-performance-v2';
-const channels=['Threads','Instagram','쿠팡파트너스','토스 쉐어링크'];
 const $=s=>document.querySelector(s);
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmt=v=>Number(v||0).toLocaleString('ko-KR');
-function stored(){try{const r=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(r)?r.filter(v=>channels.includes(v.channel)).slice(-500):[]}catch{return[]}}
-function persist(rows){try{localStorage.setItem(KEY,JSON.stringify(rows.slice(-500)));return true}catch{return false}}
-function filtered(){
- const days=Number($('#vpDays')?.value)||30;
- const cutoff=days===9999?'0000-01-01':new Date(Date.now()-(days-1)*86400000).toISOString().slice(0,10);
- return stored().filter(v=>v.date>=cutoff).sort((a,b)=>b.date.localeCompare(a.date));
-}
 function dashboard(){
  const root=$('#dashboard');if(!root)return;
- root.innerHTML='<div class="vpDashHead"><div><span class="badge blue">PERFORMANCE CENTER</span><h1>성과 대시보드</h1><p>Threads·Instagram·쿠팡파트너스·토스 쉐어링크를 한눈에 확인하세요.</p></div><span class="vpOrigin">실제 수동 입력 기준 · API 자동 연동 아님</span></div>'+
- '<div class="vpDashActions"><label>조회 기간 <select id="vpDays"><option value="7">최근 7일</option><option value="30" selected>최근 30일</option><option value="9999">전체</option></select></label><button class="btn" id="vpCsv">CSV 다운로드</button></div>'+
- '<div class="vpSummary" id="vpSummary"></div><div class="vpChannelGrid" id="vpChannelGrid"></div>'+
- '<div class="vpDashColumns"><section class="panel"><div class="panelHead"><h2>수수료 수익 흐름</h2></div><div class="pad" id="vpTrend"></div></section>'+
- '<section class="panel"><div class="panelHead"><h2>성과 기록 추가</h2><span class="badge">수동 기록</span></div><div class="pad"><p class="queueHint">공식 실적 API는 아직 연결되지 않았습니다. 실제 조회·클릭·주문·수수료 내역을 입력하세요.</p>'+
- '<form id="vpRecordForm" class="vpRecordForm"><label>일자<input type="date" name="date" required></label><label>채널<select name="channel">'+channels.map(s=>'<option>'+s+'</option>').join('')+'</select></label>'+
- '<label>조회·도달<input type="number" name="views" min="0" value="0"></label><label>클릭<input type="number" name="clicks" min="0" value="0"></label>'+
- '<label>주문<input type="number" name="orders" min="0" value="0"></label><label>수수료 (원)<input type="number" name="commission" min="0" value="0"></label>'+
- '<label class="wide">출처·게시글 메모<input type="text" name="note" maxlength="120" placeholder="실적 출처"></label><button class="btn primary wide">성과 저장</button></form><p class="queueHint" id="vpSaveStatus">이 브라우저에만 저장됩니다.</p></div></section></div>'+
- '<section class="panel"><div class="panelHead"><h2>입력 내역</h2><span class="badge" id="vpRecordCount">0건</span></div><div class="pad vpDataTable"><table><thead><tr><th>날짜</th><th>채널</th><th>도달</th><th>클릭</th><th>주문</th><th>수수료</th><th></th></tr></thead><tbody id="vpRecordRows"></tbody></table></div></section><div id="dashProducts" hidden></div>';
- // Preserve real Coupang Partners reports when the workspace replaces the base dashboard.
- root.insertAdjacentHTML('afterbegin', `  <div class="panel" id="vpCoupangReports" style="margin-top:16px">
-   <div class="panelHead"><h2>쿠팡 파트너스 실적 리포트</h2><span class="badge green">실제 API 조회</span></div>
-   <div class="pad">
-    <div class="btnrow" style="flex-wrap:wrap;align-items:end">
-     <label style="display:grid;gap:5px">조회 기간<select id="vpReportPeriod"><option value="7">최근 7일</option><option value="14">최근 14일</option><option value="30">최근 30일</option></select></label>
-     <label style="display:grid;gap:5px">Sub ID (선택)<input id="vpReportSubId" maxlength="48" placeholder="전체 실적" autocomplete="off"></label>
-     <button type="button" id="vpReportRefresh" class="btn primary">실제 실적 새로고침</button>
-    </div>
-    <p class="queueHint" id="vpReportStatus" role="status">등록된 쿠팡 파트너스 API 키로 조회합니다. 처음에는 새로고침을 눌러주세요.</p>
-    <div class="analyticsGrid" style="margin-top:12px">
-     <div class="analyticsMetric"><div class="ak">클릭 수</div><div class="av" id="vpReportClicks">—</div></div>
-     <div class="analyticsMetric"><div class="ak">주문 수량</div><div class="av" id="vpReportOrders">—</div></div>
-     <div class="analyticsMetric"><div class="ak">주문 거래액</div><div class="av" id="vpReportGmv">—</div></div>
-     <div class="analyticsMetric"><div class="ak">취소 수량</div><div class="av" id="vpReportCancels">—</div></div>
-     <div class="analyticsMetric"><div class="ak">보고된 수수료</div><div class="av" id="vpReportCommission">—</div></div>
-    </div>
-    <div style="overflow-x:auto;margin-top:12px"><table class="analyticsTable"><thead><tr><th>날짜</th><th>클릭</th><th>주문 수량</th><th>거래액</th><th>취소 수량</th><th>수수료</th></tr></thead><tbody id="vpReportRows"><tr><td colspan="6">조회 전입니다.</td></tr></tbody></table></div>
-    <p class="queueHint">쿠팡의 집계 지연 및 취소·확정 기준에 따라 실적이 달라질 수 있습니다. 게시물별 성과 시뮬레이션과는 별개입니다.</p>
-   </div>
-  </div>
-`);
- const date=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);$('#vpRecordForm').elements.date.value=date;
- $('#vpDays').onchange=render;
- $('#vpRecordForm').onsubmit=e=>{
-  e.preventDefault();const d=new FormData(e.target);
-  const row={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),date:String(d.get('date')||''),channel:String(d.get('channel')||''),
-   views:Math.max(0,Number(d.get('views'))||0),clicks:Math.max(0,Number(d.get('clicks'))||0),
-   orders:Math.max(0,Number(d.get('orders'))||0),commission:Math.max(0,Number(d.get('commission'))||0),note:String(d.get('note')||'').slice(0,120)};
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(row.date)||!channels.includes(row.channel))return;
-  $('#vpSaveStatus').textContent=persist([...stored(),row])?'성과 기록을 저장했습니다.':'브라우저 저장 공간 부족';
-  render();
- };
- $('#vpCsv').onclick=()=>{
-  const lines=[['일자','채널','조회','클릭','주문','수수료','메모'],...filtered().map(x=>[x.date,x.channel,x.views,x.clicks,x.orders,x.commission,x.note])];
-  const csv=lines.map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');
-  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='viralpick-성과리포트.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
- };
- window.vpDeleteReport=id=>{if(!confirm('이 기록을 삭제할까요?'))return;persist(stored().filter(x=>x.id!==id));render()};
- render();
-}
-function render(){
- const rows=filtered(),sum=key=>rows.reduce((a,x)=>a+(Number(x[key])||0),0);
- const summary=[['수수료 수익',fmt(sum('commission'))+'원'],['조회·도달',fmt(sum('views'))],['클릭',fmt(sum('clicks'))],['주문',fmt(sum('orders'))],['CTR',sum('views')?(sum('clicks')/sum('views')*100).toFixed(2)+'%':'—']];
- $('#vpSummary').innerHTML=summary.map(([k,v])=>'<div class="vpStat"><small>'+k+'</small><strong>'+v+'</strong><span>'+(rows.length?'직접 입력 기준':'데이터 없음')+'</span></div>').join('');
- $('#vpChannelGrid').innerHTML=channels.map(ch=>{
-  const group=rows.filter(x=>x.channel===ch),calc=k=>group.reduce((a,x)=>a+x[k],0);
-  return '<div class="vpChannel"><b>'+esc(ch)+'</b><strong>'+fmt(calc('commission'))+'원</strong><small>클릭 '+fmt(calc('clicks'))+' · 주문 '+fmt(calc('orders'))+'</small><span>'+(group.length?group.length+'건 기록':'미연동 · 기록 없음')+'</span></div>';
- }).join('');
- const dates={};for(const x of [...rows].reverse())dates[x.date]=(dates[x.date]||0)+x.commission;
- const pairs=Object.entries(dates).slice(-12),max=Math.max(1,...pairs.map(x=>x[1]));
- $('#vpTrend').innerHTML=pairs.length?'<div class="vpBars">'+pairs.map(([day,val])=>'<div class="vpBar"><span>'+fmt(val)+'</span><i style="height:'+Math.max(4,Math.round(val/max*125))+'px"></i><small>'+day.slice(5)+'</small></div>').join('')+'</div>':'<p class="vpEmpty">실제 성과를 등록하면 이곳에 변화 추이가 표시됩니다.</p>';
- $('#vpRecordCount').textContent=rows.length+'건';
- $('#vpRecordRows').innerHTML=rows.slice(0,30).map(x=>'<tr><td>'+x.date+'</td><td>'+esc(x.channel)+'</td><td>'+fmt(x.views)+'</td><td>'+fmt(x.clicks)+'</td><td>'+fmt(x.orders)+'</td><td>'+fmt(x.commission)+'원</td><td><button class="btn" onclick="vpDeleteReport('+"'"+x.id+"'"+')">삭제</button></td></tr>').join('')||'<tr><td colspan="7">저장된 성과 기록이 없습니다.</td></tr>';
+ root.innerHTML='<div id="vpPerformanceDashboard"></div><div id="dashProducts" hidden></div>';
+ if(typeof window.vpSetupPerformanceDashboard==='function')window.vpSetupPerformanceDashboard();
 }
 function lookup(){
  const status=$('#vpLinkStatus'),raw=$('#vpProductURL')?.value.trim()||'',name=$('#vpProductTitle')?.value.trim()||'';
@@ -121,10 +48,10 @@ function discovery(){
 }
 function init(){
  for(const tab of ['integrations','lab','analytics'])document.querySelector('.nav [data-view="'+tab+'"]')?.remove();
- const foot=$('.sideFoot');if(foot)foot.textContent='대시보드는 실제 기록만 표시합니다. 쿠팡 상품 검색은 상품 발굴 메뉴에 통합되었습니다.';
+ const foot=$('.sideFoot');if(foot)foot.textContent='수익은 실제 제휴 API를 기준으로 표시하고, Threads와 Instagram은 비금전 성과를 별도로 분석합니다.';
  dashboard();discovery();
  const nativeShow=window.show;
- if(typeof nativeShow==='function')window.show=function(id){nativeShow(['integrations','lab','analytics'].includes(id)?'discover':id);if(id==='dashboard')render()};
+ if(typeof nativeShow==='function')window.show=function(id){nativeShow(['integrations','lab','analytics'].includes(id)?'discover':id);if(id==='dashboard')window.vpPerformanceOnShow?.()};
  const originalSelect=window.selectProduct;
  if(typeof originalSelect==='function')window.selectProduct=function(id){originalSelect(id);window.show('threads');window.vpStudioGo?.('threads','source')};
  const current=document.querySelector('.view.active')?.id;
