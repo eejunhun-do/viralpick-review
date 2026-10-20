@@ -42,9 +42,9 @@ test('Instagram single product AI storyboard provides five distinct cards',()=>{
    {title:'2번 불편한 순간이 생기는 이유',detail:'어떤 상황에서 자주 불편한지 살펴봅니다.',scene:'Photo of the problem scene and human action'},
    {title:'3번 이 제품으로는 어떻게 할까요?',detail:'실제 제품으로 할 수 있는 작업을 확인해 봅니다.',scene:'Photo of the actual product and solution in use'},
    {title:'4번 여기서 장점도 확인하세요',detail:'실제 제품의 확인된 기능을 꼼꼼히 살펴봅니다.',scene:'Photo of hands demonstrating verified product features'},
-   {title:'5번 구매 전엔 꼭 체크하세요',detail:'사양, 후기와 옵션을 확인하고 필요한 정보는 저장하세요.',scene:'Photo of shopper carefully checking options'}
+   {title:'5번 다양한 상황에 활용해 보세요',detail:'확인된 추가 활용 사례와 편리한 기능을 소개하고 저장을 유도하세요.',scene:'Photorealistic product demonstration in a different practical everyday situation'}
   ],
-  caption:'안녕하세요. 반복되는 일상의 불편을 느끼셨나요? 어떤 기능이 필요한지 생각해 보세요. 실제 제품 사양과 옵션도 구매 전에 확인해 보세요.'
+  caption:'안녕하세요. 반복되는 일상의 불편을 느끼셨나요? 어떤 기능이 필요한지 생각해 보세요. 확인된 제품 활용법을 알아보고 나중에 다시 보실 수 있게 저장해 보세요.'
  };
  assert.equal(validateInstagramStory(content)?.slides.length,5);
  assert.equal(validateInstagramStory({...content,slides:content.slides.slice(0,4)}),null);
