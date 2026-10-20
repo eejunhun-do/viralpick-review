@@ -81,7 +81,7 @@
   if(!confirm('상품명·모델명으로 공개 웹사이트·블로그를 검색할까요? OpenAI 웹검색과 모델 이용 요금이 발생합니다.'))return;
   working=true;currentMessage='AI가 제품 정보를 조사하고 출처를 확인하는 중입니다. 잠시 기다려 주세요.';render();
   try{
-   const response=await backendRequest('/api/product-research',{method:'POST',body:JSON.stringify({product:name,model:q})});
+   const response=await backendRequest('/api/copy',{method:'POST',body:JSON.stringify({action:'product-research',product:name,model:q})});
    if(!response?.research?.facts?.length||!response.research.sources?.length)throw Error('출처가 있는 자료를 받지 못했습니다.');
    if(id()!==productId){currentMessage='조사 중 다른 상품을 선택했습니다. 이전 상품 결과를 현재 상품에 적용하지 않았습니다.';return}
    const all=retrieve();
