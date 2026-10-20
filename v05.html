@@ -2964,14 +2964,19 @@ async function generateProductCopy(platform){
   status.textContent='모음형에 선택된 상품이 없어 현재 상품의 단일 문구 생성으로 전환했습니다.';
  }
  if(!items.length){status.textContent='선택한 상품을 찾을 수 없습니다. 상품 발굴에서 상품을 선택해 주세요.';return}
+ const pair=platform==='Threads'&&!useMulti?window.vpThreadSelectedPair?.():null;
+ if(platform==='Threads'&&!useMulti&&(!pair||pair.productId!==String(selected.id)||!pair.pain||!pair.solve)){
+  status.textContent='먼저 위에서 불편·해결 후킹 5세트를 생성하고 한 세트를 선택하세요. 그 후 AI 문구를 생성하면 본문 전체가 해당 후킹에 맞춰 작성됩니다.';
+  return;
+ }
  if(!confirm(platform+' 문구를 OpenAI API로 생성할까요? 문체 검증에 실패하면 최대 한 번 더 생성하여 추가 API 비용이 발생할 수 있으며 현재 편집 중인 문구가 교체됩니다.'))return;
  vpCopyGenerationBusy=true;btn.disabled=true;status.textContent=platform+' 문구 생성 중…';
- if(progress)progress.textContent=platform+' AI가 실제 상품정보와 후기를 바탕으로 문구를 작성하고 있습니다…';
+ if(progress)progress.textContent=platform==='Threads'&&!useMulti?'선택한 불편·해결 후킹을 첫 줄로 고정하고, 1단과 2단의 전체 이야기를 자연스럽게 작성 중…':platform+' AI가 실제 상품정보와 후기를 바탕으로 문구를 작성하고 있습니다…';
  try{
   const description=$('#vpAiDescription')?.value.trim()||'';
   const reviewNotes=$('#vpAiReviews')?.value.trim()||'';
   const evidence=loadReviewEvidence(reviewEvidenceKey(selected));
-  const data=await backendRequest('/api/copy',{method:'POST',body:JSON.stringify({platform,products:items.map(p=>({title:p.name,price:p.price,category:p.type,description,reviewNotes: p.id===selected.id?reviewNotes:'',reviewStats:p.id===selected.id&&evidence?{rating:evidence.rating,reviewCount:evidence.count,writtenCount:evidence.writtenCount,images:evidence.images}:null}))})});
+  const data=await backendRequest('/api/copy',{method:'POST',body:JSON.stringify({platform,multi:useMulti,...(pair?{hookPair:{pain:pair.pain,solve:pair.solve}}:{}),products:items.map(p=>({title:p.name,price:p.price,category:p.type,description,reviewNotes: p.id===selected.id?reviewNotes:'',reviewStats:p.id===selected.id&&evidence?{rating:evidence.rating,reviewCount:evidence.count,writtenCount:evidence.writtenCount,images:evidence.images}:null}))})});
   const links=(useMulti?items:[selected]).map(p=>partnerLink(p)).filter(Boolean);
   const promoLinks=[...new Set(links)].join('\n');
   const instagramCopy=String(data.text||'').trim()+'\n\n'+(promoLinks?promoLinks+'\n':'')+affiliateDisclosure;
@@ -2984,12 +2989,12 @@ async function generateProductCopy(platform){
   }else if(platform==='Threads'){
    customThreadEdits[threadEditKey()]=copy;
    if(typeof data.part2==='string')saveThreadReply(data.part2);
-   if(data.hook&&typeof hookHeadlineEdits==='object')hookHeadlineEdits[hookEditKey()]=data.hook;
+   if(data.hook&&typeof hookHeadlineEdits==='object'&&!pair)hookHeadlineEdits[hookEditKey()]=data.hook;
    renderThreads();
   }else{
    customInstagramCaptions[selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex]=copy;renderInstagram();
   }
-  status.textContent=platform==='Threads'?'Threads 반말 문체 검증 완료 · 1단/2단 문장을 확인하세요.':'Instagram 존댓말 문구 생성 완료 · 게시 전에 사실 관계와 광고 고지를 검토하세요.';
+  status.textContent=platform==='Threads'?'선택한 두 후킹부터 이어지는 Threads 1단·2단 AI 문구 작성 완료.':'Instagram AI 문구 작성 완료. 사실 관계와 광고 고지를 검토하세요.';
   if(progress)progress.textContent=platform==='Threads'?'Threads 친근한 반말 1단·2단 작성 완료. 실제 후기와 수수료 고지를 확인해 주세요.':'Instagram 문구 작성 완료. 실제 리뷰와 수수료 고지를 확인해 주세요.';
   toast('AI '+platform+' 문구가 적용됐습니다.');
   if(typeof window.vpStudioAfterCopyGenerated==='function')window.vpStudioAfterCopyGenerated(platform);
