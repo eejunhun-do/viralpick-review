@@ -58,8 +58,8 @@ test('story stages are nested in the correct creator container and both hooks ca
  assert.match(frontend,/const container=root\.querySelector\('\.vpCreatorReference'\)\|\|root/);
  assert.match(frontend,/container\.append\(pair,problem,photo,finish\)/);
  assert.match(frontend,/function applyHooksToPosts\(/);
- assert.match(frontend,/customThreadEdits\[threadEditKey\(\)\]=first/);
- assert.match(frontend,/saveThreadReply\(second\)/);
+ assert.match(frontend,/window\.vpThreadSelectedPair=/);
+ assert.match(frontend,/vpPairCopyPanel/);
 });
 
 test('Threads visual and final previews show both problem and solution images in the FIRST post only',()=>{
