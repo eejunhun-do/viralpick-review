@@ -156,6 +156,7 @@ function renderPlatforms(){
 function bars(points){
  const root=$('#vpRevenueChart');if(!root)return;root.replaceChildren();
  if(!state.history){root.textContent='조회 기간을 선택하면 실제 수익 흐름을 표시합니다.';return}
+ if(!state.history.valid.commission){root.textContent='일부 수수료 자료 조회가 실패했습니다. 재조회 후 그래프를 확인해 주세요.';return}
  if(!points.length){root.textContent='표시할 수익 기록이 없습니다.';return}
  const width=900,height=238,left=18,right=18,top=22,bottom=43,base=height-bottom;
  const values=points.map(p=>p.value),max=Math.max(1,...values),minimum=Math.min(0,...values);
@@ -163,22 +164,64 @@ function bars(points){
  const zero=base-(-minimum/span)*usable;
  const sw=(width-left-right)/points.length;
  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
- svg.setAttribute('viewBox','0 0 '+width+' '+height);svg.setAttribute('role','img');svg.setAttribute('aria-label','조회 기간 수수료 수익 흐름 차트');
+ svg.setAttribute('viewBox','0 0 '+width+' '+height);
+ svg.setAttribute('role','group');
+ svg.setAttribute('aria-label','기간별 수수료 막대그래프. 막대에 마우스를 올리거나 터치하면 날짜와 금액을 확인할 수 있습니다.');
  const make=(tag,attrs,text)=>{
   const node=document.createElementNS('http://www.w3.org/2000/svg',tag);
   for(const [k,v] of Object.entries(attrs||{}))node.setAttribute(k,String(v));
   if(text!==undefined)node.textContent=text;svg.append(node);return node;
  };
  make('line',{x1:left,y1:zero,x2:width-right,y2:zero,stroke:'#dce3eb','stroke-width':1});
+ const tooltip=document.createElement('div');
+ tooltip.className='vpChartTooltip';
+ tooltip.hidden=true;tooltip.setAttribute('role','status');
+ const selection=document.createElement('div');
+ selection.className='vpChartSelection';
+ selection.setAttribute('aria-live','polite');
+ selection.textContent='막대에 마우스를 올리거나 터치하면 날짜별 수수료를 확인할 수 있습니다.';
+ const barShapes=[];
+ let pinned=-1;
+ function activate(index,event,pin=false){
+  const p=points[index];if(!p)return;
+  if(pin)pinned=index;
+  const bar=barShapes[index];
+  for(const item of barShapes)item.setAttribute('fill',item===bar?(p.value<0?'#bd4c4c':'#2d50b2'):(item.dataset.negative==='true'?'#e67d7d':'#5472e6'));
+  tooltip.replaceChildren();
+  const date=document.createElement('span');date.textContent=p.label;
+  const amount=document.createElement('strong');amount.textContent=money(p.value);
+  tooltip.append(date,amount);tooltip.hidden=false;
+  const box=root.getBoundingClientRect(),barBox=bar.getBoundingClientRect();
+  const loc=event&&Number.isFinite(event.clientX)?event.clientX-box.left:(barBox.left+barBox.width/2-box.left);
+  tooltip.style.left=Math.max(64,Math.min(Math.max(64,box.width-64),loc))+'px';
+  tooltip.style.top=Math.max(0,barBox.top-box.top-57)+'px';
+  if(pin)selection.textContent=p.label+' 수수료 '+money(p.value);
+ }
  const step=Math.max(1,Math.ceil(points.length/11));
  points.forEach((p,i)=>{
   const x=left+i*sw+sw*.18,y=base-((p.value-minimum)/span)*usable;
   const barY=Math.min(y,zero),barH=Math.max(2,Math.abs(zero-y));
   const rect=make('rect',{x,y:barY,width:Math.max(2,sw*.64),height:barH,rx:Math.min(4,sw*.15),fill:p.value<0?'#e67d7d':'#5472e6'});
-  const t=document.createElementNS('http://www.w3.org/2000/svg','title');t.textContent=p.label+': '+money(p.value);rect.append(t);
+  rect.dataset.negative=String(p.value<0);barShapes.push(rect);
+  const nativeTitle=document.createElementNS('http://www.w3.org/2000/svg','title');
+  nativeTitle.textContent=p.label+' 수수료 '+money(p.value);rect.append(nativeTitle);
   if(i%step===0||i===points.length-1)make('text',{x:left+i*sw+sw*.5,y:height-19,'text-anchor':'middle','font-size':11,fill:'#7b8799'},p.short);
+  // Full-column transparent hit areas make short bars and zero-income days touch-friendly.
+  const hit=make('rect',{x:left+i*sw,y:top,width:sw,height:usable+3,fill:'transparent','pointer-events':'all'});
+  hit.setAttribute('tabindex','0');hit.setAttribute('role','button');
+  hit.setAttribute('aria-label',p.label+' 수수료 '+money(p.value));
+  hit.addEventListener('pointerenter',e=>activate(i,e));
+  hit.addEventListener('pointermove',e=>activate(i,e));
+  hit.addEventListener('click',e=>activate(i,e,true));
+  hit.addEventListener('focus',()=>activate(i,null));
+  hit.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate(i,null,true)}});
  });
- root.append(svg);
+ svg.addEventListener('pointerleave',()=>{
+  tooltip.hidden=true;
+  for(const rect of barShapes)rect.setAttribute('fill',rect.dataset.negative==='true'?'#e67d7d':'#5472e6');
+ });
+ svg.addEventListener('focusout',e=>{if(!svg.contains(e.relatedTarget))tooltip.hidden=true});
+ root.append(svg,tooltip,selection);
 }
 function renderHistory(){
  const d=state.history,table=$('#vpDailyRows'),status=$('#vpPerfStatus');if(!table)return;
