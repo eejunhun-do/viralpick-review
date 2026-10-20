@@ -14,13 +14,13 @@ function fallback(){
  const p=selected||{},pair=currentPair();
  const pain=trim(pair?.pain||p.problem||'일상에서 은근 반복되는 불편, 공감되시나요?',100);
  const solve=trim(pair?.solve||p.novel||'이런 상황에서 필요한 기능부터 살펴볼까요?',100);
- const feature=trim(p.novel||'구매 전 실제 제품 기능부터 확인해 보세요.',150);
+ const feature=trim(p.novel||'실제 제품의 확인된 편의 기능을 살펴보세요.',150);
  return {slides:[
   {title:pain,detail:'넘겨서 불편한 상황과 해결 방법을 비교해 보세요.',scene:'A visually captivating photorealistic everyday lifestyle close-up teasing the pain moment, no product visible'},
   {title:'이런 순간 은근 번거롭죠?',detail:pain,scene:'Realistic person handling the exact everyday inconvenience, before any solution, no advertised product'},
   {title:solve,detail:'실제 제품이 이 상황에서 어떻게 쓰이는지 확인해 보세요.',scene:'Show the exact selected product being used to address the same everyday problem'},
   {title:'장점은 쓰는 상황에서 보이죠',detail:feature,scene:'Detailed product-in-use closeup showing a verified useful feature in a realistic setting'},
-  {title:'고르기 전엔 이것부터 확인!',detail:'실제 사용 후기 · 옵션 · 크기와 사용 조건 · 최신 가격을 체크해 보세요.',scene:'Lifestyle scene inspecting product options and fit in a realistic, neutral way'}
+  {title:'이런 순간에도 활용하기 좋아요',detail:'확인된 제품 기능이 일상에서 도움이 되는 다른 활용 상황을 소개해 보세요.',scene:'Natural lifestyle scene of verified product functionality in an additional everyday context'}
  ],caption:''};
 }
 function getStory(){const id=productKey();if(drafts.has(id))return drafts.get(id);
@@ -50,7 +50,7 @@ function redraw(){
  if(multi){const notice=root.querySelector('.vpSingleStoryMode');if(notice)notice.textContent='모음형 선택 중입니다. 위 단품형 전환 버튼을 눌러 같은 상품의 캐러셀을 제작할 수 있습니다.';return}
  const story=getStory(),container=root.querySelector('.vpSingleSlideList');
  container.replaceChildren();
- const labels=['01 · 시선 끄는 공감 표지','02 · 불편한 순간','03 · 제품으로 해결','04 · 확인된 장점','05 · 구매 전 체크 · 저장'];
+ const labels=['01 · 시선 끄는 공감 표지','02 · 불편한 순간','03 · 제품으로 해결','04 · 확인된 장점','05 · 추가 장점 · 저장'];
  for(let i=0;i<5;i++){
   const entry=story.slides[i];
   const row=document.createElement('details');
@@ -103,7 +103,7 @@ function init(){
  '<div class="vpSingleStoryActions"><button class="btn" type="button" id="vpInstagramSingleSwitch">현재 상품으로 단품형 제작</button>'+
  '<button class="btn primary" type="button" id="vpInstagramSingleGenerate">✨ AI 5장 캐러셀 스토리 기획</button></div>'+
  '<p class="vpSingleStoryMode"></p><div class="vpSingleSlideList"></div>'+
- '<p id="vpInstagramStoryStatus" class="queueHint" role="status">01 후킹 → 02 공감 → 03 제품 해결 → 04 검증된 장점 → 05 체크리스트·저장 유도</p>';
+ '<p id="vpInstagramStoryStatus" class="queueHint" role="status">01 후킹 → 02 공감 → 03 제품 해결 → 04 검증된 장점 → 05 추가 장점·저장 유도</p>';
  const lead=copy.querySelector('.vpStudioCopyLead');
  if(lead)copy.insertBefore(panel,lead);else copy.append(panel);
  panel.querySelector('#vpInstagramSingleSwitch').onclick=()=>{
