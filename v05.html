@@ -1908,19 +1908,21 @@ function makeCoupangItemId(id){
  return 1000000000+(h>>>0);
 }
 async function issueCoupangLink(p){
- if(p.source!=='coupang')return null;
- if(partnerLink(p))return p.affiliateUrl;
- if(isPartnerLink(p.originalUrl)){p.affiliateUrl=p.originalUrl;saveCoupangDrafts();renderProductLists();renderAffiliateEditor();return p.affiliateUrl}
- if(!isCoupangProductLink(p.originalUrl)){toast('원본 쿠팡 상품 URL이 없어 자동 변환할 수 없습니다. 파트너스 사이트에서 제휴 링크를 발급해 주세요.');return null}
+ if(p?.source!=='coupang')return null;
+ const current=partnerLink(p);
+ if(current&&new URL(current).hostname==='coupa.ng')return current;
+ const source=isCoupangProductLink(p.originalUrl)?p.originalUrl:current;
+ if(!source){toast('쿠팡 상품 URL이 없어 파트너스 단축 링크를 발급할 수 없습니다.');return null}
  try{
-  const response=await backendRequest('/api/deeplink',{method:'POST',body:JSON.stringify({url:p.originalUrl})});
+  const response=await backendRequest('/api/deeplink',{method:'POST',body:JSON.stringify({url:source})});
   const link=response?.links?.[0]?.affiliateUrl;
-  if(!isPartnerLink(link))throw Error('파트너스 응답에 정상 추적 링크가 없습니다.');
+  if(!isPartnerLink(link))throw Error('파트너스 응답에 정상 제휴 URL이 없습니다.');
   p.affiliateUrl=link;saveCoupangDrafts();
   renderProductLists();renderMultiStudios();renderAffiliateEditor();
-  toast('쿠팡 파트너스 링크가 발급됐습니다.');
+  if(new URL(link).hostname!=='coupa.ng')toast('제휴 링크는 발급됐지만 쿠팡 API가 짧은 coupa.ng 주소를 제공하지 않았습니다.');
+  else toast('쿠팡 파트너스 단축 링크 발급 완료');
   return link;
- }catch(e){toast('제휴 링크 발급 실패: '+e.message);return null}
+ }catch(e){toast('쿠팡 단축 링크 발급 실패: '+e.message);return current||null}
 }
 function saveCoupangManualLink(id,link){
  const p=products.find(x=>x.id===Number(id));
@@ -3041,7 +3043,7 @@ function renderThreadReplyEditor(){
 }
 function onThreadReplyEdit(value){saveThreadReply(value);window.vpCreatorRenderReview?.()}
 async function copyThreadPart(part){
- if(part===2&&selected?.source==='coupang'&&!partnerLink(selected))await issueCoupangLink(selected);
+ if(part===2&&selected?.source==='coupang')await issueCoupangLink(selected);
  const text=part===2?getThreadReplyText():getCurrentThreadText();
  try{await navigator.clipboard.writeText(text);toast('Threads '+part+'단 복사 완료')}catch{toast('브라우저 복사 권한을 확인해 주세요')}
 }
