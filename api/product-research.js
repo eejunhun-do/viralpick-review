@@ -37,6 +37,12 @@ export function normalizeProductResearch(data){
 function citedUrls(response){
  const sources=new Map();
  for(const item of Array.isArray(response?.output)?response.output:[]){
+  if(item?.type==='web_search_call'){
+   for(const source of Array.isArray(item?.action?.sources)?item.action.sources:[]){
+    const u=publicUrl(source?.url);if(u)sources.set(u,{title:take(source?.title||new URL(u).hostname,110),url:u});
+   }
+   continue;
+  }
   if(item?.type!=='message')continue;
   for(const part of Array.isArray(item.content)?item.content:[]){
    for(const a of Array.isArray(part.annotations)?part.annotations:[]){
@@ -62,6 +68,7 @@ export async function POST(req){
     model:'gpt-4.1-mini',
     tools:[{type:'web_search',search_context_size:'medium'}],
     tool_choice:'required',
+    include:['web_search_call.action.sources'],
     text:{format:{type:'json_object'}},
     max_output_tokens:1800,
     input:[{role:'system',content:[
@@ -82,7 +89,9 @@ export async function POST(req){
   let parsed;try{parsed=JSON.parse(raw.replace(/^```(?:json)?\s*|\s*```$/g,''))}catch{return json(req,{ok:false,message:'AI 웹조사 결과의 형식을 분석하지 못했습니다. 다시 조사해 주세요.'},502)}
   const normalized=normalizeProductResearch({...parsed,product,model});
   const annotated=citedUrls(data);
-  // Output URLs must be attributable to the actual search result annotations whenever provided.
+  const usedSearch=Array.isArray(data.output)&&data.output.some(x=>x?.type==='web_search_call'&&x?.status==='completed');
+  if(!usedSearch||!annotated.size)return json(req,{ok:false,message:'웹 검색 출처를 확인하지 못했습니다. 모델 웹검색 권한을 확인하거나 다시 조사해 주세요.'},422);
+  // Only show URLs actually surfaced by the search tool or citations; never trust model-invented references.
   if(annotated.size){
    const sources=normalized.sources.filter(s=>annotated.has(s.url));
    const okUrls=new Set(sources.map(s=>s.url));
