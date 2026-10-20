@@ -8,8 +8,8 @@ const main=readFileSync(new URL('../v05.html',import.meta.url),'utf8');
 const frontend=readFileSync(new URL('../product-research.js',import.meta.url),'utf8');
 const api=readFileSync(new URL('../lib/product-research.js',import.meta.url),'utf8');
 const copy=readFileSync(new URL('../api/copy.js',import.meta.url),'utf8');
-const hooks=readFileSync(new URL('../api/thread-hook-pairs.js',import.meta.url),'utf8');
-const instagram=readFileSync(new URL('../api/instagram-story.js',import.meta.url),'utf8');
+const hooks=readFileSync(new URL('../lib/thread-hook-pairs-handler.js',import.meta.url),'utf8');
+const instagram=readFileSync(new URL('../lib/instagram-story-handler.js',import.meta.url),'utf8');
 const pairUi=readFileSync(new URL('../thread-pairs.js',import.meta.url),'utf8');
 const instagramUi=readFileSync(new URL('../instagram-single-story.js',import.meta.url),'utf8');
 
