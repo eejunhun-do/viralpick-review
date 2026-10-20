@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {Script} from 'node:vm';
-import {validateInstagramStory} from '../api/instagram-story.js';
+import {validateInstagramStory} from '../lib/instagram-story-handler.js';
 
 const read=name=>readFileSync(new URL('../'+name,import.meta.url),'utf8');
 const html=read('v05.html'),account=read('account-ui.js'),headers=read('studio-product-card.js');
