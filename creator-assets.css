@@ -134,3 +134,22 @@
 }
 
 .vpPairGallery[hidden]{display:none!important}
+
+/* Selected product preview and one-click product page in both studios */
+.vpStudioCurrentProduct .vpStudioProductThumb{width:66px;height:66px;object-fit:contain;border:1px solid #e2e8ef;border-radius:12px;background:#fff;padding:4px;flex-shrink:0}
+.vpStudioCurrentProduct .vpStudioProductThumb[hidden]{display:none}
+.vpStudioCurrentProduct .vpStudioProductLink{white-space:normal}
+.vpStudioCurrentProduct .vpStudioProductLink:disabled{opacity:.48;cursor:not-allowed}
+.vpInstagramSingleStory{margin:10px 0 18px}
+.vpSingleStoryActions{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px}
+.vpSingleSlideList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.vpSingleSlideEdit{min-width:0;border:1px solid #dfe5ee;border-radius:12px;padding:11px;background:#f9fafc}
+.vpSingleSlideEdit summary{font-size:13px;font-weight:800;cursor:pointer}
+.vpSingleSlideEdit label{display:grid;gap:5px;margin:10px 0;font-size:11px;font-weight:700;color:#506075}
+.vpSingleSlideEdit textarea{width:100%;min-width:0;box-sizing:border-box;border:1px solid #dbe0eb;border-radius:9px;padding:9px;font:inherit;background:#fff}
+.vpSingleStoryMode,.vpPairFlowNote{font-size:12px;line-height:1.5;color:#526175}
+.vpPairCopyPanel{margin:4px 0 16px}
+.vpPairCopyPanel .vpPairChoices{max-height:470px;overflow-y:auto}
+#vpInstagramSingleStory[hidden]{display:block!important}
+#vpInstagramSingleStory[hidden] .vpSingleSlideList,#vpInstagramSingleStory[hidden] #vpInstagramSingleGenerate{display:none!important}
+@media(max-width:680px){.vpSingleSlideList{grid-template-columns:1fr}.vpStudioCurrentProduct .vpStudioProductThumb{width:56px;height:56px}}
