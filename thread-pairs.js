@@ -92,8 +92,7 @@ function canvasData(slide){
  return {headline:pair[slot]||'후킹 문장을 입력해 줘',image:cached?.data===stored?cached.image:null,showProduct:slot==='solve'};
 }
 function status(message){
- const node=$('#vpPairStatus');
- if(node&&message)node.textContent=message;
+ for(const id of ['#vpPairStatus','#vpPairCopyStatus']){const node=$(id);if(node&&message)node.textContent=message}
 }
 function sentence(value){return String(value||'').trim().slice(0,120)}
 function updatePair(slot,value){
@@ -134,21 +133,12 @@ async function makePairs(){
  finally{busy=false;render()}
 }
 function applyHooksToPosts(){
- const {r,pair}=current(),pain=sentence(pair.pain),solve=sentence(pair.solve);
- if(!pain||!solve){status('먼저 연결된 불편·해결 후킹 두 문장을 작성해 주세요.');return}
- if(typeof getCurrentThreadText!=='function'||typeof getThreadReplyText!=='function'){status('Threads 본문 편집기를 불러오지 못했습니다.');return}
- // Do not unexpectedly overwrite edited AI copy: user explicitly requests this action.
- let first=getCurrentThreadText().trim();
- let second=typeof readThreadReply==='function'?String(readThreadReply()||'').trim():'';
- if(r.appliedPain&&first.startsWith(r.appliedPain))first=first.slice(r.appliedPain.length).trimStart();
- if(r.appliedSolve&&second.startsWith(r.appliedSolve))second=second.slice(r.appliedSolve.length).trimStart();
- if(!first.startsWith(pain))first=pain+'\n\n'+first;
- if(!second.startsWith(solve))second=solve+'\n\n'+(second||'제품 정보와 실제 후기를 비교해 봐.\n옵션과 제한 사항도 확인해 봐.');
- customThreadEdits[threadEditKey()]=first;
- saveThreadReply(second);
- r.appliedPain=pain;r.appliedSolve=solve;save();
- renderThreads();window.vpCreatorRenderReview?.();
- status('선택한 두 후킹을 Threads 1단·2단 첫 줄에 각각 반영했습니다. 본문은 다시 검토해 주세요.');
+ // Do not replace the first sentence of an existing AI draft; regenerate all paragraphs
+ // from the selected pain + solve story, so the narrative is coherent from the start.
+ const pair=current().pair;
+ if(!pair.pain||!pair.solve){status('먼저 불편·해결 후킹 두 문장을 선택해 주세요.');return}
+ window.vpStudioGo?.('Threads','copy');
+ const node=$('#vpPairCopyStatus');if(node)node.textContent='후킹 세트가 선택됐습니다. 아래 AI 문구 생성을 누르면 이 두 문장부터 이어지는 1단·2단을 새로 작성합니다.';
 }
 async function makeImage(slot){
  if(busy)return;
@@ -191,6 +181,24 @@ function imageNode(slot,parent){
  if(url){const img=new Image();img.src=url;img.alt=slot==='pain'?'불편 상황 후킹 이미지':'제품으로 해결한 상황 후킹 이미지';parent.append(img)}
  else{const placeholder=document.createElement('div');placeholder.className='vpPairBlank';placeholder.textContent=slot==='pain'?'불편 상황 이미지 생성 전':'제품 해결 이미지 생성 전';parent.append(placeholder)}
 }
+function renderCopyHooks(){
+ const panel=$('#vpPairCopyPanel');if(!panel)return;
+ const {r,index,pair}=current();
+ const list=panel.querySelector('.vpPairCopyChoices');list.replaceChildren();
+ r.pairs.forEach((item,i)=>{
+  const button=document.createElement('button');
+  button.type='button';button.className='vpPairOption'+(i===index?' active':'');button.disabled=busy;
+  button.setAttribute('aria-pressed',String(i===index));
+  const title=document.createElement('strong');title.textContent='세트 '+(i+1);
+  const pain=document.createElement('span');pain.textContent='불편 · '+(item.pain||'후킹 생성 전');
+  const solve=document.createElement('span');solve.textContent='해결 · '+(item.solve||'후킹 생성 전');
+  button.append(title,pain,solve);button.onclick=()=>selectPair(i);list.append(button);
+ });
+ for(const [slot,sel] of [['pain','.vpPairCopyPain'],['solve','.vpPairCopySolve']]){
+  const field=panel.querySelector(sel);if(field&&document.activeElement!==field)field.value=pair[slot]||'';
+ }
+ const generate=panel.querySelector('.vpPairCopyGenerate');if(generate)generate.disabled=busy;
+}
 function render(){
  const root=$('#vpAssetStudioThreads');if(!root||!ready)return;
  const {r,index,pair}=current();
@@ -208,9 +216,10 @@ function render(){
   imageNode(slot,root.querySelector('.vpPairStage'+(slot==='pain'?'Pain':'Solve')+' .vpPairArtwork'));
   imageNode(slot,root.querySelector(slot==='pain'?'.vpPairFinishPain':'.vpPairFinishSolve'));
  }
- root.querySelectorAll('.vpPairGenerate,.vpPairsGenerate,.vpPairSave,.vpPairApplyCopy').forEach(b=>b.disabled=busy);
+ root.querySelectorAll('.vpPairGenerate,.vpPairsGenerate,.vpPairSave').forEach(b=>b.disabled=busy);
  const both=Boolean(pictureFor('pain')&&pictureFor('solve'));
  root.querySelector('.vpPairSave').disabled=busy||!both;
+ renderCopyHooks();
  root.querySelector('.vpPairState').textContent=(pictureFor('pain')?'1번 사진 완료':'1번 사진 대기')+' · '+(pictureFor('solve')?'2번 사진 완료':'2번 사진 대기')+' · 저장 위치: 이 브라우저';
  updateFinal();
 }
@@ -252,7 +261,7 @@ function install(){
  '<div class="vpPairTools"><button type="button" class="btn primary vpPairsGenerate">✨ AI 연결형 후킹 5세트 생성</button><p id="vpPairStatus" role="status">후킹을 AI로 생성하거나 선택한 세트를 직접 작성하세요. AI 생성에는 별도 요금이 발생합니다.</p></div>'+
  '<div class="vpPairChoices" role="group" aria-label="불편 해결 후킹 세트"></div>'+
  '<div class="vpPairEditors"><label>1번 · 불편한 상황 후킹<textarea class="vpPairEditPain" rows="2" maxlength="120" placeholder="예: 요리할 때 계속 저어야 해서 귀찮지?"></textarea></label><label>2번 · 연결된 해결 후킹<textarea class="vpPairEditSolve" rows="2" maxlength="120" placeholder="예: 자동으로 저어주면 손이 한결 편하겠지?"></textarea></label></div>'+
- '<button type="button" class="btn vpPairApplyCopy">선택 후킹을 Threads 1단·2단 첫 줄에 적용</button>';
+ '<p class="vpPairFlowNote">이 문장에 맞춰 Threads 1단·2단 전체를 생성하려면 AI 문구 · 편집 단계에서 생성하세요. 기존 첫 줄만 바꾸지 않습니다.</p>';
  const problem=document.createElement('section');problem.className='vpCreatorPhase vpPairStagePain';
  problem.innerHTML='<div class="vpCreatorPhaseLabel"><span>02</span><strong>1번 이미지 · 불편한 상황</strong><small>제품 이미지는 사용하지 않습니다. 불편한 장면만 사진으로 보여줍니다.</small></div>'+
  '<div class="vpPairArtwork"></div><button type="button" class="btn primary vpPairGenerate vpPainCreate">불편한 상황 실사 1장 생성</button>';
@@ -269,7 +278,7 @@ function install(){
  if(photo&&photo.parentNode===container)container.append(pair,problem,photo,finish);
  else container.append(pair,problem,finish);
  root.querySelector('.vpPairsGenerate').onclick=()=>void makePairs();
- root.querySelector('.vpPairApplyCopy').onclick=applyHooksToPosts;
+
  root.querySelector('.vpPainCreate').onclick=()=>void makeImage('pain');
  root.querySelector('.vpSolveCreate').onclick=()=>void makeImage('solve');
  root.querySelector('.vpPairSave').onclick=()=>void exportTwo().catch(e=>status('저장 실패: '+e.message));
@@ -292,6 +301,25 @@ function install(){
   const replyMedia=panel.querySelector('.vpSecondPost .vpPairFinalMedia');
   if(replyMedia)replyMedia.remove();
  }
+ const copyStage=$('#threads .vpStudioStage[data-studio-stage="copy"]');
+ if(copyStage){
+  const hooksPanel=document.createElement('section');
+  hooksPanel.id='vpPairCopyPanel';hooksPanel.className='vpCreatorPhase vpPairCopyPanel';
+  hooksPanel.innerHTML='<div class="vpCreatorPhaseLabel"><span>01</span><strong>먼저 후킹부터 · 불편 → 해결 5세트</strong><small>후킹을 먼저 선택하고 AI 문구를 생성해야 내용과 첫 줄이 자연스럽게 이어집니다.</small></div>'+
+   '<div class="vpPairTools"><button class="btn primary vpPairCopyGenerate" type="button">✨ AI 연결형 후킹 5세트 생성</button><p id="vpPairCopyStatus" role="status">기존 문구는 자동 변경되지 않습니다. 후킹을 선택한 후 아래 AI 문구 생성 버튼을 누르세요.</p></div>'+
+   '<div class="vpPairCopyChoices vpPairChoices" role="group" aria-label="AI 문구 생성용 후킹 세트 선택"></div>'+
+   '<div class="vpPairEditors"><label>1단 · 불편 후킹<textarea rows="2" maxlength="120" class="vpPairCopyPain"></textarea></label><label>2단 · 해결 후킹<textarea rows="2" maxlength="120" class="vpPairCopySolve"></textarea></label></div>';
+  hooksPanel.querySelector('.vpPairCopyGenerate').onclick=()=>void makePairs();
+  for(const [sel,slot] of [['.vpPairCopyPain','pain'],['.vpPairCopySolve','solve']]){
+   hooksPanel.querySelector(sel).addEventListener('change',e=>updatePair(slot,e.target.value));
+  }
+  const lead=copyStage.querySelector('.vpStudioCopyLead');
+  if(lead)copyStage.insertBefore(hooksPanel,lead);else copyStage.insertBefore(hooksPanel,copyStage.children[1]||null);
+ }
+ window.vpThreadSelectedPair=()=>{
+  const {r,index,pair}=current();
+  return {pain:sentence(pair.pain),solve:sentence(pair.solve),productId:owner(),pairIndex:index};
+ };
  const originalRefresh=window.vpCreatorRefresh;
  window.vpCreatorRefresh=()=>{originalRefresh?.();refresh()};
  const originalReview=window.vpCreatorRenderReview;
