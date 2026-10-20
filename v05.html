@@ -635,6 +635,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 <link rel="stylesheet" href="/performance-dashboard.css?v=2">
 <link rel="stylesheet" href="/creator-assets.css?v=8">
 <link rel="stylesheet" href="/studio-layout.css?v=1">
+<link rel="stylesheet" href="/instagram-feed-preview.css?v=1">
 </head>
 <body>
 <header class="mobileTop" aria-label="모바일 상단 메뉴">
@@ -1416,6 +1417,7 @@ function renderCarouselArtStatus(){
 }
 async function runCarouselArtworkGeneration(slides){
  if(carouselGenerationBusy||sceneGenerationBusy)return;
+ if(slides.some(n=>n>=3)){try{window.vpCreatorRequireReference('instagram')}catch(e){toast(e.message);return}}
  if(!Array.isArray(slides)||!slides.length||slides.some(n=>![1,2,3,4,5].includes(n)))return;
  const targetId=selected.id,product={...selected};
  const count=slides.length;
@@ -3085,7 +3087,7 @@ async function copyThreadPart(part){
 }
 function onThreadFinalEdit(){customThreadEdits[threadEditKey()]=$('#threadFinalText').value;renderThreadDupStatus();window.vpCreatorRenderReview?.()}
 function getCurrentInstagramCaption(){if(isMultiMode('Instagram'))return getMultiCaption('Instagram');return Object.prototype.hasOwnProperty.call(customInstagramCaptions,selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex)?customInstagramCaptions[selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex]:instaCaption(selected)}
-function onInstagramFinalEdit(){if(isMultiMode('Instagram')){editMultiCaption('Instagram',$('#instaCaption').value);window.vpCreatorRenderReview?.();return}customInstagramCaptions[selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex]=$('#instaCaption').value;renderInstagramDupStatus();window.vpCreatorRenderReview?.()}
+function onInstagramFinalEdit(){if(isMultiMode('Instagram')){editMultiCaption('Instagram',$('#instaCaption').value);window.vpCreatorRenderReview?.();return}customInstagramCaptions[selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex]=$('#instaCaption').value;renderInstagramDupStatus();window.vpCreatorRenderReview?.();window.vpInstagramFeedRefresh?.()}
 
 function dupNormalize(text){
  const lines=String(text||'').split('\n').filter(line=>!/(쿠팡 파트너스 활동|토스쇼핑 쉐어링크 활동|구매 발생 시 일정 수수료|#생활템|#제품정보)/.test(line));
@@ -3310,7 +3312,7 @@ function renderInstagramSlide(cards=instaCards(selected)){
  const prev=$('#instagramPrev'),next=$('#instagramNext');
  if(prev)prev.disabled=instaCardIndex===0;
  if(next)next.disabled=instaCardIndex===count-1;
- updateInstagramThumbSelection();renderCarouselArtStatus();
+ updateInstagramThumbSelection();renderCarouselArtStatus();window.vpInstagramFeedRefresh?.();
 }
 function goInstagramSlide(index){
  const next=Math.min((isMultiMode('Instagram')?multiSlideCount():5)-1,Math.max(0,Number(index)));
@@ -4433,9 +4435,10 @@ const q=new URLSearchParams(location.search).get('view');if(['dashboard','discov
 <script src="/studio-layout.js?v=4"></script>
 <script src="/account-ui.js?v=3"></script>
 <script src="/workspace-upgrade.js?v=4"></script>
-<script src="/creator-assets.js?v=4"></script>
+<script src="/creator-assets.js?v=5"></script>
 <script src="/thread-pairs.js?v=5"></script>
 <script src="/instagram-single-story.js?v=2"></script>
+<script src="/instagram-feed-preview.js?v=1"></script>
 <script src="/studio-product-card.js?v=2"></script>
 <script src="/product-research.js?v=5"></script>
 <script src="/performance-dashboard.js?v=2"></script>
