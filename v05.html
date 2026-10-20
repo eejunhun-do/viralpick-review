@@ -1819,7 +1819,9 @@ function isPartnerLink(value){
 function isCoupangProductLink(value){
  try{const u=new URL(value);return u.protocol==='https:'&&['www.coupang.com','m.coupang.com','coupang.com','coupa.ng','link.coupang.com'].includes(u.hostname)}catch{return false}
 }
+function isShortPartnerLink(value){try{const u=new URL(value);return u.protocol==='https:'&&(u.hostname==='coupa.ng'||u.hostname==='link.coupang.com'&&u.pathname.startsWith('/a/'))}catch{return false}}
 function partnerLink(p){return p?.source==='coupang'&&isPartnerLink(p.affiliateUrl)?p.affiliateUrl:null}
+function publishPartnerLink(p){const link=partnerLink(p);return isShortPartnerLink(link)?link:null}
 function saveCoupangDrafts(){
  try{
   const saved=products.filter(p=>p.source==='coupang').slice(-30).map(p=>({
@@ -1910,19 +1912,19 @@ function makeCoupangItemId(id){
 async function issueCoupangLink(p){
  if(p?.source!=='coupang')return null;
  const current=partnerLink(p);
- if(current&&new URL(current).hostname==='coupa.ng')return current;
+ if(isShortPartnerLink(current))return current;
  const source=isCoupangProductLink(p.originalUrl)?p.originalUrl:current;
  if(!source){toast('쿠팡 상품 URL이 없어 파트너스 단축 링크를 발급할 수 없습니다.');return null}
  try{
   const response=await backendRequest('/api/deeplink',{method:'POST',body:JSON.stringify({url:source})});
   const link=response?.links?.[0]?.affiliateUrl;
   if(!isPartnerLink(link))throw Error('파트너스 응답에 정상 제휴 URL이 없습니다.');
+  if(!isShortPartnerLink(link))throw Error('쿠팡 API가 단축 URL 대신 긴 제휴 URL을 반환했습니다.');
   p.affiliateUrl=link;saveCoupangDrafts();
   renderProductLists();renderMultiStudios();renderAffiliateEditor();
-  if(new URL(link).hostname!=='coupa.ng')toast('제휴 링크는 발급됐지만 쿠팡 API가 짧은 coupa.ng 주소를 제공하지 않았습니다.');
-  else toast('쿠팡 파트너스 단축 링크 발급 완료');
+  toast('쿠팡 파트너스 단축 링크 발급 완료');
   return link;
- }catch(e){toast('쿠팡 단축 링크 발급 실패: '+e.message);return current||null}
+ }catch(e){toast('쿠팡 단축 링크 발급 실패: '+e.message);return isShortPartnerLink(current)?current:null}
 }
 function saveCoupangManualLink(id,link){
  const p=products.find(x=>x.id===Number(id));
@@ -2985,7 +2987,7 @@ async function generateProductCopy(platform){
   const evidence=loadReviewEvidence(reviewEvidenceKey(selected));
   const data=await backendRequest('/api/copy',{method:'POST',body:JSON.stringify({platform,multi:useMulti,...(pair?{hookPair:{pain:pair.pain,solve:pair.solve}}:{}),products:items.map(p=>({title:p.name,price:p.price,category:p.type,description,reviewNotes: p.id===selected.id?reviewNotes:'',webResearch:p.id===selected.id?window.vpProductResearchContext?.(p.id)||null:null,reviewStats:p.id===selected.id&&evidence?{rating:evidence.rating,reviewCount:evidence.count,writtenCount:evidence.writtenCount,images:evidence.images}:null}))})});
   await Promise.all(items.filter(p=>p.source==='coupang'&&(!partnerLink(p)||new URL(partnerLink(p)).hostname!=='coupa.ng')).map(p=>issueCoupangLink(p)));
-  const links=(useMulti?items:[selected]).map(p=>partnerLink(p)).filter(Boolean);
+  const links=(useMulti?items:[selected]).map(p=>publishPartnerLink(p)).filter(Boolean);
   const promoLinks=[...new Set(links)].join('\n');
   const instagramCopy=String(data.text||'').trim()+'\n\n'+(promoLinks?promoLinks+'\n':'')+affiliateDisclosure;
   const copy=platform==='Threads'?data.part1:instagramCopy;
@@ -3032,9 +3034,10 @@ function getCurrentThreadText(){
 }
 function getThreadReplyText(){
  const base=readThreadReply()||'이런 상황에 쓸 만한지 제품 정보랑 실제 후기를 비교해 봤어.\n옵션과 후기의 아쉬운 점도 꼭 확인해 봐.';
- const links=(isMultiMode('Threads')?multiSelectedProducts():[selected]).map(p=>partnerLink(p)).filter(Boolean);
+ const links=(isMultiMode('Threads')?multiSelectedProducts():[selected]).map(p=>publishPartnerLink(p)).filter(Boolean);
  const link=[...new Set(links)].join('\n');
- return base.trim()+'\n\n'+(link?link+'\n':'제휴 링크 미등록 · 상품 발굴에서 링크 등록 필요\n')+affiliateDisclosure;
+ const cleanBase=base.replace(/https?:\/\/\S+/g,'').replace(/※\s*이 포스팅은 쿠팡 파트너스[^\n]*/g,'').trim();
+ return cleanBase+'\n\n'+(link?link+'\n':'[쿠팡 단축 링크 미발급 — 게시 전 발급 필요]\n')+affiliateDisclosure;
 }
 function renderThreadReplyEditor(){
  const area=$('#vpThreadReplyEditor'),note=$('#vpThreadLinkStatus');
@@ -3043,7 +3046,10 @@ function renderThreadReplyEditor(){
 }
 function onThreadReplyEdit(value){saveThreadReply(value);window.vpCreatorRenderReview?.()}
 async function copyThreadPart(part){
- if(part===2&&selected?.source==='coupang')await issueCoupangLink(selected);
+ if(part===2&&selected?.source==='coupang'&&!publishPartnerLink(selected)){
+  await issueCoupangLink(selected);
+  if(!publishPartnerLink(selected)){toast('단축 링크 발급 후 복사할 수 있습니다. 긴 링크는 사용하지 않습니다.');return}
+ }
  const text=part===2?getThreadReplyText():getCurrentThreadText();
  try{await navigator.clipboard.writeText(text);toast('Threads '+part+'단 복사 완료')}catch{toast('브라우저 복사 권한을 확인해 주세요')}
 }
