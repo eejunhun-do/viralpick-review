@@ -47,7 +47,7 @@ export async function POST(req){
  try{data=await safePayload(req,1200000)}catch(e){return json(req,{ok:false,message:'요청 형식 오류: '+e.message},400)}
  const product=String(data.product||'').trim().slice(0,100);
  const scene=String(data.scene||'').trim().slice(0,500);
- const purpose=data.purpose==='carousel'?'carousel':data.purpose==='instagram'?'instagram':'threads';
+ const purpose=['carousel','instagram','threads','threads-pain','threads-solve'].includes(data.purpose)?data.purpose:'threads';
  const slide=Number(data.slide)||0;
  if(purpose==='carousel'&&![2,3,4,5].includes(slide))return json(req,{ok:false,message:'캐러셀 사진은 2~5번 카드만 지원합니다.'},400);
  if(!product||scene.length<5)return json(req,{ok:false,message:'상품명 및 장면 설명을 입력해 주세요.'},400);
@@ -57,7 +57,8 @@ export async function POST(req){
   'clean-minimal':'Crisp contemporary home environment, clean geometry, neutral daylight, refined modern commercial photography.',
   'bold-contrast':'Cinematic but approachable lifestyle photography, deliberate strong subject silhouette, high clarity and striking photographic depth.'
  }[style];
- const referenceMode=data.imageMode==='product'?'product':'scene';
+ const referenceMode=purpose==='threads-pain'?'scene':purpose==='threads-solve'?'product':data.imageMode==='product'?'product':'scene';
+ if(purpose==='threads-solve'&&data.imageMode!=='product')return json(req,{ok:false,message:'해결 장면은 실제 상품 참조 이미지가 필요합니다.'},400);
  const imageData=referenceMode==='product'?String(data.referenceImage||''):'';
  const imageUrl=referenceMode==='product'?referenceImageUrl(data.referenceUrl):null;
  const match=referenceMode==='product'&&imageData?imageData.match(/^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/=]+)$/):null;
@@ -73,7 +74,7 @@ export async function POST(req){
   referenceMode==='product'?'EDIT THE PROVIDED PRODUCT REFERENCE PHOTO into a believable lifestyle scene. Retain the exact recognizable product from the uploaded photo: silhouette, proportions, color, visible labels and packaging; no invented accessories, branding or structural changes. Show natural practical usage, interaction or wearing only when consistent with the reference. If uncertain, stage a neutral tabletop/in-hand setting instead of fabricating a wearable function.':'Situation-only photo. Depict human context without inventing the actual commercial product or specific branding.',
   'USER-SELECTED HOOK IS THE PRIMARY STORY DIRECTION: '+(hook||'show why this everyday problem matters')+'.',
   'Show a specific real-life moment that makes this Korean hook immediately understandable without words: appropriate people, actions, surroundings, expressions and recognizable problem or solution. If the hook is about mealtime mess, depict real mealtime mess; if about a subtle scent, show a plausible cozy room or bedding moment. Do not simply pose a product for a catalog photo. Interpret figurative language conservatively; do not invent efficacy claims.',
-  'Use the selected product reference as the visual identity of the item the person is using. Transfer that exact product into the hook-matching situation, rather than copying the source photo background or inventing a different product.',
+  referenceMode==='product'?'Use the selected product reference as the visual identity of the item the person is using. Transfer that exact product into the hook-matching situation, rather than copying the source photo background or inventing a different product.':'Do not depict the advertised product in this problem-only scene; show the everyday inconvenience before a solution is introduced.',
   'The scene description supplies additional context only. If the scene and user-selected hook conflict, let the selected hook determine the storytelling situation, while keeping the reference product faithful.',
   'Do not print any words from the hook. The application composites its own headline afterward.',
   'Composition is crucial: reserve the upper 35 percent as naturally bright, gently textured, uncluttered background such as a sunlit cream wall, for large BLACK AND BURNT-ORANGE KOREAN HEADLINE TYPE that our separate renderer will place later.',
@@ -82,9 +83,11 @@ export async function POST(req){
   artDirection,
   referenceMode==='product'?'Preserve visible existing packaging or label from the reference photo when physically plausible; do not invent or alter letters, logos, prices or claims. Never add new text.':'Do not generate text, labels, logos or watermarks. The Korean headline is rendered by the app.',
   referenceMode==='product'?'Product must remain visually faithful to the uploaded reference. If parts are obscured, do not fabricate detailed specifications.':'Avoid inventing the exact look of the real listed product, logos, features or performance. Depict generic context.',
-  'Keep the lower-left region legible for a small separate product-name overlay. Authentic credible visual, not exaggerated or misleading.',
+  purpose==='threads-pain'?'Depict an unmistakable but believable PROBLEM moment ONLY. No featured product, no successful resolution, no brand or sales imagery. The second slide will show the separate solution.':'Depict the practical, credible benefit of the reference product resolving the SAME prior inconvenience. Avoid magical transformations or guaranteed results.',
+  purpose==='threads-solve'?'Show the EXACT reference product naturally in use as the solution; the product should be identifiable and proportionate.':'',
+  'Authentic credible visual, not exaggerated or misleading.',
   purpose==='carousel'?'Single dedicated visual for Instagram carousel slide '+slide+' of 5. This slide has a DIFFERENT visual narrative than its cover: '+({2:'show the everyday inconvenience before the solution',3:'feature a realistic generic product-use scene, with no fake brand',4:'show an honest close-up detail of the use context',5:'show a reassuring purchasing-decision moment or tidy completed everyday scene'}[slide])+'.':'',
-  purpose==='carousel'?'Designed as a dedicated Instagram carousel interior slide, NOT the cover image.':purpose==='instagram'?'Designed as one Instagram carousel cover background.':'Designed as one scroll-stopping Threads hook image background.'
+  purpose==='carousel'?'Designed as a dedicated Instagram carousel interior slide, NOT the cover image.':purpose==='instagram'?'Designed as one Instagram carousel cover background.':purpose==='threads-pain'?'First slide of a connected two-photo Threads story: PROBLEM scene, no product needed.':purpose==='threads-solve'?'Second slide of the connected two-photo Threads story: PRODUCT AS SOLUTION.':'Designed as one scroll-stopping Threads hook image background.'
  ].join('\n');
  const controller=new AbortController();
  const timeout=setTimeout(()=>controller.abort(),135000);
@@ -94,7 +97,7 @@ export async function POST(req){
    const form=new FormData();
    form.append('model','gpt-image-2');form.append('prompt',prompt);
    form.append('size','1088x1360');form.append('quality','medium');form.append('output_format','webp');form.append('output_compression','75');
-   form.append('n',String(purpose==='carousel'?1:2));
+   form.append('n',String(['carousel','threads-pain','threads-solve'].includes(purpose)?1:2));
    const reference=imageUrl?await fetchReferenceImage(imageUrl,controller.signal):{bytes:Buffer.from(match[2],'base64'),mime:'image/'+match[1]};
    const {bytes,mime}=reference;
    form.append('image',new Blob([bytes],{type:mime}),'product-reference.'+(mime==='image/jpeg'?'jpg':mime.split('/')[1]));
@@ -102,7 +105,7 @@ export async function POST(req){
   }else{
    upstream=await fetch('https://api.openai.com/v1/images/generations',{
     method:'POST',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},
-    body:JSON.stringify({model:'gpt-image-2',prompt,size:'1088x1360',quality:'medium',output_format:'webp',output_compression:75,n:purpose==='carousel'?1:2}),signal:controller.signal
+    body:JSON.stringify({model:'gpt-image-2',prompt,size:'1088x1360',quality:'medium',output_format:'webp',output_compression:75,n:['carousel','threads-pain','threads-solve'].includes(purpose)?1:2}),signal:controller.signal
    });
   }
   const result=await upstream.json().catch(()=>({}));
@@ -110,9 +113,9 @@ export async function POST(req){
   const images=Array.isArray(result.data)
    ?result.data.map(item=>item?.b64_json).filter(x=>typeof x==='string'&&x.length>0).slice(0,2).map(b64=>'data:image/webp;base64,'+b64)
    :[];
-  const expected=purpose==='carousel'?1:2;
+  const expected=['carousel','threads-pain','threads-solve'].includes(purpose)?1:2;
   if(images.length!==expected)return json(req,{ok:false,message:'생성 결과가 '+expected+'장이 아닙니다. 요금이 발생했을 수 있으니 API 사용량을 확인해 주세요.'},502);
-  return json(req,{ok:true,mime:'image/webp',images,image:purpose==='carousel'?images[0]:undefined,model:'gpt-image-2',imageMode:referenceMode,purpose,slide,count:images.length});
+  return json(req,{ok:true,mime:'image/webp',images,image:expected===1?images[0]:undefined,model:'gpt-image-2',imageMode:referenceMode,purpose,slide,count:images.length});
 
  }catch(e){
   return json(req,{ok:false,message:e.name==='AbortError'?'이미지 생성 시간 초과':'이미지 요청 실패. 서버 연결 상태를 확인하세요.'},502);
