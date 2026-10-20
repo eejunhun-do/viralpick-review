@@ -6,7 +6,7 @@ import {normalizeProductResearch} from '../lib/product-research.js';
 
 const main=readFileSync(new URL('../v05.html',import.meta.url),'utf8');
 const frontend=readFileSync(new URL('../product-research.js',import.meta.url),'utf8');
-const api=readFileSync(new URL('../api/product-research.js',import.meta.url),'utf8');
+const api=readFileSync(new URL('../lib/product-research.js',import.meta.url),'utf8');
 const copy=readFileSync(new URL('../api/copy.js',import.meta.url),'utf8');
 const hooks=readFileSync(new URL('../api/thread-hook-pairs.js',import.meta.url),'utf8');
 const instagram=readFileSync(new URL('../api/instagram-story.js',import.meta.url),'utf8');
