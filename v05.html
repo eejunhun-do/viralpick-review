@@ -2676,6 +2676,7 @@ async function refreshCoupangCatalog(force=false){
 }
 function selectProduct(id){
  selected=products.find(p=>p.id===id)||products[0];
+ saveCurrentWorkspace();
  threadImageIndex=0;coverIndex=0;
  renderProductLists();renderLab();renderThreads();renderInstagram();syncProductInputs();
  renderPhotoHistories();show('threads');void restorePhotoHistory(selected.id);
@@ -4362,7 +4363,32 @@ function show(id){
 }
 $$('.nav button').forEach(b=>b.onclick=()=>show(b.dataset.view));
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
-loadPostingSettings();restoreManualProducts();loadMultiStudio();loadInstagramCoverHeadlineEdits();setDefaultScheduleFields();try{$('#apiBase').value=localStorage.getItem('viralpickBackendUrl')||(location.hostname.endsWith('.vercel.app')?location.origin:'https://viralpick-review.vercel.app')}catch(e){$('#apiBase').value='https://viralpick-review.vercel.app'}renderProductLists();renderLab();renderThreads();renderInstagram();renderAnalytics();renderBlogRecommendations();renderPostingSettings();syncProductInputs();renderPhotoHistories();renderMultiStudios();refreshMultiOutputs();void restorePhotoHistory(selected.id);if(isMultiMode('Threads')||isMultiMode('Instagram'))void restoreMultiEditableAssets();
+const VP_WORKSPACE_KEY='viralpick-current-workspace-v1';
+function saveCurrentWorkspace(){
+ try{
+  localStorage.setItem(VP_WORKSPACE_KEY,JSON.stringify({
+   selectedId:selected?.id??null,
+   description:$('#vpAiDescription')?.value||'',
+   reviews:$('#vpAiReviews')?.value||'',
+   markdown:$('#vpReviewMarkdown')?.value||'',
+   search:$('#tossSearch')?.value||''
+  }));
+ }catch(e){}
+}
+function restoreCurrentWorkspace(){
+ try{
+  const saved=JSON.parse(localStorage.getItem(VP_WORKSPACE_KEY)||'null');
+  if(!saved||typeof saved!=='object')return;
+  const p=products.find(item=>String(item.id)===String(saved.selectedId));
+  if(p)selected=p;
+  for(const [id,key] of [['vpAiDescription','description'],['vpAiReviews','reviews'],['vpReviewMarkdown','markdown'],['tossSearch','search']]){
+   const node=$('#'+id);
+   if(node&&typeof saved[key]==='string')node.value=saved[key].slice(0,id==='vpReviewMarkdown'?250000:30000);
+  }
+ }catch(e){}
+}
+loadPostingSettings();restoreCoupangDrafts();restoreManualProducts();restoreCurrentWorkspace();loadMultiStudio();loadInstagramCoverHeadlineEdits();setDefaultScheduleFields();try{$('#apiBase').value=localStorage.getItem('viralpickBackendUrl')||(location.hostname.endsWith('.vercel.app')?location.origin:'https://viralpick-review.vercel.app')}catch(e){$('#apiBase').value='https://viralpick-review.vercel.app'}renderProductLists();renderLab();renderThreads();renderInstagram();renderAnalytics();renderBlogRecommendations();renderPostingSettings();syncProductInputs();renderPhotoHistories();renderMultiStudios();refreshMultiOutputs();void restorePhotoHistory(selected.id);if(isMultiMode('Threads')||isMultiMode('Instagram'))void restoreMultiEditableAssets();
+for(const id of ['vpAiDescription','vpAiReviews','vpReviewMarkdown','tossSearch'])$('#'+id)?.addEventListener('input',saveCurrentWorkspace);
 connectionRestoreTask=loadRememberedAccess();
 const q=new URLSearchParams(location.search).get('view');if(['dashboard','discover','integrations','lab','threads','instagram','analytics','blog','scheduler'].includes(q))show(q);
 </script>
