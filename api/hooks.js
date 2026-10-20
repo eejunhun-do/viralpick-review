@@ -1,7 +1,9 @@
+import {POST as threadPairPost} from '../lib/thread-hook-pairs-handler.js';
+import {POST as instagramStoryPost} from '../lib/instagram-story-handler.js';
 import {session,getKeys} from '../lib/account-store.js';
 import {json,preflight,checkAccess,safePayload} from '../lib/api-guard.js';
 export function OPTIONS(req){return preflight(req)}
-export async function POST(req){
+async function baseHookPost(req){
  const denied=checkAccess(req);if(denied)return json(req,{ok:false,message:denied},401);
  let data;try{data=await safePayload(req,22000)}catch(e){return json(req,{ok:false,message:e.message},400)}
  const platform=data.platform==='Instagram'?'Instagram':'Threads';
@@ -30,4 +32,11 @@ export async function POST(req){
   return json(req,{ok:true,platform,hooks,model:'gpt-4.1-mini'});
  }catch(e){return json(req,{ok:false,message:e.name==='AbortError'?'후킹 생성 시간 초과':'AI 후킹 생성 요청 실패'},502)}
  finally{clearTimeout(timer)}
+}
+
+export async function POST(req){
+ const route=new URL(req.url).searchParams.get('route');
+ if(route==='thread-pairs')return threadPairPost(req);
+ if(route==='instagram-story')return instagramStoryPost(req);
+ return baseHookPost(req);
 }
