@@ -25,6 +25,28 @@ function dashboard(){
  '<label>주문<input type="number" name="orders" min="0" value="0"></label><label>수수료 (원)<input type="number" name="commission" min="0" value="0"></label>'+
  '<label class="wide">출처·게시글 메모<input type="text" name="note" maxlength="120" placeholder="실적 출처"></label><button class="btn primary wide">성과 저장</button></form><p class="queueHint" id="vpSaveStatus">이 브라우저에만 저장됩니다.</p></div></section></div>'+
  '<section class="panel"><div class="panelHead"><h2>입력 내역</h2><span class="badge" id="vpRecordCount">0건</span></div><div class="pad vpDataTable"><table><thead><tr><th>날짜</th><th>채널</th><th>도달</th><th>클릭</th><th>주문</th><th>수수료</th><th></th></tr></thead><tbody id="vpRecordRows"></tbody></table></div></section><div id="dashProducts" hidden></div>';
+ // Preserve real Coupang Partners reports when the workspace replaces the base dashboard.
+ root.insertAdjacentHTML('afterbegin', `  <div class="panel" id="vpCoupangReports" style="margin-top:16px">
+   <div class="panelHead"><h2>쿠팡 파트너스 실적 리포트</h2><span class="badge green">실제 API 조회</span></div>
+   <div class="pad">
+    <div class="btnrow" style="flex-wrap:wrap;align-items:end">
+     <label style="display:grid;gap:5px">조회 기간<select id="vpReportPeriod"><option value="7">최근 7일</option><option value="14">최근 14일</option><option value="30">최근 30일</option></select></label>
+     <label style="display:grid;gap:5px">Sub ID (선택)<input id="vpReportSubId" maxlength="48" placeholder="전체 실적" autocomplete="off"></label>
+     <button type="button" id="vpReportRefresh" class="btn primary">실제 실적 새로고침</button>
+    </div>
+    <p class="queueHint" id="vpReportStatus" role="status">등록된 쿠팡 파트너스 API 키로 조회합니다. 처음에는 새로고침을 눌러주세요.</p>
+    <div class="analyticsGrid" style="margin-top:12px">
+     <div class="analyticsMetric"><div class="ak">클릭 수</div><div class="av" id="vpReportClicks">—</div></div>
+     <div class="analyticsMetric"><div class="ak">주문 수량</div><div class="av" id="vpReportOrders">—</div></div>
+     <div class="analyticsMetric"><div class="ak">주문 거래액</div><div class="av" id="vpReportGmv">—</div></div>
+     <div class="analyticsMetric"><div class="ak">취소 수량</div><div class="av" id="vpReportCancels">—</div></div>
+     <div class="analyticsMetric"><div class="ak">보고된 수수료</div><div class="av" id="vpReportCommission">—</div></div>
+    </div>
+    <div style="overflow-x:auto;margin-top:12px"><table class="analyticsTable"><thead><tr><th>날짜</th><th>클릭</th><th>주문 수량</th><th>거래액</th><th>취소 수량</th><th>수수료</th></tr></thead><tbody id="vpReportRows"><tr><td colspan="6">조회 전입니다.</td></tr></tbody></table></div>
+    <p class="queueHint">쿠팡의 집계 지연 및 취소·확정 기준에 따라 실적이 달라질 수 있습니다. 게시물별 성과 시뮬레이션과는 별개입니다.</p>
+   </div>
+  </div>
+`);
  const date=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);$('#vpRecordForm').elements.date.value=date;
  $('#vpDays').onchange=render;
  $('#vpRecordForm').onsubmit=e=>{
