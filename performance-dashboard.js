@@ -72,6 +72,7 @@ async function loadRange(from,to,subId,progress,force){
   if(typeof progress==='function')progress(Math.min(i+2,parts.length),parts.length);
  }
  const daily=new Map(),valid=Object.fromEntries(keys.map(k=>[k,true])),counts=Object.fromEntries(keys.map(k=>[k,0]));
+ const observed=Object.fromEntries(keys.map(k=>[k,new Set()]));
  const problems=[];
  for(let i=0;i<results.length;i++){
   const result=results[i];
@@ -81,6 +82,7 @@ async function loadRange(from,to,subId,progress,force){
     const date=dateValue(row.date||row.orderDate);
     if(!date||date<from||date>to)continue;
     counts[type]++;
+    observed[type].add(date);
     if(!daily.has(date))daily.set(date,{date,clicks:0,orders:0,gmv:0,cancels:0,commission:0});
     const d=daily.get(date);
     if(type==='clicks')d.clicks+=number(row,'click','clicks');
@@ -90,7 +92,7 @@ async function loadRange(from,to,subId,progress,force){
    }
   }
  }
- return {from,to,daily,valid,counts,problems};
+ return {from,to,daily,valid,counts,observed,problems};
 }
 function sum(data,from,to,field){
  if(!data||!data.valid[field==='gmv'?'orders':field])return null;
@@ -110,7 +112,7 @@ function renderOverview(){
  const delta=monthValue===null||prevValue===null?'전월 비교 준비 중':d.counts.commission===0?'비교 내역 없음':prevValue===0?'전월 동기간 수익 0원':((monthValue-prevValue)/Math.abs(prevValue)*100).toFixed(1)+'% '+(monthValue>=prevValue?'증가':'감소')+' · 전월 동기간 '+money(prevValue);
  kpi('vpMonthProfit',present(monthValue),'전월 동기간 대비: '+delta);
  kpi('vpWeekProfit',present(weekValue),'이번 주 월요일부터 오늘까지');
- kpi('vpTodayProfit',!d?'—':d.daily.has(now)?present(todayValue):'집계 대기','당일 실적은 쿠팡 갱신 이후 반영될 수 있습니다');
+ kpi('vpTodayProfit',!d?'—':d.observed.commission.has(now)?present(todayValue):'집계 대기','당일 실적은 쿠팡 갱신 이후 반영될 수 있습니다');
  const status=$('#vpOverviewNote');
  if(status)status.textContent=d?(d.problems.length?'일부 쿠팡 자료 누락 · 새로고침을 눌러 재시도하세요':'쿠팡 파트너스 실제 API 기준 · 전월 비교는 같은 날짜까지'):'로그인 후 실적을 불러옵니다.';
 }
