@@ -27,7 +27,7 @@ test('new dashboard and creator assets are linked and parse',()=>{
  assert.match(html,/creator-assets\.js\?v=4/);
 });
 test('dashboard report is not populated from prototype metrics',()=>{
- assert.match(workspace,/PERFORMANCE CENTER/);
+ assert.match(performance,/PERFORMANCE OVERVIEW/);
  assert.match(workspace,/vpPerformanceDashboard/);
  assert.doesNotMatch(workspace,/vpRecordForm|성과 기록 추가|vpDeleteReport/);
  assert.match(performance,/이번 달 수익/);
