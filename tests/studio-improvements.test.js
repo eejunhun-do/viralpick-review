@@ -50,7 +50,7 @@ test('Instagram single product AI storyboard provides five distinct cards',()=>{
  assert.equal(validateInstagramStory({...content,slides:content.slides.slice(0,4)}),null);
  assert.doesNotThrow(()=>new Script(insta));
  assert.match(html,/vpInstagramSingleStoryForSlide/);
- assert.match(html,/scene:carouselSceneForSlide\(product,slide\),purpose:slide===2\?'threads-pain':'carousel'/);
- assert.match(html,/instagram-single-story\.js\?v=2/);
+ assert.match(html,/scene:carouselSceneForSlide\(product,slide\),purpose:'carousel'/);
+ assert.match(html,/instagram-single-story\.js\?v=3/);
  assert.match(insta,/\/api\/instagram-story/);
 });
