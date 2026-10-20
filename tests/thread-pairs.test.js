@@ -56,8 +56,33 @@ test('image storage is browser local IndexedDB rather than localStorage large ba
 
 test('story stages are nested in the correct creator container and both hooks can update Threads post opening lines',()=>{
  assert.match(frontend,/const container=root\.querySelector\('\.vpCreatorReference'\)\|\|root/);
- assert.match(frontend,/container\.insertBefore\(problem,photo\)/);
+ assert.match(frontend,/container\.append\(pair,problem,photo,finish\)/);
  assert.match(frontend,/function applyHooksToPosts\(/);
  assert.match(frontend,/customThreadEdits\[threadEditKey\(\)\]=first/);
  assert.match(frontend,/saveThreadReply\(second\)/);
+});
+
+test('Threads visual and final previews show both problem and solution images in the FIRST post only',()=>{
+ const creator=readFileSync(new URL('../creator-assets.js',import.meta.url),'utf8');
+ assert.match(creator,/panel\.id='vpThreadVisualReview'/);
+ assert.match(creator,/visual\.insertBefore\(panel,visual\.children\[1\]\|\|null\)/);
+ assert.match(creator,/for\(const root of \[\$\('#vpThreadSocialReview'\),\$\('#vpThreadVisualReview'\)\]/);
+ assert.match(frontend,/for\(const panelId of \['vpThreadVisualReview','vpThreadSocialReview'\]\)/);
+ assert.match(frontend,/const first=panel\?\.querySelector\('\.vpFirstPost \.vpPreviewBody'\)/);
+ assert.match(frontend,/gallery\.className='vpPairGallery'/);
+ assert.match(frontend,/for\(const \[slot,label\] of \[\['pain','1번 · 불편 상황'\],\['solve','2번 · 제품 해결'\]\]\)/);
+ assert.match(frontend,/first\.after\(gallery\)/);
+ assert.match(frontend,/\.vpSecondPost \.vpPairFinalMedia/);
+ assert.match(frontend,/if\(replyMedia\)replyMedia\.remove\(\)/);
+ assert.match(frontend,/imageNode\('solve',first\.querySelector\('\[data-pair-photo="solve"\]'\)\)/);
+ assert.match(css,/#vpThreadVisualReview \.vpPreviewMedia/);
+});
+test('Threads steps are in strict DOM and CSS order 01,02,03,04 and final stage shows both image previews',()=>{
+ assert.match(frontend,/container\.append\(pair,problem,photo,finish\)/);
+ for(const [cls,number] of [['vpPairHookStage',0],['vpPairStagePain',1],['vpCreatorPhotoStep',2],['vpPairFinish',3]]){
+  assert.ok(css.includes('vpThreadPairMode .'+cls+'{order:'+number+'}'));
+ }
+ assert.match(frontend,/vpPairFinishGallery/);
+ assert.match(frontend,/vpPairFinishPain/);
+ assert.match(frontend,/vpPairFinishSolve/);
 });
