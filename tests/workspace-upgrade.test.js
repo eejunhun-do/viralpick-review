@@ -7,6 +7,8 @@ import {referenceImageUrl} from '../api/image.js';
 
 const html=readFileSync(new URL('../v05.html',import.meta.url),'utf8');
 const workspace=readFileSync(new URL('../workspace-upgrade.js',import.meta.url),'utf8');
+const performance=readFileSync(new URL('../performance-dashboard.js',import.meta.url),'utf8');
+const performanceCss=readFileSync(new URL('../performance-dashboard.css',import.meta.url),'utf8');
 const studio=readFileSync(new URL('../studio-layout.js',import.meta.url),'utf8');
 const creator=readFileSync(new URL('../creator-assets.js',import.meta.url),'utf8');
 const hooks=readFileSync(new URL('../api/hooks.js',import.meta.url),'utf8');
@@ -14,17 +16,25 @@ const copy=readFileSync(new URL('../api/copy.js',import.meta.url),'utf8');
 const image=readFileSync(new URL('../api/image.js',import.meta.url),'utf8');
 
 test('new dashboard and creator assets are linked and parse',()=>{
- assert.match(html,/workspace-upgrade\.js\?v=2/);
+ assert.match(html,/workspace-upgrade\.js\?v=4/);
  assert.match(html,/workspace-upgrade\.css\?v=2/);
  assert.doesNotThrow(()=>new Script(workspace));
+ assert.doesNotThrow(()=>new Script(performance));
+ assert.match(html,/performance-dashboard\.js\?v=1/);
+ assert.match(html,/performance-dashboard\.css\?v=1/);
  assert.doesNotThrow(()=>new Script(studio));
  assert.doesNotThrow(()=>new Script(creator));
  assert.match(html,/creator-assets\.js\?v=4/);
 });
 test('dashboard report is not populated from prototype metrics',()=>{
  assert.match(workspace,/PERFORMANCE CENTER/);
- assert.match(workspace,/실제 수동 입력 기준/);
- assert.match(workspace,/viralpick-performance-v2/);
+ assert.match(workspace,/vpPerformanceDashboard/);
+ assert.doesNotMatch(workspace,/vpRecordForm|성과 기록 추가|vpDeleteReport/);
+ assert.match(performance,/이번 달 수익/);
+ assert.match(performance,/이번 주 수익/);
+ assert.match(performance,/오늘 수익/);
+ assert.match(performance,/vpSocialPostRows/);
+ assert.match(performanceCss,/@media\(max-width:540px\)/);
  assert.doesNotMatch(workspace,/analyticsScenario|analyticsSets/);
 });
 test('selected product evidence and two-part Threads are available',()=>{
