@@ -2,12 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {Script} from 'node:vm';
-import {validatePairs} from '../api/thread-hook-pairs.js';
+import {validatePairs} from '../lib/thread-hook-pairs-handler.js';
 
 const html=readFileSync(new URL('../v05.html',import.meta.url),'utf8');
 const frontend=readFileSync(new URL('../thread-pairs.js',import.meta.url),'utf8');
 const api=readFileSync(new URL('../api/image.js',import.meta.url),'utf8');
-const pairApi=readFileSync(new URL('../api/thread-hook-pairs.js',import.meta.url),'utf8');
+const pairApi=readFileSync(new URL('../lib/thread-hook-pairs-handler.js',import.meta.url),'utf8');
 const studio=readFileSync(new URL('../studio-layout.js',import.meta.url),'utf8');
 const css=readFileSync(new URL('../creator-assets.css',import.meta.url),'utf8');
 
