@@ -1913,13 +1913,14 @@ async function issueCoupangLink(p){
  if(p?.source!=='coupang')return null;
  const current=partnerLink(p);
  if(isShortPartnerLink(current))return current;
- const source=isCoupangProductLink(p.originalUrl)?p.originalUrl:current;
+ const canonical=/^\\d+$/.test(String(p.coupangProductId||''))?'https://www.coupang.com/vp/products/'+p.coupangProductId:null;
+ const source=canonical||(isCoupangProductLink(p.originalUrl)?p.originalUrl:current);
  if(!source){toast('쿠팡 상품 URL이 없어 파트너스 단축 링크를 발급할 수 없습니다.');return null}
  try{
   const response=await backendRequest('/api/deeplink',{method:'POST',body:JSON.stringify({url:source})});
   const link=response?.links?.[0]?.affiliateUrl;
   if(!isPartnerLink(link))throw Error('파트너스 응답에 정상 제휴 URL이 없습니다.');
-  if(!isShortPartnerLink(link))throw Error('쿠팡 API가 단축 URL 대신 긴 제휴 URL을 반환했습니다.');
+  if(!isShortPartnerLink(link))throw Error('쿠팡 API가 짧은 제휴 URL을 반환하지 않았습니다. API 응답을 확인해 주세요.');
   p.affiliateUrl=link;saveCoupangDrafts();
   renderProductLists();renderMultiStudios();renderAffiliateEditor();
   toast('쿠팡 파트너스 단축 링크 발급 완료');
