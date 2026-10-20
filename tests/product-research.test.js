@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {Script} from 'node:vm';
-import {normalizeProductResearch} from '../lib/product-research.js';
+import {normalizeProductResearch,citedUrls} from '../lib/product-research.js';
 
 const main=readFileSync(new URL('../v05.html',import.meta.url),'utf8');
 const frontend=readFileSync(new URL('../product-research.js',import.meta.url),'utf8');
@@ -37,12 +37,14 @@ test('product web research server requires authenticated account and real web se
  assert.match(api,/tool_choice:'required'/);
  assert.match(api,/web_search_call\.action\.sources/);
  assert.match(api,/if\(!usedSearch\)/);
- assert.match(api,/if\(!annotated\.size\)/);
+ assert.match(api,/if\(!sources\.size\)/);
+ assert.match(api,/searchOnce\(key,product,query,scope/);
+ assert.match(api,/structureEvidence\(key,notes,sources,scope/);
  assert.match(api,/notCustomerReviews:true/);
 });
 test('mobile web research UI loads and displays verified source links without injecting HTML',()=>{
  assert.doesNotThrow(()=>new Script(frontend));
- assert.match(main,/product-research\.js\?v=3/);
+ assert.match(main,/product-research\.js\?v=4/);
  assert.match(frontend,/document\.createElement\('a'\)/);
  assert.match(frontend,/a\.rel='noopener noreferrer'/);
  assert.match(frontend,/window\.vpProductResearchContext=context/);
@@ -75,4 +77,27 @@ test('unverified search leads are rejected before reuse or showing successful re
  const result=normalizeProductResearch({product:'X',sources:[{title:'sample',url}],facts:[{type:'advantage',claim:'사용자에게 편리한 기능을 지원합니다',source_url:url},{type:'drawback',claim:'무거워서 휴대하기 불편합니다',source_url:url}]});
  assert.equal(result.facts.length,1);
  assert.equal(result.facts[0].type,'advantage');
+});
+
+test('hosted search action sources are trusted even when citations are absent from JSON',()=>{
+ const url='https://www.example.com/blog/jumpstarter';
+ const response={output:[{type:'web_search_call',status:'completed',action:{type:'search',sources:[{type:'url',url}]}},{type:'message',content:[{type:'output_text',text:'참고자료 요약'}]}]};
+ const resolved=citedUrls(response);
+ assert.equal(resolved.size,1);
+ assert.equal([...resolved.values()][0].url,url);
+});
+test('inline url citations can supply trusted source metadata when action sources are empty',()=>{
+ const url='https://example.org/guide';
+ const response={output:[{type:'web_search_call',status:'completed',action:{type:'search',sources:[]}},{type:'message',content:[{type:'output_text',text:'실사용 활용 사례입니다.',annotations:[{type:'url_citation',url,title:'활용 가이드',start_index:5,end_index:10}]}]}]};
+ const sources=citedUrls(response);
+ assert.equal(sources.size,1);
+ assert.equal([...sources.values()][0].title,'활용 가이드');
+});
+test('generic Korean product keywords enable category research rather than requiring an exact SKU',()=>{
+ assert.match(api,/function isCategorySearch/);
+ assert.match(api,/scope=isCategorySearch\(query\)\?'category':'model'/);
+ assert.match(api,/This is CATEGORY information/);
+ assert.match(api,/Do not invent facts/);
+ assert.match(frontend,/제품 종류별 일반 정보/);
+ assert.match(copy,/scope=category/);
 });
