@@ -54,19 +54,19 @@ function redraw(){
  if(multi){const notice=root.querySelector('.vpSingleStoryMode');if(notice)notice.textContent='모음형 선택 중입니다. 위 단품형 전환 버튼을 눌러 같은 상품의 캐러셀을 제작할 수 있습니다.';return}
  const story=getStory(),container=root.querySelector('.vpSingleSlideList');
  container.replaceChildren();
- const labels=['01 · 시선 끄는 공감 표지','02 · 불편한 순간','03 · 제품으로 해결','04 · 확인된 장점','05 · 추가 장점 · 저장'];
+ const labels=['01 · 후킹 · 궁금증','02 · 문제 상황','03 · 실제 제품 등장','04 · 장점 · 사용 장면','05 · 추가 활용 · 마무리'];
  for(let i=0;i<5;i++){
   const entry=story.slides[i];
   const row=document.createElement('details');
   row.className='vpSingleSlideEdit';row.open=i===0;
   const summary=document.createElement('summary');summary.textContent=labels[i];
   row.append(summary);
-  for(const [key,label,max] of [['title','제목',90],['detail','핵심 설명',220],['scene','AI 이미지 장면 설명',420]]){
+  for(const [key,label,max] of [['title','카드 제목',90],['detail','핵심 문구',220],['scene','상황 이미지 연출',420]]){
    const holder=document.createElement('label');holder.textContent=label;
-   const field=document.createElement('textarea');field.rows=key==='scene'?3:2;
-   field.maxLength=max;field.value=entry?.[key]||'';
+   const field=document.createElement('textarea');field.rows=key==='scene'?3:2;field.maxLength=max;field.value=entry?.[key]||'';
    field.onchange=()=>update(i,key,field.value);
-   holder.append(field);row.append(holder);
+   holder.append(field);
+   if(key==='scene'){const advanced=document.createElement('details');advanced.className='vpSingleSceneAdvanced';const summary=document.createElement('summary');summary.textContent='이미지 연출 고급 수정 (선택)';advanced.append(summary,holder);row.append(advanced)}else row.append(holder);
   }
   container.append(row);
  }
@@ -96,14 +96,14 @@ async function generate(){
   customInstagramCaptions[key]=trim(data.caption,3000)+'\n\n'+(link?link+'\n':'')+affiliateDisclosure;
   if(typeof renderInstagram==='function')renderInstagram();
   window.vpCreatorRenderReview?.();
-  if(note)note.textContent='단품형 5장 AI 기획 완료. 카드를 수정하고 이미지·카드 탭에서 실사 생성 및 ZIP 저장을 진행하세요.';
+  if(note)note.textContent='5장 문구 기획 완료. 이미지·카드 탭에서 상품 사진을 선택하고 1~5번을 일괄 생성하세요.';
  }catch(e){if(note)note.textContent='캐러셀 기획 실패: '+e.message}
  finally{creating=false;if(button)button.disabled=false;redraw()}
 }
 function init(){
  const copy=$('#instagram .vpStudioStage[data-studio-stage="copy"]');if(!copy)return;
  const panel=document.createElement('section');panel.id='vpInstagramSingleStory';panel.className='vpCreatorPhase vpInstagramSingleStory';
- panel.innerHTML='<div class="vpCreatorPhaseLabel"><span>01</span><strong>단품형 캐러셀 · 불편에서 해결까지 5장</strong><small>Threads에서 선택한 같은 상품과 후킹을 재사용합니다. 5장의 카드 제목과 설명을 직접 바꿀 수 있습니다.</small></div>'+
+ panel.innerHTML='<div class="vpCreatorPhaseLabel"><span>01</span><strong>5장 캐러셀 문구 기획</strong><small>1~2번은 제품 없는 후킹·문제, 3~5번은 실제 제품 사진을 활용한 문구별 상황을 기획합니다.</small></div>'+
  '<div class="vpSingleStoryActions"><button class="btn" type="button" id="vpInstagramSingleSwitch">현재 상품으로 단품형 제작</button>'+
  '<button class="btn primary" type="button" id="vpInstagramSingleGenerate">✨ AI 5장 캐러셀 스토리 기획</button></div>'+
  '<p class="vpSingleStoryMode"></p><div class="vpSingleSlideList"></div>'+
