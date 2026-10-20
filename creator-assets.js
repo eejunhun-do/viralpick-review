@@ -101,7 +101,7 @@ async function payloadForInstagramSlide(slide){
  const first=getReference('instagram'),items=assets();
  // Before spending on the first two images, try the actual selected photo.
  // If it cannot be transferred, use a different image from the SAME selected product.
- const alternatives=items.filter(item=>item.id!==first.id&&(item.type==='upload'||isSupportedReferenceUrl(item.src)));
+ const alternatives=items.filter(item=>item.id!==first.id&&(item.type==='upload'||(state.instagram.rights&&isSupportedReferenceUrl(item.src))));
  const preferred=slide===3?first:(alternatives[(slide-4)%Math.max(1,alternatives.length)]||first);
  try{
   const result=await referenceFromAsset(preferred);
