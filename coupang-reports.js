@@ -3,8 +3,9 @@
 'use strict';
 const $=s=>document.querySelector(s);
 const fmt=n=>Number(n||0).toLocaleString('ko-KR');
-const num=(x,...keys)=>{for(const k of keys){if(x?.[k]!=null&&Number.isFinite(Number(x[k])))return Number(x[k]);}return 0};
-const today=()=>{const d=new Date(Date.now()+9*3600000);return d.toISOString().slice(0,10).replace(/-/g,'')};
+const num=(x,...keys)=>{for(const k of keys){const raw=x?.[k];if(raw==null||raw==='')continue;const n=Number(typeof raw==='string'?raw.replace(/[,₩원\s]/g,''):raw);if(Number.isFinite(n))return n;}return 0};
+let latestRequest=0;
+const has=(r,k)=>Object.prototype.hasOwnProperty.call(r,k);
 function dateBefore(days){const d=new Date(Date.now()+9*3600000-days*86400000);return d.toISOString().slice(0,10).replace(/-/g,'')}
 function el(tag,content){const node=document.createElement(tag);if(content!=null)node.textContent=content;return node}
 function totals(rows,type){
@@ -35,7 +36,15 @@ function display(data){
  const reports=data.reports||{};
  const click=totals(reports.clicks||[],'clicks'),order=totals(reports.orders||[],'orders'),cancel=totals(reports.cancels||[],'cancels'),commission=totals(reports.commission||[],'commission');
  const values={clicks:click.clicks,orders:order.orders,gmv:order.gmv,cancels:cancel.cancels,commission:commission.commission};
- for(const [key,value] of Object.entries(values))$('#vpReport'+key[0].toUpperCase()+key.slice(1)).textContent=reports[key==='gmv'?'orders':key]?' '+fmt(value)+(key==='gmv'||key==='commission'?'원':''):'조회 실패';
+ const source={clicks:'clicks',orders:'orders',gmv:'orders',cancels:'cancels',commission:'commission'};
+ for(const [key,value] of Object.entries(values)){
+  const rows=reports[source[key]],target=$('#vpReport'+key[0].toUpperCase()+key.slice(1));if(!target)continue;
+  if(!Array.isArray(rows)){target.textContent='조회 실패';continue}
+  if(!rows.length){target.textContent='자료 없음';continue}
+  const fields={clicks:['click','clicks'],orders:['quantity','order','orders'],gmv:['gmv','orderAmount','salesAmount'],cancels:['quantity','cancel','cancels'],commission:['commission','commissionAmount']}[key];
+  if(!rows.some(row=>fields.some(field=>row?.[field]!==undefined&&row?.[field]!==null))){target.textContent='필드 확인 필요';continue}
+  target.textContent=fmt(value)+(key==='gmv'||key==='commission'?'원':'');
+ }
  const table=$('#vpReportRows');table.replaceChildren();
  const rows=dayRows(reports);
  if(!rows.length){const tr=el('tr'),td=el('td','해당 기간에 표시할 실적이 없습니다.');td.colSpan=6;tr.append(td);table.append(tr)}
@@ -48,6 +57,7 @@ async function refresh(){
  const end=dateBefore(1),start=dateBefore(days);
  const status=$('#vpReportStatus'),btn=$('#vpReportRefresh');
  if(!status||!btn)return;
+ const requestId=++latestRequest;
  btn.disabled=true;status.textContent='쿠팡 파트너스 클릭·주문·취소·수익 조회 중…';
  try{
   const params=new URLSearchParams({startDate:start,endDate:end});if(subId)params.set('subId',subId);
@@ -55,9 +65,10 @@ async function refresh(){
    ?backendRequest('/api/reports?'+params.toString(),{method:'GET'})
    :Promise.reject(Error('백엔드 연결이 준비되지 않았습니다.')));
   if(!response?.ok)throw Error(response?.message||'조회에 실패했습니다.');
+  if(requestId!==latestRequest)return;
   display(response);
- }catch(e){status.textContent='실제 리포트를 조회하지 못했습니다: '+String(e.message||e).slice(0,210)}
- finally{btn.disabled=false}
+ }catch(e){if(requestId===latestRequest)status.textContent='실제 리포트를 조회하지 못했습니다: '+String(e.message||e).slice(0,210)}
+ finally{if(requestId===latestRequest)btn.disabled=false}
 }
 function init(){const btn=$('#vpReportRefresh');if(btn)btn.addEventListener('click',refresh)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
