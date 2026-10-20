@@ -8,7 +8,8 @@ export function validatePairs(value){
  const pairs=value.map(item=>({pain:clean(item?.pain),solve:clean(item?.solve)}));
  if(pairs.some(p=>p.pain.length<8||p.solve.length<8||p.pain===p.solve))return null;
  if(new Set(pairs.map(p=>p.pain)).size!==5||new Set(pairs.map(p=>p.solve)).size!==5)return null;
- if(pairs.some(p=>/(?:합니다|됩니다|입니다|습니다|해요|돼요|세요|예요|이에요)[.!?\s]*$/.test(p.pain+' '+p.solve)))return null;
+ const polite=/(?:[가-힣]{1,20}니다|해요|돼요|세요|예요|이에요|어요|아요|네요|죠)(?=[.!?~\s]*$)/u;
+ if(pairs.some(p=>polite.test(p.pain)||polite.test(p.solve)))return null;
  return pairs;
 }
 export async function POST(req){
