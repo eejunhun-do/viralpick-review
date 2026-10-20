@@ -11,11 +11,14 @@ export async function GET(req){
  if(!validDate(start)||!validDate(end))return json(req,{ok:false,message:'날짜는 YYYYMMDD 형식이어야 합니다.'},400);
  const a=Date.parse(start.slice(0,4)+'-'+start.slice(4,6)+'-'+start.slice(6,8)+'T00:00:00Z');
  const b=Date.parse(end.slice(0,4)+'-'+end.slice(4,6)+'-'+end.slice(6,8)+'T00:00:00Z');
- if(b<a||b-a>29*86400000||b>Date.now())return json(req,{ok:false,message:'조회 기간은 최대 30일이며 미래 날짜는 조회할 수 없습니다.'},400);
+ if(b<a||b-a>29*86400000||start<'20181101'||b>Date.now()+9*3600000)return json(req,{ok:false,message:'조회 기간은 최대 30일이며 미래 날짜는 조회할 수 없습니다.'},400);
  const subId=u.searchParams.get('subId')||'';
  if(subId&&!/^[A-Za-z0-9_-]{1,48}$/.test(subId))return json(req,{ok:false,message:'subId 형식이 올바르지 않습니다.'},400);
- const query=new URLSearchParams({startDate:start,endDate:end,page:'0'});if(subId)query.set('subId',subId);
- const reports={},errors={};
+ const pageValue=u.searchParams.get('page')||'0';
+ if(!/^\d{1,2}$/.test(pageValue)||Number(pageValue)>19)return json(req,{ok:false,message:'리포트 페이지 범위가 올바르지 않습니다.'},400);
+ const page=Number(pageValue);
+ const query=new URLSearchParams({startDate:start,endDate:end,page:String(page)});if(subId)query.set('subId',subId);
+ const reports={},errors={},hasMore={};
  // Make independent requests: one failed report must not fabricate zero-valued performance.
  const outcome=await Promise.all(KINDS.map(async kind=>{
   try{
@@ -25,6 +28,6 @@ export async function GET(req){
    return {kind,rows:rows.slice(0,1000)};
   }catch(e){return {kind,error:String(e.message||'조회 실패').slice(0,200)}}
  }));
- for(const x of outcome){if(x.error)errors[x.kind]=x.error;else reports[x.kind]=x.rows}
- return json(req,{ok:Object.keys(reports).length>0,partial:Object.keys(errors).length>0,startDate:start,endDate:end,reports,errors,source:'coupang-partners',notice:'쿠팡 파트너스 실적은 지연 집계될 수 있으며 주문·취소·수익의 확정 기준이 다를 수 있습니다.'},Object.keys(reports).length?200:502);
+ for(const x of outcome){if(x.error)errors[x.kind]=x.error;else{reports[x.kind]=x.rows;hasMore[x.kind]=x.rows.length===1000}}
+ return json(req,{ok:Object.keys(reports).length>0,partial:Object.keys(errors).length>0,startDate:start,endDate:end,page,hasMore,reports,errors,source:'coupang-partners',notice:'쿠팡 파트너스 실적은 지연 집계될 수 있으며 주문·취소·수익의 확정 기준이 다를 수 있습니다.'},Object.keys(reports).length?200:502);
 }
