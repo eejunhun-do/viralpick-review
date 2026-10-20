@@ -15,7 +15,7 @@ function validImageURL(url){
  try{
   const u=new URL(url);
   return u.protocol==='https:'&&(!u.port)&&(!u.username)&&(!u.password)&&(
-    u.hostname==='coupangcdn.com'||u.hostname.endsWith('.coupangcdn.com'));
+    u.hostname.includes('.')&&!['localhost','127.0.0.1'].includes(u.hostname));
  }catch{return false}
 }
 function assets(){
