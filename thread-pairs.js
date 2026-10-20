@@ -121,7 +121,7 @@ async function makePairs(){
  if(!window.confirm('AI로 불편→해결 후킹 5세트를 새로 만들까요? 현재 후킹과 연결된 사진은 초기화됩니다. OpenAI 요금이 발생합니다.'))return;
  busy=true;render();status('AI가 실제 제품 정보에 근거한 연결형 후킹 5세트를 생성 중…');
  try{
-  const request={title:selected.name,description:description(),reviews:reviews()};
+  const request={title:selected.name,description:description(),reviews:reviews(),webResearch:window.vpProductResearchContext?.()||null};
   const result=await backendRequest('/api/thread-hook-pairs',{method:'POST',body:JSON.stringify(request)});
   if(!Array.isArray(result.pairs)||result.pairs.length!==5)throw Error('후킹 5세트가 반환되지 않았습니다.');
   const next=result.pairs.map(p=>({pain:sentence(p.pain),solve:sentence(p.solve)}));
