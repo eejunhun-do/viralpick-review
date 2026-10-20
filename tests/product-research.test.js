@@ -41,7 +41,7 @@ test('product web research server requires authenticated account and real web se
 });
 test('mobile web research UI loads and displays verified source links without injecting HTML',()=>{
  assert.doesNotThrow(()=>new Script(frontend));
- assert.match(main,/product-research\.js\?v=2/);
+ assert.match(main,/product-research\.js\?v=3/);
  assert.match(frontend,/document\.createElement\('a'\)/);
  assert.match(frontend,/a\.rel='noopener noreferrer'/);
  assert.match(frontend,/window\.vpProductResearchContext=context/);
