@@ -44,7 +44,7 @@ test('product web research server requires authenticated account and real web se
 });
 test('mobile web research UI loads and displays verified source links without injecting HTML',()=>{
  assert.doesNotThrow(()=>new Script(frontend));
- assert.match(main,/product-research\.js\?v=4/);
+ assert.match(main,/product-research\.js\?v=5/);
  assert.match(frontend,/document\.createElement\('a'\)/);
  assert.match(frontend,/a\.rel='noopener noreferrer'/);
  assert.match(frontend,/window\.vpProductResearchContext=context/);
@@ -70,7 +70,7 @@ test('Vercel hobby compatibility: product research shares existing copy endpoint
 
 test('unverified search leads are rejected before reuse or showing successful research',()=>{
  assert.doesNotMatch(api,/mode:'web-search-leads'/);
- assert.match(api,/reason:'no_verified_product_facts'/);
+ assert.match(api,/generalResult\(req,key,product,query,scope,notes,ctrl\.signal,'no_verified_product_facts'\)/);
  assert.match(frontend,/x\.confidence!=='unverified-lead'/);
  assert.match(frontend,/response\?\.verificationIncomplete/);
  const url='https://example.com/guide';
@@ -100,4 +100,15 @@ test('generic Korean product keywords enable category research rather than requi
  assert.match(api,/Do not invent facts/);
  assert.match(frontend,/제품 종류별 일반 정보/);
  assert.match(copy,/scope=category/);
+});
+
+test('missing citations trigger source-free general ideas rather than invented verified facts',()=>{
+ assert.match(api,/mode:'general-guidance'/);
+ assert.match(api,/verificationIncomplete:true/);
+ assert.match(api,/scope:'general'/);
+ assert.match(api,/facts:\[\],sources:\[\],guidance/);
+ assert.match(api,/if\(!sources\.size\)return generalResult/);
+ assert.match(frontend,/general-guidance/);
+ assert.match(frontend,/출처 미확인 · 일반 활용 아이디어/);
+ assert.match(copy,/scope=general/);
 });
