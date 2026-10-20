@@ -229,16 +229,20 @@ function cardImage(platform){
  return currentMedia()?.scene?.data||selected?.imageUrl||'';
 }
 function renderThreadPreview(){
- const root=$('#vpThreadSocialReview');if(!root)return;
  const alias=(()=>{try{return localStorage.getItem(ALIAS_KEY)||'내 Threads 계정'}catch{return '내 Threads 계정'}})();
- const input=root.querySelector('.vpPreviewAlias');if(input&&document.activeElement!==input)input.value=alias;
- root.querySelectorAll('.vpPreviewName').forEach(n=>n.textContent=alias);
- root.querySelectorAll('.vpSocialAvatar').forEach(n=>n.textContent=(alias||'V').slice(0,1).toUpperCase());
- root.querySelector('.vpPreviewFirst').textContent=getCurrentThreadText();
- root.querySelector('.vpPreviewSecond').textContent=getThreadReplyText();
- const frame=root.querySelector('.vpPreviewMedia'),img=frame?.querySelector('img');
- const src=cardImage('threads');
- if(img&&src){img.src=src;frame.hidden=false}else if(frame)frame.hidden=true;
+ const pairMode=typeof window.vpThreadPairArtworkForSlide==='function'&&!(typeof isMultiMode==='function'&&isMultiMode('Threads'));
+ for(const root of [$('#vpThreadSocialReview'),$('#vpThreadVisualReview')].filter(Boolean)){
+  const input=root.querySelector('.vpPreviewAlias');
+  if(input&&document.activeElement!==input)input.value=alias;
+  root.querySelectorAll('.vpPreviewName').forEach(n=>n.textContent=alias);
+  root.querySelectorAll('.vpSocialAvatar').forEach(n=>n.textContent=(alias||'V').slice(0,1).toUpperCase());
+  root.querySelector('.vpPreviewFirst').textContent=getCurrentThreadText();
+  root.querySelector('.vpPreviewSecond').textContent=getThreadReplyText();
+  const frame=root.querySelector('.vpPreviewMedia'),img=frame?.querySelector('img');
+  if(pairMode){if(frame)frame.hidden=true;continue}
+  const src=cardImage('threads');
+  if(img&&src){img.src=src;frame.hidden=false}else if(frame)frame.hidden=true;
+ }
 }
 function renderInstagramPreview(){
  const root=$('#vpInstagramSocialReview');if(!root)return;
@@ -246,7 +250,7 @@ function renderInstagramPreview(){
  if(image)img.src=image;else img.removeAttribute('src');
  root.querySelector('.vpInstagramReviewCaption').textContent=getCurrentInstagramCaption();
 }
-function renderFinalPreviews(){if($('#threads .vpStudioStage[data-studio-stage="final"]')?.hidden===false)renderThreadPreview();if($('#instagram .vpStudioStage[data-studio-stage="final"]')?.hidden===false)renderInstagramPreview()}
+function renderFinalPreviews(){if(['visual','final'].some(stage=>$('#threads .vpStudioStage[data-studio-stage="'+stage+'"]')?.hidden===false))renderThreadPreview();if($('#instagram .vpStudioStage[data-studio-stage="final"]')?.hidden===false)renderInstagramPreview()}
 function refresh(){
  fields.forEach(p=>{
   if(selection(p)?.id==='upload'&&!assets().some(x=>x.id==='upload'))state[p].chosen='thumb';
@@ -269,6 +273,15 @@ function init(){
  }
  const first=$('#threads .vpStudioStage[data-studio-stage="final"]');
  if(first){const panel=makeThreadPreview();panel.id='vpThreadSocialReview';first.insertBefore(panel,first.querySelector('.vpStudioReviewNote')||first.children[1])}
+ const visual=$('#threads .vpStudioStage[data-studio-stage="visual"]');
+ if(visual){
+  const panel=makeThreadPreview();panel.id='vpThreadVisualReview';
+  const title=panel.querySelector('.vpSocialReviewHeading h3');
+  if(title)title.textContent='Threads 1단 · 이미지 2장 게시물 미리보기';
+  const tip=panel.querySelector('.vpSocialReviewHeading p');
+  if(tip)tip.textContent='위쪽에서 1단의 불편·해결 이미지 2장과 2단 답글을 함께 검토할 수 있습니다.';
+  visual.insertBefore(panel,visual.children[1]||null);
+ }
  const second=$('#instagram .vpStudioStage[data-studio-stage="final"]');
  if(second){const panel=makeInstagramPreview();panel.id='vpInstagramSocialReview';second.insertBefore(panel,second.querySelector('.vpStudioReviewNote')||second.children[1])}
  window.vpCreatorSetGenerating=setGenerating;
