@@ -46,3 +46,42 @@ test('Instagram-style preview is the same on both image and final review steps',
  assert.match(html,/instagram-feed-preview\.js\?v=1/);
  assert.match(html,/instagram-feed-preview\.css\?v=2/);
 });
+
+test('a visible external image is not automatically an API-approved reference URL',()=>{
+ const start=creator.indexOf('function isSupportedReferenceUrl(');
+ const end=creator.indexOf('function hookKey(platform){',start);
+ assert.ok(start>0&&end>start);
+ const create=new Function('getReference','assets','state','vpResizeReferenceImage','fetch','FileReader',
+  creator.slice(start,end)+';return {isSupportedReferenceUrl,payloadForInstagramSlide};');
+ const first={id:'thumb',type:'remote',src:'https://pictures.example.org/catalog/product.jpg',label:'쿠팡 대표 썸네일'};
+ const alternate={id:'detail:0',type:'remote',src:'https://image7.coupangcdn.com/product.jpg',label:'상세 이미지 1'};
+ const harness=create(()=>first,()=>[first,alternate],{instagram:{rights:true}},async src=>src,async()=>{throw Error('CORS blocked')},class {});
+ assert.equal(harness.isSupportedReferenceUrl(first.src),false);
+ assert.equal(harness.isSupportedReferenceUrl(alternate.src),true);
+ assert.equal(harness.isSupportedReferenceUrl('https://image7.coupangcdn.com.attacker.tld/image.jpg'),false);
+ assert.equal(harness.isSupportedReferenceUrl('http://image7.coupangcdn.com/image.jpg'),false);
+ return Promise.all([3,4,5].map(async number=>{
+  const payload=await harness.payloadForInstagramSlide(number);
+  assert.equal(payload.imageMode,'product');
+  assert.equal(payload.referenceUrl,alternate.src);
+  assert.equal(payload.referenceRightsConfirmed,true);
+ }));
+});
+test('an external-only image fails before wasting credits on hook cards',async()=>{
+ const start=creator.indexOf('function isSupportedReferenceUrl(');
+ const end=creator.indexOf('function hookKey(platform){',start);
+ const first={id:'thumb',type:'remote',src:'https://pictures.example.org/product.jpg',label:'대표 사진'};
+ const create=new Function('getReference','assets','state','vpResizeReferenceImage','fetch','FileReader',
+  creator.slice(start,end)+';return payloadForInstagramSlide;');
+ const payload=create(()=>first,()=>[first],{instagram:{rights:true}},async src=>src,async()=>{throw Error('CORS blocked')},class {});
+ await assert.rejects(()=>payload(3),/사진은 화면에 표시되지만 생성 서버에서 읽을 수 없습니다/);
+ assert.match(html,/Validate and prepare ALL product-reference inputs before any paid image generation/);
+ assert.match(html,/payloads\.set\(slide,await window\.vpCreatorReferencePayloadForInstagramSlide\(slide\)\)/);
+});
+test('batch skips completed image cards and single-card retry can replace exactly one image',()=>{
+ assert.match(html,/slides\.filter\(n=>!carouselImageForSlide\(n,targetId\)\?\.data\)/);
+ assert.match(html,/const pending=replace\?slides/);
+ assert.match(html,/runCarouselArtworkGeneration\(\[slide\],\{replace:true\}\)/);
+ assert.match(html,/이미 5장 이미지가 준비되어 있습니다/);
+ assert.match(html,/failed\.push\(slide\+'번:/);
+});
