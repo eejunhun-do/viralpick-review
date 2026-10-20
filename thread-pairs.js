@@ -6,7 +6,7 @@ const PAIR_DB='viralpick-thread-pairs-v1',STORE='pair-stories';
 const memo=new Map(),loadedImages=new Map(),loading=new Set(),edits=new Map();
 let busy=false,ready=false,loadError='';
 function owner(){return String(typeof selected!=='undefined'?selected?.id||'':'')}
-function emptyRecord(){return {pairs:Array.from({length:5},()=>({pain:'',solve:''})),selectedIndex:0,images:{}}}
+function emptyRecord(){return {pairs:Array.from({length:5},()=>({pain:'',solve:''})),selectedIndex:0,images:{},appliedPain:'',appliedSolve:''}}
 function record(){
  const id=owner();
  if(!memo.has(id)){memo.set(id,emptyRecord());load(id)}
@@ -61,7 +61,8 @@ async function load(id){
    if(pairs.length===5){
     memo.set(id,{pairs:pairs.map(p=>({pain:String(p?.pain||'').slice(0,120),solve:String(p?.solve||'').slice(0,120)})),
      selectedIndex:Math.max(0,Math.min(4,Number(stored.selectedIndex)||0)),
-     images:stored.images&&typeof stored.images==='object'?stored.images:{}});
+     images:stored.images&&typeof stored.images==='object'?stored.images:{},
+     appliedPain:String(stored.appliedPain||''),appliedSolve:String(stored.appliedSolve||'')});
    }
   }
  }catch(e){loadError='사진 기록을 불러올 수 없습니다: '+e.message}
@@ -141,8 +142,8 @@ function applyHooksToPosts(){
  let second=typeof readThreadReply==='function'?String(readThreadReply()||'').trim():'';
  if(r.appliedPain&&first.startsWith(r.appliedPain))first=first.slice(r.appliedPain.length).trimStart();
  if(r.appliedSolve&&second.startsWith(r.appliedSolve))second=second.slice(r.appliedSolve.length).trimStart();
- if(!first.startsWith(pain))first=pain+'\\n\\n'+first;
- if(!second.startsWith(solve))second=solve+'\\n\\n'+(second||'제품 정보와 실제 후기를 비교해 봐.\\n옵션과 제한 사항도 확인해 봐.');
+ if(!first.startsWith(pain))first=pain+'\n\n'+first;
+ if(!second.startsWith(solve))second=solve+'\n\n'+(second||'제품 정보와 실제 후기를 비교해 봐.\n옵션과 제한 사항도 확인해 봐.');
  customThreadEdits[threadEditKey()]=first;
  saveThreadReply(second);
  r.appliedPain=pain;r.appliedSolve=solve;save();
