@@ -206,6 +206,7 @@ function render(){
   const input=root.querySelector('.vpPairEdit'+(slot==='pain'?'Pain':'Solve'));
   if(input&&document.activeElement!==input)input.value=pair[slot]||'';
   imageNode(slot,root.querySelector('.vpPairStage'+(slot==='pain'?'Pain':'Solve')+' .vpPairArtwork'));
+  imageNode(slot,root.querySelector(slot==='pain'?'.vpPairFinishPain':'.vpPairFinishSolve'));
  }
  root.querySelectorAll('.vpPairGenerate,.vpPairsGenerate,.vpPairSave,.vpPairApplyCopy').forEach(b=>b.disabled=busy);
  const both=Boolean(pictureFor('pain')&&pictureFor('solve'));
@@ -214,9 +215,13 @@ function render(){
  updateFinal();
 }
 function updateFinal(){
- const first=$('#vpThreadSocialReview .vpFirstPost .vpPairFinalMedia');
- const second=$('#vpThreadSocialReview .vpSecondPost .vpPairFinalMedia');
- imageNode('pain',first);imageNode('solve',second);
+ // Both images belong to Threads post 1/2, never the 2/2 product-link reply.
+ for(const panel of ['#vpThreadVisualReview','#vpThreadSocialReview']){
+  const first=$(panel+' .vpFirstPost .vpPairGallery');
+  if(!first)continue;
+  imageNode('pain',first.querySelector('[data-pair-photo="pain"]'));
+  imageNode('solve',first.querySelector('[data-pair-photo="solve"]'));
+ }
 }
 async function exportTwo(){
  if(!pictureFor('pain')||!pictureFor('solve'))throw Error('불편·해결 사진을 각각 생성해야 두 장을 저장할 수 있습니다.');
@@ -253,12 +258,13 @@ function install(){
  if(photo)photo.append(solveControls);
  const finish=document.createElement('section');finish.className='vpCreatorPhase vpPairFinish';
  finish.innerHTML='<div class="vpCreatorPhaseLabel"><span>04</span><strong>2장 연결형 이미지 최종 확인</strong><small>선택한 두 문구와 각각의 생성 이미지를 확인한 뒤 저장하세요.</small></div>'+
- '<p class="vpPairState" aria-live="polite"></p><button type="button" class="btn primary vpPairSave">불편 + 해결 이미지 2장 ZIP 저장</button>'+
+ '<p class="vpPairState" aria-live="polite"></p><div class="vpPairFinishGallery"><figure><div class="vpPairFinishPain vpPairArtwork"></div><figcaption>1번 · 불편</figcaption></figure><figure><div class="vpPairFinishSolve vpPairArtwork"></div><figcaption>2번 · 해결</figcaption></figure></div><button type="button" class="btn primary vpPairSave">불편 + 해결 이미지 2장 ZIP 저장</button>'+
  '<p class="vpCreatorEmpty">AI 생성 사진은 실제 제품·효능과 다를 수 있습니다. 기능과 이미지 활용 권한은 게시 전에 확인하세요.</p>';
  const container=root.querySelector('.vpCreatorReference')||root;
  container.prepend(pair);
- if(photo&&photo.parentNode===container){container.insertBefore(problem,photo);photo.after(finish)}
- else{container.append(problem,finish)}
+ // Keep both DOM reading order and the visual flex order strictly 01 -> 02 -> 03 -> 04.
+ if(photo&&photo.parentNode===container)container.append(pair,problem,photo,finish);
+ else container.append(pair,problem,finish);
  root.querySelector('.vpPairsGenerate').onclick=()=>void makePairs();
  root.querySelector('.vpPairApplyCopy').onclick=applyHooksToPosts;
  root.querySelector('.vpPainCreate').onclick=()=>void makeImage('pain');
@@ -267,13 +273,21 @@ function install(){
  for(const [cl,slot] of [['vpPairEditPain','pain'],['vpPairEditSolve','solve']]){
   root.querySelector('.'+cl).addEventListener('change',e=>updatePair(slot,e.target.value));
  }
- for(const selector of ['.vpFirstPost','.vpSecondPost']){
-  const article=$('#vpThreadSocialReview '+selector);
-  const body=article?.querySelector('.vpPreviewBody');
-  if(body){
-   const media=document.createElement('div');media.className='vpPairFinalMedia';
-   body.after(media);
+ for(const panelId of ['vpThreadVisualReview','vpThreadSocialReview']){
+  const panel=document.getElementById(panelId);
+  const first=panel?.querySelector('.vpFirstPost .vpPreviewBody');
+  if(!first)continue;
+  const gallery=document.createElement('div');gallery.className='vpPairGallery';
+  gallery.setAttribute('aria-label','Threads 1단에 첨부되는 불편·해결 이미지 두 장');
+  for(const [slot,label] of [['pain','1번 · 불편 상황'],['solve','2번 · 제품 해결']]){
+   const figure=document.createElement('figure');
+   const media=document.createElement('div');media.className='vpPairFinalMedia';media.dataset.pairPhoto=slot;
+   const caption=document.createElement('figcaption');caption.textContent=label;
+   figure.append(media,caption);gallery.append(figure);
   }
+  first.after(gallery);
+  const replyMedia=panel.querySelector('.vpSecondPost .vpPairFinalMedia');
+  if(replyMedia)replyMedia.remove();
  }
  const originalRefresh=window.vpCreatorRefresh;
  window.vpCreatorRefresh=()=>{originalRefresh?.();refresh()};
