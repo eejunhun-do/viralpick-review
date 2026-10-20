@@ -632,7 +632,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 @media(max-width:600px){.coupangBrowseControls{grid-template-columns:1fr}}
 </style>
 <link rel="stylesheet" href="/workspace-upgrade.css?v=2">
-<link rel="stylesheet" href="/creator-assets.css?v=2">
+<link rel="stylesheet" href="/creator-assets.css?v=3">
 <link rel="stylesheet" href="/studio-layout.css?v=1">
 </head>
 <body>
@@ -3463,10 +3463,10 @@ function posterText(ctx,text,x,y,width,height,{size=90,min=40,color='#16191d',li
  layout.lines.forEach((line,i)=>ctx.fillText(line,x,y+i*layout.lineHeight));
  return y+layout.lines.length*layout.lineHeight;
 }
-function drawPosterPhoto(ctx,p,variant=0){
+function drawPosterPhoto(ctx,p,variant=0,overrideImage=undefined){
  const media=currentMedia();
  const item=media.scene?.kind==='ai'||media.scene?.kind==='licensed-upload'?media.scene:media.product?.kind==='licensed-upload'?media.product:null;
- const img=item?.image;
+ const img=overrideImage===undefined?item?.image:overrideImage;
  if(img&&img.naturalWidth&&img.naturalHeight){
   const scale=Math.max(1080/img.naturalWidth,1350/img.naturalHeight);
   const dw=img.naturalWidth*scale,dh=img.naturalHeight*scale;
@@ -3480,12 +3480,13 @@ function drawPosterPhoto(ctx,p,variant=0){
  g.addColorStop(0,'#f7efe4');g.addColorStop(1,palette.mid);
  ctx.fillStyle=g;ctx.fillRect(0,0,1080,1350);
  ctx.globalAlpha=.11;ctx.fillStyle='#fff';ctx.fillRect(0,0,1080,500);ctx.globalAlpha=1;
- drawProductGlyph(ctx,p.id,540,930,1.65,palette);
+ if(overrideImage===undefined)drawProductGlyph(ctx,p.id,540,930,1.65,palette);
+ else {ctx.fillStyle='#687483';ctx.textAlign='center';ctx.font='700 34px sans-serif';ctx.fillText('사진 생성 전',540,900);}
  return false;
 }
-function drawFullBleedCover(ctx,p,headline,variant=0){
- // Image content covers the complete 4:5 card; the headline is overlaid on the photo.
- const withPhoto=drawPosterPhoto(ctx,p,variant);
+function drawFullBleedCover(ctx,p,headline,variant=0,options={}){
+ // 2-panel Threads needs independent images; never let its problem slide inherit the product scene.
+ const withPhoto=drawPosterPhoto(ctx,p,variant,Object.prototype.hasOwnProperty.call(options,'image')?options.image:undefined);
  const overlay=ctx.createLinearGradient(0,0,0,815);
  if(variant%3===2){
   overlay.addColorStop(0,'rgba(253,247,234,.92)');
@@ -3520,8 +3521,10 @@ function drawFullBleedCover(ctx,p,headline,variant=0){
  lower.addColorStop(0,'rgba(252,248,241,0)');
  lower.addColorStop(1,'rgba(255,252,246,.94)');
  ctx.fillStyle=lower;ctx.fillRect(0,1120,1080,230);
- ctx.fillStyle='#bd4e14';ctx.fillRect(70,1244,9,62);
- posterText(ctx,p.name,102,1247,900,73,{size:43,min:27,color:'#191d22',limit:1});
+ if(options.showProduct!==false){
+  ctx.fillStyle='#bd4e14';ctx.fillRect(70,1244,9,62);
+  posterText(ctx,p.name,102,1247,900,73,{size:43,min:27,color:'#191d22',limit:1});
+ }
  return withPhoto;
 }
 
@@ -3754,7 +3757,9 @@ function buildContentCanvas(platform,slide=0,variant=0){
  const ctx=canvas.getContext('2d');if(!ctx)throw new Error('캔버스 렌더링을 지원하지 않습니다.');
  if(isMultiMode(platform)){drawMultiContentCanvas(ctx,platform,slide);return canvas}
  if(platform==='Threads'){
-  drawFullBleedCover(ctx,p,getHookHeadline(),variant);
+  const pair=window.vpThreadPairArtworkForSlide?.(slide);
+  if(pair)drawFullBleedCover(ctx,p,pair.headline,variant,{image:pair.image,showProduct:pair.showProduct});
+  else drawFullBleedCover(ctx,p,getHookHeadline(),variant);
  }else if(platform==='Instagram'&&slide===0){
   drawFullBleedCover(ctx,p,getInstagramCoverHeadline(),variant);
  }else if(platform==='Instagram'&&slide>=1&&slide<=4){
@@ -3773,6 +3778,7 @@ function downloadFile(blob,name){
 function safeFileName(value){return String(value).replace(/[^\w가-힣-]/g,'_').slice(0,45)}
 async function downloadThreadPNG(){
  if(isMultiMode('Threads'))return downloadMultiZIP('Threads');
+ if(window.vpThreadPairExport){try{await window.vpThreadPairExport()}catch(e){toast('2장 ZIP 저장 실패: '+e.message)}return}
  try{
  const canvas=buildContentCanvas('Threads',0,threadImageIndex);
  const blob=await pngBlob(canvas);
@@ -4344,5 +4350,6 @@ const q=new URLSearchParams(location.search).get('view');if(['dashboard','discov
 <script src="/account-ui.js"></script>
 <script src="/workspace-upgrade.js?v=2"></script>
 <script src="/creator-assets.js?v=2"></script>
+<script src="/thread-pairs.js?v=1"></script>
 </body>
 </html>
