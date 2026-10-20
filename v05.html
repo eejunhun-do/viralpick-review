@@ -1416,46 +1416,74 @@ function renderCarouselArtStatus(){
  if(single){single.disabled=busy;single.textContent=current+'번 카드만 다시 생성'}
  if(batch)batch.disabled=busy;
 }
-async function runCarouselArtworkGeneration(slides){
+async function runCarouselArtworkGeneration(slides,{replace=false}={}){
  if(carouselGenerationBusy||sceneGenerationBusy)return;
- if(slides.some(n=>n>=3)){try{window.vpCreatorRequireReference('instagram')}catch(e){toast(e.message);return}}
  if(!Array.isArray(slides)||!slides.length||slides.some(n=>![1,2,3,4,5].includes(n)))return;
  const targetId=selected.id,product={...selected};
- const count=slides.length;
- if(!window.confirm('Instagram '+slides.join('·')+'번 카드 실사 '+count+'장을 GPT Image 2로 생성할까요? 이미지 '+count+'장에 대한 API 요금이 발생합니다.'))return;
- carouselGenerationBusy=true;sceneGenerationBusy=true;
- let done=0,saved=0;
+ // Batch generation is resumable: already saved slides must not be charged twice.
+ const pending=replace?slides:slides.filter(n=>!carouselImageForSlide(n,targetId)?.data);
+ if(!pending.length){
+  toast('이미 5장 이미지가 준비되어 있습니다. 수정할 카드에서 「다시 생성」을 누르세요.');
+  return;
+ }
  const status=$('#carouselArtStatus');
+ const payloads=new Map(),failed=[];
+ let completed=0,saved=0,progressMessage='';
+ carouselGenerationBusy=true;sceneGenerationBusy=true;
+ renderCarouselArtStatus();
  try{
-  // Slide 2 is the inconvenience BEFORE the solution and must not depend on the product reference.
-  for(const slide of slides){
-   if(selected.id!==targetId)throw new Error('작업 상품이 변경되었습니다. 기존 이미지 생성은 중단합니다.');
-   const refPayload=slide<=2?{imageMode:'scene'}:await window.vpCreatorReferencePayloadForInstagramSlide(slide);
-   if(status)status.textContent=slide+'번 카드 AI 사진 생성 중… ('+(done+1)+'/'+count+')';
-   const data=await backendRequest('/api/image',{
-    method:'POST',body:JSON.stringify({
-     product:product.name,
-     scene:carouselSceneForSlide(product,slide),purpose:'carousel',slide,
-     hook:window.vpInstagramSingleStoryForSlide?.(slide-1)?.title||(slide<=2?product.problem:slide===3?product.name:product.novel),
-     style:hookPhotoStyle,...refPayload
-    })
-   });
-   const image=data.image||(Array.isArray(data.images)?data.images[0]:null);
-   if(!safeDataImage(image))throw new Error(slide+'번 카드 이미지가 정상적으로 수신되지 않았습니다.');
-   if(await saveCarouselArtwork(targetId,slide,image))saved++;
-   done++;
+  // Validate and prepare ALL product-reference inputs before any paid image generation.
+  // This prevents a bad thumbnail URL from failing only AFTER slides 1 and 2 were billed.
+  if(pending.some(n=>n>=3)){
+   if(status)status.textContent='상품 썸네일·상세 이미지 참조 가능 여부를 확인하고 있습니다…';
+   for(const slide of pending.filter(n=>n>=3)){
+    payloads.set(slide,await window.vpCreatorReferencePayloadForInstagramSlide(slide));
+   }
   }
-  toast('Instagram '+done+'장 생성 완료 · '+saved+'장 브라우저에 저장했습니다.');
+  if(selected.id!==targetId)throw Error('상품이 변경되었습니다. 다시 시도해 주세요.');
+  if(!window.confirm('Instagram '+pending.join('·')+'번 카드 '+pending.length+'장을 GPT Image 2로 생성할까요? 기존에 만든 카드는 건너뜁니다. 생성 이미지 '+pending.length+'장에 대한 API 요금이 발생합니다.'))return;
+  for(const slide of pending){
+   if(selected.id!==targetId)throw Error('작업 상품이 변경되었습니다. 다른 상품과 사진이 섞이지 않도록 중단합니다.');
+   const refPayload=slide<=2?{imageMode:'scene'}:payloads.get(slide);
+   if(status)status.textContent=slide+'번 카드 AI 사진 생성 중… ('+(completed+failed.length+1)+'/'+pending.length+')';
+   try{
+    const data=await backendRequest('/api/image',{
+     method:'POST',body:JSON.stringify({
+      product:product.name,
+      scene:carouselSceneForSlide(product,slide),purpose:'carousel',slide,
+      hook:window.vpInstagramSingleStoryForSlide?.(slide-1)?.title||(slide<=2?product.problem:slide===3?product.name:product.novel),
+      style:hookPhotoStyle,...refPayload
+     })
+    });
+    const image=data.image||(Array.isArray(data.images)?data.images[0]:null);
+    if(!safeDataImage(image))throw Error('이미지 생성 결과를 받지 못했습니다.');
+    if(await saveCarouselArtwork(targetId,slide,image))saved++;
+    completed++;
+   }catch(e){
+    failed.push(slide+'번: '+String(e?.message||'생성 오류').slice(0,180));
+    // Preserve successful slides and attempt the remaining ones; the user can retry just failures.
+   }
+  }
+  progressMessage=failed.length
+   ?'완료 '+completed+'장 · 실패 '+failed.length+'장 ('+failed.join(' / ')+'). 준비된 이미지는 유지되며 다시 일괄 생성하면 실패한 카드부터 이어서 작업합니다.'
+   :'캐러셀 '+completed+'장 생성 완료 · '+saved+'장 브라우저에 저장했습니다.';
+  toast(failed.length?'일부 카드 생성 실패 · 아래 상세 원인을 확인하세요.':'Instagram '+completed+'장 생성 완료');
  }catch(e){
-  toast('캐러셀 이미지 생성 중단: '+e.message);
-  if(status)status.textContent=done+'장 생성 후 중단: '+e.message+' · 이전에 만든 카드는 유지됩니다.';
+  progressMessage='이미지 생성 준비 중단: '+String(e?.message||'알 수 없는 오류')+'. 이미 만들어진 카드는 그대로 유지됩니다.';
+  toast('이미지 생성 중단: '+String(e?.message||'참조 사진 오류').slice(0,130));
  }finally{
   carouselGenerationBusy=false;sceneGenerationBusy=false;
-  if(selected.id===targetId)renderInstagram();
+  if(selected.id===targetId){
+   renderInstagram();
+   if(status&&progressMessage)status.textContent=progressMessage;
+  }
  }
 }
 function generateCarouselImages(){void runCarouselArtworkGeneration([1,2,3,4,5])}
-function generateCarouselImage(slide){if(![1,2,3,4,5].includes(slide)){toast('1~5번 중 카드를 선택하세요.');return}void runCarouselArtworkGeneration([slide])}
+function generateCarouselImage(slide){
+ if(![1,2,3,4,5].includes(slide)){toast('1~5번 중 카드를 선택하세요.');return}
+ void runCarouselArtworkGeneration([slide],{replace:true});
+}
 
 async function applyHistoryChoice(productId,groupId,index,{persist=true,notify=false}={}){
  const rec=getPhotoHistory(productId);
