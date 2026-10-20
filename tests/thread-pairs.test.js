@@ -21,7 +21,7 @@ test('five distinct linked hook pairs required',()=>{
 });
 test('client script parses and is loaded only after the existing creator gallery',()=>{
  assert.doesNotThrow(()=>new Script(frontend));
- assert.match(html,/creator-assets\.js\?v=3"><\/script>\s*<script src="\/thread-pairs\.js\?v=4"/);
+ assert.match(html,/creator-assets\.js\?v=3"><\/script>\s*<script src="\/thread-pairs\.js\?v=5"/);
  assert.match(frontend,/window\.vpCreatorReferencePayload\('threads'\)/);
  assert.match(frontend,/purpose:slot==='pain'\?'threads-pain':'threads-solve'/);
  assert.match(frontend,/slot==='solve'\?await window\.vpCreatorReferencePayload\('threads'\):\{imageMode:'scene'\}/);
