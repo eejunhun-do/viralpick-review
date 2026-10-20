@@ -20,11 +20,11 @@ export async function POST(req){
   reviewStats:p.reviewStats&&typeof p.reviewStats==='object'?{rating:Number(p.reviewStats.rating)||null,reviewCount:Number(p.reviewStats.reviewCount)||0,writtenCount:Number(p.reviewStats.writtenCount)||0,imageCount:Array.isArray(p.reviewStats.images)?p.reviewStats.images.length:0}:null
  }));
  const rawPair=data.hookPair;
- const hookPair=platform==='Threads'&&rawPair&&typeof rawPair==='object'?{
+ const hookPair=platform==='Threads'&&data.multi!==true&&rawPair&&typeof rawPair==='object'?{
   pain:String(rawPair.pain||'').trim().slice(0,120),
   solve:String(rawPair.solve||'').trim().slice(0,120)
  }:null;
- if(platform==='Threads'&&(!hookPair||hookPair.pain.length<8||hookPair.solve.length<8)){
+ if(platform==='Threads'&&data.multi!==true&&(!hookPair||hookPair.pain.length<8||hookPair.solve.length<8)){
   return json(req,{ok:false,message:'AI 문구를 만들기 전에 연결형 후킹 5세트 중 하나를 먼저 선택해 주세요.'},400);
  }
  const instructions=[
@@ -68,13 +68,13 @@ export async function POST(req){
    ok:parts.part1.startsWith(hookPair.pain)&&parts.part2.startsWith(hookPair.solve),
    error:'선택한 후킹과 본문 연결이 맞지 않습니다. 1단은 pain 후킹, 2단은 solve 후킹으로 정확히 시작해 주세요.'
   });
-  let coherence=checkSelectedPair();
+  let coherence=hookPair?checkSelectedPair():{ok:true};
   if(!check.ok||!coherence.ok){
    // At most one transparent extra paid call. Never publish an unchecked formal draft.
    messages.push({role:'assistant',content:text});
    messages.push({role:'user',content:'직전 초안은 Threads 말투 규칙을 위반했습니다. 아래 오류를 모두 고쳐 정확히 JSON 형식으로 다시 써 주세요. 기능/후기 사실은 유지하고, 존댓말 문장 끝을 반드시 전부 없애고, 1단과 2단 모두 친한 친구에게 말하는 자연스러운 반말/짧은 줄바꿈으로 재작성해 주세요. 홈쇼핑 설명형 상품 나열도 금지합니다.\n오류: '+[...check.problems,...(coherence.ok?[]:[coherence.error])].join(' / ')});
    text=await requestCopy();
-   parts=parseThreads(text);check=validateThreadsTone(parts);coherence=checkSelectedPair();
+   parts=parseThreads(text);check=validateThreadsTone(parts);coherence=hookPair?checkSelectedPair():{ok:true};
   }
   if(!check.ok||!coherence.ok)return json(req,{ok:false,message:'Threads 반말 문체 검증에 실패했습니다. 과도한 설명형 문장이나 존댓말이 감지되어 결과를 적용하지 않았습니다. 다시 생성해 주세요.'},502);
   return json(req,{ok:true,platform,...parts,model:'gpt-4.1-mini',tone:'casual-korean-banmal',toneVerified:true});
