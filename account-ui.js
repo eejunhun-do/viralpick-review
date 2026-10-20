@@ -38,6 +38,7 @@
  if(!res.ok||!data.ok)throw Error(data.message||'요청 실패 ('+res.status+')');return data
  }finally{clearTimeout(tm)}
  };
+ window.vpAccountLoggedIn=()=>Boolean(state.token);
  const API='/api/account';
  async function request(path,method='GET',body){
  const res=await fetch(path,{method,headers:{'Content-Type':'application/json',...(state.token?{Authorization:'Bearer '+state.token}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store'});
@@ -45,6 +46,8 @@
  }
  async function connectAfterLogin(){
   if(!state.token)return;
+  // Finish any legacy vault restoration before marking the authenticated API connected.
+  if(typeof connectionRestoreTask!=='undefined')await Promise.resolve(connectionRestoreTask).catch(()=>{});
   try{
    const status=await backendRequest('/api/status');
    const label='로그인 계정 '+state.user+' · 서버 자동 연결됨 · OpenAI '+(status.imageReady?'등록됨':'키 미등록')+' · 쿠팡 '+(status.coupangConfigured?'등록됨':'키 미등록');
