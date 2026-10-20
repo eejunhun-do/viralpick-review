@@ -174,7 +174,7 @@ function imageNode(slot,parent){
  else{const placeholder=document.createElement('div');placeholder.className='vpPairBlank';placeholder.textContent=slot==='pain'?'불편 상황 이미지 생성 전':'제품 해결 이미지 생성 전';parent.append(placeholder)}
 }
 function render(){
- const root=$('#vpThreadPairBuilder');if(!root||!ready)return;
+ const root=$('#vpAssetStudioThreads');if(!root||!ready)return;
  const {r,index,pair}=current();
  root.querySelector('.vpPairChoices').replaceChildren(...r.pairs.map((item,i)=>{
   const button=document.createElement('button');button.type='button';button.className='vpPairOption'+(index===i?' active':'');
