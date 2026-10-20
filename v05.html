@@ -1586,7 +1586,7 @@ function renderMediaPreview(){
  root.innerHTML=['product','scene'].map(key=>{
   const item=a[key],label=key==='product'?'상품 원본 사진':'상황 이미지';
   return '<div><b>'+label+'</b>'+
-   (item&&safeDataImage(item.data)?'<img alt="'+label+'" src="'+item.data+'">':'<p style="color:#8b95a3;margin:10px 0">아직 이미지 없음</p>')+
+   (item&&safeDataImage(item.data)?'<img alt="'+label+'" src="'+item.data+'">':key==='product'&&selected?.source==='coupang'&&typeof selected.imageUrl==='string'&&/^https:\/\//.test(selected.imageUrl)?'<img alt="쿠팡 API 상품 대표 이미지" referrerpolicy="no-referrer" src="'+cleanMarkup(selected.imageUrl)+'">':'<p style="color:#8b95a3;margin:10px 0">아직 이미지 없음</p>')+
    '<span style="font-size:10px;color:#73808b">'+(item?cleanMarkup(item.kind==='ai'?'GPT Image 2로 생성':'직접 업로드'):'파일 미등록')+'</span></div>';
  }).join('');
 }
@@ -4398,7 +4398,7 @@ const q=new URLSearchParams(location.search).get('view');if(['dashboard','discov
 <script src="/creator-assets.js?v=3"></script>
 <script src="/thread-pairs.js?v=5"></script>
 <script src="/instagram-single-story.js?v=1"></script>
-<script src="/studio-product-card.js?v=1"></script>
+<script src="/studio-product-card.js?v=2"></script>
 <script src="/product-research.js?v=3"></script>
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
