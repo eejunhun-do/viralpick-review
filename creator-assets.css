@@ -153,3 +153,23 @@
 #vpInstagramSingleStory[hidden]{display:block!important}
 #vpInstagramSingleStory[hidden] .vpSingleSlideList,#vpInstagramSingleStory[hidden] #vpInstagramSingleGenerate{display:none!important}
 @media(max-width:680px){.vpSingleSlideList{grid-template-columns:1fr}.vpStudioCurrentProduct .vpStudioProductThumb{width:56px;height:56px}}
+
+/* Evidence-based public product web research: accessible on mobile without review scraping. */
+.vpProductWebResearch{margin:14px 0 19px;padding:16px;border:1px solid #d9e5f1;border-radius:15px;background:#f9fbff;display:grid;gap:12px}
+.vpProductWebResearch>h3{font-size:16px;line-height:1.3;margin:0;font-weight:900;color:#243a55}
+.vpProductWebResearch>.queueHint{margin:0}
+.vpWebResearchQuery{display:grid;gap:6px;font-size:12px;font-weight:800;color:#34445d}
+.vpWebResearchModel{font-size:16px;width:100%;min-height:44px;background:#fff;border:1px solid #cfdaeb;border-radius:10px;padding:10px;color:#121a28}
+.vpWebResearchRun{white-space:normal;width:100%;max-width:440px;min-height:42px}
+.vpWebResearchStatus{margin:0!important;line-height:1.6}
+.vpWebResearchResult{display:grid;gap:11px;min-width:0}
+.vpWebResearchResult>strong{font-size:14px}
+.vpWebResearchSummary{font-size:13px;line-height:1.65;margin:0}
+.vpWebResearchClaims{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.vpWebResearchClaim{display:grid;align-content:start;gap:7px;border:1px solid #e0e7f1;background:#fff;border-radius:11px;padding:11px;min-width:0;font-size:12px;line-height:1.55}
+.vpWebResearchClaim b{font-size:11px;color:#345a99}
+.vpWebResearchClaim a,.vpWebResearchSources a{color:#2460b4;font-size:12px;overflow-wrap:anywhere;text-decoration:underline}
+.vpWebResearchSources{display:grid;gap:7px;border-top:1px solid #dce5ee;padding-top:10px}
+.vpWebResearchSources strong{font-size:13px}
+.vpWebResearchWarning{font-size:11px;line-height:1.5;color:#6c798d}
+@media(max-width:660px){.vpProductWebResearch{padding:12px}.vpWebResearchClaims{grid-template-columns:minmax(0,1fr)}}
