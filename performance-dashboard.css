@@ -1,0 +1,58 @@
+/* Unified ViralPick performance dashboard, mobile-first. */
+#vpPerformanceDashboard{--vp-ink:#152138;--vp-muted:#758296;--vp-stroke:#e3e8f0;--vp-blue:#3b61dc;color:var(--vp-ink);padding-bottom:34px}
+#vpPerformanceDashboard .vpDashHead{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;margin:0 0 24px}
+#vpPerformanceDashboard .vpDashHead h1{font-size:clamp(25px,3vw,34px);margin:8px 0;letter-spacing:-.045em}
+#vpPerformanceDashboard .vpDashHead p{font-size:13px;color:#66758b;line-height:1.6;margin:0}
+.vpEyebrow{letter-spacing:.12em;font-size:10px;font-weight:900;color:#4e66ac;background:#ebf0ff;border-radius:30px;padding:7px 11px;display:inline-block}
+.vpLiveTag{flex-shrink:0;font-size:11px;color:#0c7858;background:#e7f7ef;padding:9px 12px;border-radius:30px;font-weight:800}
+.vpSectionLabel{font-size:17px;font-weight:950;margin:16px 0 13px;display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.vpSectionLabel small{color:#7d8796;font-size:11px;font-weight:500}
+.vpProfitGrid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:12px;margin-bottom:18px}
+.vpProfitCard{min-width:0;min-height:145px;border:1px solid var(--vp-stroke);border-radius:19px;padding:20px 21px;background:#fff;display:flex;flex-direction:column;justify-content:space-between}
+.vpProfitCard.main{background:linear-gradient(130deg,#1d376a,#3d62c7);border:0;color:#fff}
+.vpProfitCard small{font-size:12px;color:#748397;font-weight:800}
+.vpProfitCard.main small{color:#dae4ff}
+.vpProfitCard strong{font-size:clamp(22px,2.7vw,36px);font-weight:950;letter-spacing:-.04em;overflow-wrap:anywhere}
+.vpProfitCard span{font-size:11px;color:#8190a5;line-height:1.6}
+.vpProfitCard.main span{color:#e8efff}
+.vpReportControls,.vpDataPanel{background:#fff;border:1px solid var(--vp-stroke);border-radius:18px;margin-top:13px;padding:18px 19px}
+.vpReportHead,.vpPanelHeading{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.vpReportHead h2,.vpPanelHeading h2{font-size:16px;margin:0;font-weight:950}
+.vpReportHead p{color:#7c8796;font-size:11px;margin:6px 0 0;line-height:1.5}
+.vpReportFilters{display:grid;grid-template-columns:minmax(130px,1fr) minmax(155px,1fr) auto;align-items:end;gap:10px;margin:16px 0 10px}
+.vpReportFilters label{font-size:11px;font-weight:850;color:#57677e;display:grid;gap:6px}
+.vpReportFilters input,.vpReportFilters select{height:43px;background:#fbfcff;color:#22324d;border:1px solid #dce3ef;border-radius:10px;width:100%;min-width:0;padding:8px 10px;font-size:13px}
+.vpReportFilters .vpCustomDate[hidden]{display:none}
+.vpReportFilters:has(.vpCustomDate:not([hidden])){grid-template-columns:repeat(3,minmax(0,1fr)) auto}
+.vpReportStatus{font-size:11px;color:#63718a;line-height:1.6;margin:8px 0 0;white-space:normal;overflow-wrap:anywhere}
+.vpPanelHeading small{font-size:11px;color:#8a94a5}
+.vpTableScroll{overflow-x:auto;max-width:100%;margin-top:15px;scrollbar-width:thin}
+.vpFinanceTable{border-collapse:collapse;width:100%;font-size:12px;min-width:560px}
+.vpFinanceTable th{text-align:right;color:#748299;font-size:11px;font-weight:800;padding:12px 10px;border-bottom:1px solid #e9edf4}
+.vpFinanceTable td{text-align:right;padding:13px 10px;color:#33435c;border-bottom:1px solid #edf0f5;font-variant-numeric:tabular-nums}
+.vpFinanceTable th:first-child,.vpFinanceTable td:first-child{text-align:left}
+.vpFinanceTable td strong{display:block;color:#192943}
+.vpFinanceTable tfoot td{font-weight:950;color:#20395f;background:#f4f7ff;border-top:1px solid #dbe5fb}
+.vpPlatformStatus{font-size:10px;display:inline-block;margin-top:5px;color:#65738d}
+.vpPlatformStatus.connected{color:#0e815a}.vpPlatformStatus.pending{color:#8c95a5}
+.vpTableFoot,.vpAccountingNote{font-size:11px;color:#818e9e;line-height:1.7;margin:11px 0 0}
+.vpRevenueChart{min-height:200px;display:grid;align-items:center;text-align:center;color:#8791a2;font-size:12px;overflow:hidden}
+.vpRevenueChart svg{width:100%;height:auto;max-height:280px}
+.vpPanelTools{display:flex;align-items:center;gap:10px}
+.vpPanelTools .btn{font-size:11px;padding:8px 11px}
+.vpMoreButton{display:block;margin:13px auto 0}
+.vpMoreButton[hidden]{display:none}
+.vpSectionLabel.social{margin-top:29px}
+.vpSocialGrid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.vpSocialCard{background:#fff;border-radius:17px;border:1px solid var(--vp-stroke);padding:17px}
+.vpSocialCard>div:first-child{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.vpSocialCard h3{font-size:15px;margin:0}
+.vpSocialCard>div:first-child span{font-size:10px;background:#f1f4f8;color:#7b8798;border-radius:30px;padding:6px 9px}
+.vpSocialMetrics{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:15px 0}
+.vpSocialMetrics p{display:flex;justify-content:space-between;gap:6px;background:#f6f8fb;border-radius:10px;padding:12px 11px;margin:0;color:#67758d;font-size:11px}
+.vpSocialMetrics b{font-size:15px;color:#253b61}
+.vpSocialCard>small{color:#8a95a6;font-size:10px;line-height:1.6}
+.vpNoPosts{font-size:12px;text-align:center;padding:24px;color:#8996a7;background:#f7f9fc;border-radius:12px}
+#vpPerformanceDashboard .btn:disabled{opacity:.55;cursor:progress}
+@media(max-width:800px){.vpProfitGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.vpProfitCard.main{grid-column:1/-1}.vpReportFilters,.vpReportFilters:has(.vpCustomDate:not([hidden])){grid-template-columns:repeat(2,minmax(0,1fr))}.vpSocialGrid{grid-template-columns:1fr}}
+@media(max-width:540px){#vpPerformanceDashboard .vpDashHead{flex-direction:column;gap:9px}.vpLiveTag{font-size:10px}.vpProfitCard{min-height:126px;padding:17px 15px}.vpProfitCard strong{font-size:23px}.vpProfitCard.main strong{font-size:31px}.vpProfitCard span{font-size:10px}.vpReportControls,.vpDataPanel{padding:15px 13px}.vpReportHead{align-items:flex-start}.vpReportHead .btn{width:100%}.vpReportFilters,.vpReportFilters:has(.vpCustomDate:not([hidden])){grid-template-columns:repeat(2,minmax(0,1fr))}.vpReportFilters>label:first-child{grid-column:span 2}.vpReportFilters>.btn{grid-column:span 2;min-height:43px}.vpFinanceTable{font-size:11px}.vpSectionLabel{font-size:15px}.vpSocialMetrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
