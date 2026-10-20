@@ -11,7 +11,7 @@ const workspace=readFileSync(new URL('../workspace-upgrade.js',import.meta.url),
 function harness(mock){
  const window={};
  const document={readyState:'loading',addEventListener(){}};
- const text=dashboard.replace(/\}\)\(\);\s*$/,'window.__tests={chunks,shift,monthStart,monthEnd,loadRange,sum};})();');
+ const text=dashboard.replace(/\}\)\(\);\s*$/,'window.__tests={chunks,shift,monthStart,monthEnd,loadRange,sum,dailyCommissionLedger};})();');
  runInNewContext(text,{document,window,Date,Map,Promise,URLSearchParams,Number,Math,Set,RegExp,backendRequest:mock});
  return window.__tests;
 }
@@ -69,4 +69,45 @@ test('dashboard includes lifetime date selector without manual recording or fabr
  assert.match(dashboard,/vpSocialPostRows/);
  assert.doesNotMatch(workspace,/vpRecordForm|viralpick-performance-v2/);
  assert.match(html,/performance-dashboard\.js\?v=1/);
+});
+
+test('date-based commission is grouped before a newest-first running total',async()=>{
+ const h=harness(async path=>{
+  const url=new URL('https://example.test'+path);
+  if(url.searchParams.get('startDate')!=='20250101')throw Error('unexpected second request');
+  return {ok:true,reports:{
+   clicks:[{date:'20250101',click:1}],
+   orders:[],cancels:[],
+   commission:[
+    {date:'20250101',commission:100},
+    {date:'20250102',commission:200},
+    {date:'20250102',commission:25},
+    {date:'20250103',commission:300}
+   ]
+  },errors:{},hasMore:{}};
+ });
+ const d=await h.loadRange('20250101','20250103','',null,false);
+ const rows=h.dailyCommissionLedger(d);
+ assert.equal(rows.length,3);
+ assert.deepEqual(Array.from(rows,r=>r.date),['20250103','20250102','20250101']);
+ assert.deepEqual(Array.from(rows,r=>r.commission),[300,225,100]);
+ assert.deepEqual(Array.from(rows,r=>r.cumulativeCommission),[300,525,625]);
+ assert.equal(h.sum(d,'20250101','20250103','commission'),625);
+});
+test('incomplete commission results do not show a confirmed running total',()=>{
+ const h=harness(async()=>{throw Error('unused')});
+ const data={daily:new Map([['20250102',{commission:10}],['20250101',{commission:50}]]),valid:{commission:false}};
+ const rows=h.dailyCommissionLedger(data);
+ assert.equal(rows[0].cumulativeCommission,null);
+ assert.equal(rows[1].cumulativeCommission,null);
+});
+test('hover, touch, keyboard and CSV all refer to displayed daily and running totals',()=>{
+ assert.match(dashboard,/vpChartTooltip/);
+ assert.match(dashboard,/pointerenter/);
+ assert.match(dashboard,/pointermove/);
+ assert.match(dashboard,/addEventListener\('click'/);
+ assert.match(dashboard,/addEventListener\('keydown'/);
+ assert.match(dashboard,/hit\.setAttribute\('aria-label'/);
+ assert.match(dashboard,/for\(const r of dailyCommissionLedger\(d\)\)/);
+ assert.match(dashboard,/최신일부터 누적/);
 });
