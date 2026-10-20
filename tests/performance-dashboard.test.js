@@ -68,7 +68,7 @@ test('dashboard includes lifetime date selector without manual recording or fabr
  assert.match(dashboard,/Instagram/);
  assert.match(dashboard,/vpSocialPostRows/);
  assert.doesNotMatch(workspace,/vpRecordForm|viralpick-performance-v2/);
- assert.match(html,/performance-dashboard\.js\?v=1/);
+ assert.match(html,/performance-dashboard\.js\?v=2/);
 });
 
 test('date-based commission is grouped before a newest-first running total',async()=>{
