@@ -132,3 +132,5 @@
  .vpPairGallery figcaption,.vpPairFinishGallery figcaption{font-size:11px}
  .vpPairGallery .vpPairBlank{font-size:11px}
 }
+
+.vpPairGallery[hidden]{display:none!important}
