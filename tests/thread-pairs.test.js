@@ -74,7 +74,7 @@ test('Threads visual and final previews show both problem and solution images in
  assert.match(frontend,/first\.after\(gallery\)/);
  assert.match(frontend,/\.vpSecondPost \.vpPairFinalMedia/);
  assert.match(frontend,/if\(replyMedia\)replyMedia\.remove\(\)/);
- assert.match(frontend,/imageNode\('solve',first\.querySelector\('\[data-pair-photo="solve"\]'\)\)/);
+ assert.match(frontend,/imageNode\('solve',gallery\.querySelector\('\[data-pair-photo="solve"\]'\)\)/);
  assert.match(css,/#vpThreadVisualReview \.vpPreviewMedia/);
 });
 test('Threads steps are in strict DOM and CSS order 01,02,03,04 and final stage shows both image previews',()=>{
