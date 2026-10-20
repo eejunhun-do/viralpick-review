@@ -36,8 +36,15 @@
 .vpPlatformStatus{font-size:10px;display:inline-block;margin-top:5px;color:#65738d}
 .vpPlatformStatus.connected{color:#0e815a}.vpPlatformStatus.pending{color:#8c95a5}
 .vpTableFoot,.vpAccountingNote{font-size:11px;color:#818e9e;line-height:1.7;margin:11px 0 0}
-.vpRevenueChart{min-height:200px;display:grid;align-items:center;text-align:center;color:#8791a2;font-size:12px;overflow:hidden}
+.vpRevenueChart{position:relative;min-height:200px;display:grid;align-items:center;text-align:center;color:#8791a2;font-size:12px;overflow:visible}
 .vpRevenueChart svg{width:100%;height:auto;max-height:280px}
+
+.vpChartTooltip{position:absolute;z-index:10;transform:translateX(-50%);display:flex;flex-direction:column;gap:3px;background:#182b4a;color:#fff;border-radius:10px;padding:9px 12px;box-shadow:0 8px 20px #162b4a35;white-space:nowrap;text-align:center;pointer-events:none;font-variant-numeric:tabular-nums;font-size:11px}
+.vpChartTooltip[hidden]{display:none!important}
+.vpChartTooltip strong{font-size:14px;font-weight:900;color:#fff}
+.vpChartSelection{font-size:11px;color:#65758e;padding:4px 6px 0;text-align:center;min-height:26px}
+.vpRevenueChart svg rect[role="button"]{cursor:crosshair;touch-action:manipulation}
+.vpRevenueChart svg rect[role="button"]:focus-visible{outline:none;stroke:#203f9e;stroke-width:3}
 .vpPanelTools{display:flex;align-items:center;gap:10px}
 .vpPanelTools .btn{font-size:11px;padding:8px 11px}
 .vpMoreButton{display:block;margin:13px auto 0}
