@@ -25,7 +25,11 @@ function fallback(){
 }
 function getStory(){const id=productKey();if(drafts.has(id))return drafts.get(id);
  let stored=null;try{stored=JSON.parse(localStorage.getItem(STORE+':'+id)||'null')}catch{}
- const data=stored?.slides?.length===5?stored:fallback();drafts.set(id,data);return data;
+ const data=stored?.slides?.length===5?stored:fallback();
+ // Existing drafts created before the benefits-only fifth card must not reappear.
+ const last=data.slides?.[4];
+ if(last&&/(?:단점|아쉬|주의|한계|부족|내구성|불량|고장|약점|체크|구매 전|구매전|확인사항|확인할 사항|다만|하지만|문제점|제한)/i.test(String(last.title||'')+' '+String(last.detail||''))){data.slides[4]={...fallback().slides[4]};try{localStorage.setItem(STORE+':'+id,JSON.stringify(data))}catch{}}
+ drafts.set(id,data);return data;
 }
 function save(){try{localStorage.setItem(STORE+':'+productKey(),JSON.stringify(getStory()))}catch{
  const node=$('#vpInstagramStoryStatus');if(node)node.textContent='저장 공간이 부족합니다. 현재 화면은 유지됩니다.';
