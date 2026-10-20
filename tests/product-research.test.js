@@ -36,7 +36,8 @@ test('product web research server requires authenticated account and real web se
  assert.match(api,/type:'web_search'/);
  assert.match(api,/tool_choice:'required'/);
  assert.match(api,/web_search_call\.action\.sources/);
- assert.match(api,/if\(!usedSearch\|\|!annotated\.size\)/);
+ assert.match(api,/if\(!usedSearch\)/);
+ assert.match(api,/if\(!annotated\.size\)/);
  assert.match(api,/notCustomerReviews:true/);
 });
 test('mobile web research UI loads and displays verified source links without injecting HTML',()=>{
