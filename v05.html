@@ -722,6 +722,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
     </div>
     <div class="aiNote" style="margin-top:10px">쿠팡 파트너스 최종 승인 후 발급한 Access Key·Secret Key를 Vercel 서버 환경변수에 등록해야 상품 검색·제휴 링크 발급이 동작합니다. 키는 이 브라우저에 입력하지 마세요. 가격·재고는 변경될 수 있습니다.</div>
     <div class="importedProducts" id="importedProducts"></div>
+    <section class="panel" style="margin-top:14px"><div class="panelHead"><h3>선택 상품 · 쿠팡 파트너스 링크</h3></div><div class="pad" id="selectedAffiliateLink">쿠팡 상품을 선택하면 딥링크 발급 버튼이 표시됩니다.</div></section>
    </div>
   </div>
  </div>
@@ -2657,6 +2658,7 @@ function renderProductLists(){
  const ordered=[...products].filter(p=>p.source!=='sample').sort((a,b)=>(b.source==='coupang')-(a.source==='coupang')||(candidateScore(b)||0)-(candidateScore(a)||0));
  const dash=$('#dashProducts');if(dash&&!dash.hidden)dash.innerHTML=ordered.map(productCard).join('');
  const discovery=$('#discoverProducts');if(discovery)discovery.innerHTML=ordered.length?ordered.map(productCard).join(''):'<div class="queueHint" style="padding:18px">아직 불러온 실제 상품이 없습니다. 위에서 쿠팡 상품 이름 또는 카테고리로 검색해 주세요. 시연용 샘플은 이 목록에 표시하지 않습니다.</div>';
+ renderAffiliateEditor();
 }
 let coupangAutoBusy=false,coupangAutoFetchedAt=0;
 async function refreshCoupangCatalog(force=false){
