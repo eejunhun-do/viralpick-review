@@ -23,8 +23,10 @@
   const sources=research.sources.slice(0,8).map(x=>({title:trim(x.title,110),url:trim(x.url,1600)}));
   const known=new Set(sources.map(x=>x.url));
   const facts=research.facts.filter(x=>x.confidence!=='unverified-lead'&&known.has(x.source_url)&&['feature','advantage','usage'].includes(x.type)&&!/(?:검색 결과 후보|검색된 자료 후보|확인된 제품 장점으로 사용하지 않습니다)/.test(String(x.claim||''))&&!negative.test(String(x.claim||''))).slice(0,12).map(x=>({type:trim(x.type,24),claim:trim(x.claim,270),source_url:trim(x.source_url,1600)}));
-   return {summary:facts.length?facts.slice(0,3).map(f=>f.claim).join(' ').slice(0,550):'검증 가능한 장점 자료가 부족합니다. 추가 조사가 필요합니다.',model:trim(research.model,140),scope:research.scope==='category'?'category':'model',
+   const guidance=(research.scope==='general'&&Array.isArray(research.guidance)?research.guidance:[]).map(x=>trim(x,200)).filter(x=>x.length>11&&!negative.test(x)).slice(0,5);
+   return {summary:guidance.length?trim(research.summary,500):facts.length?facts.slice(0,3).map(f=>f.claim).join(' ').slice(0,550):'검증 가능한 장점 자료가 부족합니다. 추가 조사가 필요합니다.',model:trim(research.model,140),scope:guidance.length?'general':research.scope==='category'?'category':'model',
    facts,
+   guidance,
    sources:facts.length?sources:[],notCustomerReviews:true};
  }
  function root(){return $('#vpProductWebResearch')}
@@ -52,7 +54,7 @@
   const view=panel.querySelector('.vpWebResearchResult');clear(view);
   const evidence=context();
   if(!evidence)return;
-  view.append(text('strong',evidence.scope==='category'?'제품 종류별 일반 정보 (선택 상품 개별 사양은 미확인)':'웹 검색 요약 (구매후기가 아님)'));
+  view.append(text('strong',evidence.scope==='general'?'출처 미확인 · 일반 활용 아이디어':evidence.scope==='category'?'제품 종류별 일반 정보 (선택 상품 개별 사양은 미확인)':'웹 검색 요약 (구매후기가 아님)'));
   if(evidence.summary)view.append(text('p',evidence.summary,'vpWebResearchSummary'));
   const labels={feature:'확인된 제품 설명',advantage:'웹자료에 소개된 장점',usage:'활용 상황'};
   const list=document.createElement('div');list.className='vpWebResearchClaims';
@@ -67,13 +69,15 @@
    list.append(row);
   });
   view.append(list);
+  if(evidence.guidance?.length){const general=document.createElement('div');general.className='vpWebResearchClaims';for(const idea of evidence.guidance){const item=text('div','일반 활용 아이디어 · '+idea,'vpWebResearchClaim');general.append(item)}view.append(general)}
   const src=document.createElement('div');src.className='vpWebResearchSources';
   src.append(text('strong','조사 출처'));
   for(const x of evidence.sources){
    const a=document.createElement('a');a.href=x.url;a.target='_blank';a.rel='noopener noreferrer';a.textContent=x.title+' ↗';src.append(a);
   }
-  view.append(src);
-  view.append(text('small','웹에 게시된 주장·설명은 실제 구매후기와 다릅니다. 모델명·규격·기능을 원문에서 확인한 뒤 사용하세요. 블로그나 홍보 글의 평가는 확정적 성능 표현으로 사용하지 않습니다.','vpWebResearchWarning'));
+  if(evidence.sources.length)view.append(src);
+  if(evidence.scope==='general')view.append(text('small','출처를 확인하지 못해 AI가 만든 일반 참고 아이디어입니다. 실제로 웹에서 검증된 기능이나 특정 쿠팡 상품의 사양·성능이 아닙니다. 상품별 사실은 공식 자료로 별도 확인해야 합니다.','vpWebResearchWarning'));
+  else view.append(text('small','웹에 게시된 주장·설명은 실제 구매후기와 다릅니다. 모델명·규격·기능을 원문에서 확인한 뒤 사용하세요. 블로그나 홍보 글의 평가는 확정적 성능 표현으로 사용하지 않습니다.','vpWebResearchWarning'));
  }
  async function perform(){
   if(working)return;
@@ -84,13 +88,14 @@
   working=true;currentMessage='AI가 제품 정보를 조사하고 출처를 확인하는 중입니다. 잠시 기다려 주세요.';render();
   try{
    const response=await backendRequest('/api/copy',{method:'POST',body:JSON.stringify({action:'product-research',product:name,model:q})});
-   if(response?.verificationIncomplete||response?.mode==='web-search-leads'||!response?.research?.facts?.some(f=>f.confidence!=='unverified-lead'&&!/검색 결과 후보|검색된 자료 후보/.test(String(f.claim||'')))||!response.research.sources?.length)throw Error('출처로 확인된 제품 장점이 없습니다. 후보 링크는 저장하지 않습니다. 검색어를 구체화하거나 다른 제품 자료를 입력해 주세요.');
+   const general=response?.mode==='general-guidance'&&response?.research?.scope==='general'&&Array.isArray(response.research.guidance)&&response.research.guidance.length>0;
+   if(!general&&(response?.verificationIncomplete||response?.mode==='web-search-leads'||!response?.research?.facts?.some(f=>f.confidence!=='unverified-lead'&&!/검색 결과 후보|검색된 자료 후보/.test(String(f.claim||'')))||!response.research.sources?.length))throw Error('출처로 확인된 제품 장점이 없습니다. 일반 아이디어도 생성되지 않았습니다.');
    if(id()!==productId){currentMessage='조사 중 다른 상품을 선택했습니다. 이전 상품 결과를 현재 상품에 적용하지 않았습니다.';return}
    const all=retrieve();
    all[productId]={productName:name,query:q,research:response.research,createdAt:response.generatedAt||new Date().toISOString()};
    const entries=Object.entries(all).slice(-24);
    try{localStorage.setItem(KEY,JSON.stringify(Object.fromEntries(entries)))}catch{currentMessage='브라우저 저장 공간 부족으로 결과를 보관하지 못했습니다.';return}
-   currentMessage=(response.research.scope==='category'?'제품 종류별 일반 자료 · ':'상품별 웹정보 · ')+response.research.facts.length+'건 / 출처 '+response.research.sources.length+'곳. 확인된 내용만 SNS AI 문구에 자동 반영합니다.';
+   currentMessage=general?'출처를 확인하지 못해 일반적인 활용 아이디어 '+response.research.guidance.length+'개를 만들었습니다. 검증된 제품 기능은 아니므로 SNS에서도 일반 상황 아이디어로만 활용합니다.':(response.research.scope==='category'?'제품 종류별 일반 자료 · ':'상품별 웹정보 · ')+response.research.facts.length+'건 / 출처 '+response.research.sources.length+'곳. 확인된 내용만 SNS AI 문구에 자동 반영합니다.';
   }catch(e){currentMessage='웹조사 실패: '+trim(e?.message,300)}
   finally{working=false;render()}
  }
