@@ -24,7 +24,7 @@ test('new dashboard and creator assets are linked and parse',()=>{
  assert.match(html,/performance-dashboard\.css\?v=2/);
  assert.doesNotThrow(()=>new Script(studio));
  assert.doesNotThrow(()=>new Script(creator));
- assert.match(html,/creator-assets\.js\?v=4/);
+ assert.match(html,/creator-assets\.js\?v=5/);
 });
 test('dashboard report is not populated from prototype metrics',()=>{
  assert.match(performance,/PERFORMANCE OVERVIEW/);
