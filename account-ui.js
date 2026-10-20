@@ -55,6 +55,7 @@
    const health=$('#apiHealth');if(health)health.title=label;
    const connect=$('#vpAutoConnectedNote');if(connect)connect.textContent=label;
    if(typeof refreshCoupangCatalog==='function')void refreshCoupangCatalog();
+   if(typeof window.vpPerformanceOnLogin==='function')window.vpPerformanceOnLogin();
   }catch(e){
    if(typeof showBackendState==='function')showBackendState('disconnected','로그인은 되었으나 계정 API 확인 실패: '+e.message);
    const connect=$('#vpAutoConnectedNote');if(connect)connect.textContent='API 연결 확인 실패: '+e.message;
