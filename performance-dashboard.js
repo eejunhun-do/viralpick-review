@@ -99,6 +99,16 @@ function sum(data,from,to,field){
  let total=0;for(const [day,row] of data.daily){if(day>=from&&day<=to)total+=row[field]||0}
  return total;
 }
+// Display newest records first: the running total must follow the same visible order.
+function dailyCommissionLedger(data){
+ if(!data)return [];
+ let running=0;
+ return [...data.daily.keys()].sort().reverse().map(date=>{
+  const row=data.daily.get(date);
+  running+=Number(row.commission)||0;
+  return {...row,date,cumulativeCommission:data.valid.commission?running:null};
+ });
+}
 function kpi(id,value,sub){
  const a=$('#'+id),b=$('#'+id+'Note');
  if(a)a.textContent=value;if(b)b.textContent=sub||'';
@@ -188,19 +198,17 @@ function renderHistory(){
  bars([...chart.entries()].map(([date,value])=>({label:monthly?date.slice(0,4)+'-'+date.slice(4):iso(date),short:monthly?date.slice(4)+'월':date.slice(4,6)+'/'+date.slice(6),value})));
  const total=sum(d,d.from,d.to,'commission');
  const overall=$('#vpHistoryTotal');if(overall)overall.textContent=total===null?'부분 조회':!d.counts.commission?'내역 없음':'기간 수수료 '+money(total);
- const shown=dates.slice().reverse().slice(0,state.shown);
- let cumulative=0;const accumulation=new Map();
- for(const date of dates){cumulative+=d.daily.get(date).commission;accumulation.set(date,cumulative)}
+ const ledger=dailyCommissionLedger(d),shown=ledger.slice(0,state.shown);
  table.replaceChildren();
  if(!shown.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=7;td.textContent='선택한 기간에 확인된 실적이 없습니다.';tr.append(td);table.append(tr)}
- for(const date of shown){
-  const r=d.daily.get(date),tr=document.createElement('tr');
-  [iso(date),fmt(r.clicks),fmt(r.orders),money(r.gmv),fmt(r.cancels),money(r.commission),money(accumulation.get(date))].forEach((val,i)=>{
-   const td=document.createElement('td');td.textContent=val;td.dataset.label=['날짜','클릭','주문','거래액','취소','수수료','누적 수수료'][i];tr.append(td)
+ for(const r of shown){
+  const tr=document.createElement('tr');
+  [iso(r.date),fmt(r.clicks),fmt(r.orders),money(r.gmv),fmt(r.cancels),d.valid.commission?money(r.commission):'조회 불완전',r.cumulativeCommission===null?'조회 불완전':money(r.cumulativeCommission)].forEach((val,i)=>{
+   const td=document.createElement('td');td.textContent=val;td.dataset.label=['날짜','클릭','주문','거래액','취소','일별 수수료','최신일부터 누적'][i];tr.append(td)
   });
   table.append(tr);
  }
- const more=$('#vpPerfMore');if(more){more.hidden=dates.length<=state.shown;more.textContent='이전 날짜 더보기 ('+Math.min(30,dates.length-state.shown)+'일)'}
+ const more=$('#vpPerfMore');if(more){more.hidden=ledger.length<=state.shown;more.textContent='이전 날짜 더보기 ('+Math.min(30,ledger.length-state.shown)+'일)'}
 }
 function createView(){
  const root=$('#vpPerformanceDashboard');if(!root||root.dataset.ready)return;
@@ -219,7 +227,7 @@ function createView(){
  '<button class="btn" type="button" id="vpPerfApply">기간 적용</button></div><p class="vpReportStatus" id="vpPerfStatus" role="status">로그인 후 실제 실적을 불러옵니다.</p></section>'+
  '<section class="vpDataPanel"><div class="vpPanelHeading"><h2>플랫폼별 실적</h2><small>클릭 · 주문 · 주문 거래액 · 수수료 수익</small></div><div class="vpTableScroll"><table class="vpFinanceTable"><thead><tr><th>플랫폼</th><th>클릭</th><th>주문</th><th>주문 거래액</th><th>수수료 수익</th></tr></thead><tbody id="vpPlatformRows"></tbody><tfoot><tr id="vpPlatformTotal"></tr></tfoot></table></div><p class="vpTableFoot" id="vpPlatformFoot"></p></section>'+
  '<section class="vpDataPanel"><div class="vpPanelHeading"><h2>수수료 수익 흐름</h2><small>기간에 따라 일별 / 월별 자동 전환</small></div><div class="vpRevenueChart" id="vpRevenueChart" role="group"></div></section>'+
- '<section class="vpDataPanel"><div class="vpPanelHeading"><h2>날짜별 실적 및 누적 수익</h2><div class="vpPanelTools"><small id="vpHistoryTotal">—</small><button class="btn" type="button" id="vpPerfCsv">CSV 저장</button></div></div><div class="vpTableScroll"><table class="vpFinanceTable vpDailyTable"><thead><tr><th>날짜</th><th>클릭</th><th>주문</th><th>거래액</th><th>취소</th><th>수수료</th><th>누적 수수료</th></tr></thead><tbody id="vpDailyRows"></tbody></table></div><button class="btn vpMoreButton" id="vpPerfMore" type="button" hidden>이전 날짜 더보기</button></section>'+
+ '<section class="vpDataPanel"><div class="vpPanelHeading"><h2>날짜별 실적 및 누적 수익</h2><div class="vpPanelTools"><small id="vpHistoryTotal">—</small><button class="btn" type="button" id="vpPerfCsv">CSV 저장</button></div></div><div class="vpTableScroll"><table class="vpFinanceTable vpDailyTable"><thead><tr><th>날짜</th><th>클릭</th><th>주문</th><th>거래액</th><th>취소</th><th>일별 수수료</th><th>최신일부터 누적</th></tr></thead><tbody id="vpDailyRows"></tbody></table></div><p class="vpTableFoot">일별 수수료는 해당 날짜의 금액만 표시합니다. 누적 수수료는 표의 최신 날짜부터 아래로 내려가며 합산됩니다. 전체 기간 합계는 위의 ‘기간 수수료’를 확인하세요.</p><button class="btn vpMoreButton" id="vpPerfMore" type="button" hidden>이전 날짜 더보기</button></section>'+
  '<div class="vpSectionLabel social">SNS 콘텐츠 성과 <small>금액 지표와 별개로 관리합니다.</small></div><div class="vpSocialGrid">'+
  '<section class="vpSocialCard"><div><h3>Threads</h3><span>연동 준비 중</span></div><div class="vpSocialMetrics"><p>조회수 <b>—</b></p><p>좋아요 <b>—</b></p><p>답글 <b>—</b></p><p>리포스트 <b>—</b></p></div><small>계정·인사이트 API 연결 시 실제 지표가 표시됩니다.</small></section>'+
  '<section class="vpSocialCard"><div><h3>Instagram</h3><span>연동 준비 중</span></div><div class="vpSocialMetrics"><p>조회수 <b>—</b></p><p>노출·도달 <b>—</b></p><p>좋아요·댓글 <b>—</b></p><p>저장·공유 <b>—</b></p></div><small>인사이트 API 연결 시 게시물별 성과를 볼 수 있습니다.</small></section></div>'+
@@ -240,11 +248,9 @@ function createView(){
 }
 function exportCsv(){
  const d=state.history;if(!d)return;
- let sumCommission=0;
- const rows=[['날짜','클릭','주문','주문거래액','취소','수수료','누적수수료']];
- for(const date of [...d.daily.keys()].sort()){
-  const r=d.daily.get(date);sumCommission+=r.commission;
-  rows.push([iso(date),r.clicks,r.orders,r.gmv,r.cancels,r.commission,sumCommission]);
+ const rows=[['날짜','클릭','주문','주문거래액','취소','일별수수료','최신일부터누적수수료']];
+ for(const r of dailyCommissionLedger(d)){
+  rows.push([iso(r.date),r.clicks,r.orders,r.gmv,r.cancels,d.valid.commission?r.commission:'조회 불완전',r.cumulativeCommission===null?'조회 불완전':r.cumulativeCommission]);
  }
  const csv='\uFEFF'+rows.map(r=>r.map(s=>'"'+String(s).replace(/"/g,'""')+'"').join(',')).join('\r\n');
  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
