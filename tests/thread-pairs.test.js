@@ -51,5 +51,5 @@ test('image storage is browser local IndexedDB rather than localStorage large ba
  assert.match(frontend,/indexedDB\.open\(PAIR_DB,1\)/);
  assert.match(frontend,/createObjectStore\(STORE\)/);
  assert.match(frontend,/tx\.objectStore\(STORE\)\.put\(value,key\)/);
- assert.match(frontend,/delete r\.images\[index\+':'+slot\]/);
+ assert.ok(frontend.includes("delete r.images[index+':'+slot];"));
 });
