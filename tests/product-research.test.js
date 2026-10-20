@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {Script} from 'node:vm';
-import {normalizeProductResearch} from '../api/product-research.js';
+import {normalizeProductResearch} from '../lib/product-research.js';
 
 const main=readFileSync(new URL('../v05.html',import.meta.url),'utf8');
 const frontend=readFileSync(new URL('../product-research.js',import.meta.url),'utf8');
@@ -28,9 +28,10 @@ test('source-grounded research facts require HTTPS URLs present in source list',
  assert.equal(result.sources[0].url,url);
 });
 test('product web research server requires authenticated account and real web search evidence',()=>{
- assert.match(api,/checkAccess\(req\)/);
- assert.match(api,/session\(req\)/);
- assert.match(api,/getKeys\(user\)/);
+ assert.match(copy,/checkAccess\(req\)/);
+ assert.match(copy,/session\(req\)/);
+ assert.match(copy,/getKeys\(user\)/);
+ assert.match(copy,/if\(data\?\.action==='product-research'\)return researchProduct/);
  assert.match(api,/\/v1\/responses/);
  assert.match(api,/type:'web_search'/);
  assert.match(api,/tool_choice:'required'/);
@@ -46,7 +47,8 @@ test('mobile web research UI loads and displays verified source links without in
  assert.match(frontend,/window\.vpProductResearchContext=context/);
  assert.match(frontend,/window\.vpProductResearchRefresh=render/);
  assert.match(frontend,/localStorage\.setItem\(KEY/);
- assert.match(frontend,/backendRequest\('\/api\/product-research'/);
+ assert.match(frontend,/backendRequest\('\/api\/copy'/);
+ assert.match(frontend,/action:'product-research'/);
 });
 test('research is marked non-review evidence across Threads, Instagram, hook pairs and carousel',()=>{
  assert.match(copy,/webResearch:normalizeWebEvidence\(p\.webResearch\)/);
@@ -56,4 +58,9 @@ test('research is marked non-review evidence across Threads, Instagram, hook pai
  assert.match(hooks,/webResearch:/);
  assert.match(instagramUi,/webResearch:window\.vpProductResearchContext/);
  assert.match(instagram,/webResearch:/);
+});
+
+test('Vercel hobby compatibility: product research shares existing copy endpoint',()=>{
+ assert.match(copy,/import \{researchProduct\} from '..\/lib\/product-research.js'/);
+ assert.match(copy,/if\(data\?\.action==='product-research'\)/);
 });
