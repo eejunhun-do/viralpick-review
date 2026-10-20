@@ -1369,6 +1369,8 @@ async function saveCarouselArtwork(productId,slide,data){
  }
 }
 function carouselSceneForSlide(p,slide){
+ const planned=window.vpInstagramSingleStoryForSlide?.(slide-1);
+ if(planned?.scene)return ('Photorealistic Korean Instagram product-story slide '+slide+' of 5. '+planned.scene+' Product category: '+p.name+'. No overlay text, logos, fake claims or watermarks. Natural empty upper region for Korean app typography.').slice(0,500);
  const context='Product context: '+p.name+'. Actual use problem: '+(p.problem||'ordinary inconvenience')+'. Verified feature description: '+(p.novel||'check function')+'.';
  const direction={
   2:'Photograph the everyday PROBLEM before any solution. Show a person in a relatable setting dealing with this inconvenience, with honest natural body language. Close-up story, important objects clearly visible. '+(p.visual||''),
@@ -1400,14 +1402,15 @@ async function runCarouselArtworkGeneration(slides){
  let done=0,saved=0;
  const status=$('#carouselArtStatus');
  try{
-  const refPayload=await window.vpCreatorReferencePayload('instagram');
+  // Slide 2 is the inconvenience BEFORE the solution and must not depend on the product reference.
   for(const slide of slides){
+   const refPayload=slide===2?{imageMode:'scene'}:await window.vpCreatorReferencePayload('instagram');
    if(status)status.textContent=slide+'번 카드 AI 사진 생성 중… ('+(done+1)+'/'+count+')';
    const data=await backendRequest('/api/image',{
     method:'POST',body:JSON.stringify({
      product:product.name,
      scene:carouselSceneForSlide(product,slide),purpose:'carousel',slide,
-     hook:slide===2?product.problem:slide===3?product.name:slide===4?product.novel:'구매 전 확인할 것',
+     hook:window.vpInstagramSingleStoryForSlide?.(slide-1)?.title||(slide===2?product.problem:slide===3?product.name:slide===4?product.novel:'구매 전 확인할 것'),
      style:hookPhotoStyle,...refPayload
     })
    });
@@ -3183,7 +3186,7 @@ function instagramCoverHeadlineKey(index=coverIndex){return selected.id+':'+cove
 function getInstagramCoverHeadline(index=coverIndex){
  const key=instagramCoverHeadlineKey(index);
  return Object.prototype.hasOwnProperty.call(instagramCoverHeadlineEdits,key)
-  ?instagramCoverHeadlineEdits[key]:coverHooks(selected)[index].replace(/<br\s*\/?\s*>/gi,' ');
+  ?instagramCoverHeadlineEdits[key]:(window.vpInstagramSingleStoryForSlide?.(0)?.title||coverHooks(selected)[index].replace(/<br\s*\/?\s*>/gi,' '));
 }
 function saveInstagramCoverHeadlineEdits(){
  try{localStorage.setItem('viralpickInstagramCoverText',JSON.stringify(Object.entries(instagramCoverHeadlineEdits).slice(-100)))}catch(e){}
@@ -3311,6 +3314,12 @@ function renderInstagram(){ renderOpeningControls();if(isMultiMode('Instagram'))
 }
 function instaCards(p){
  if(isMultiMode('Instagram'))return multiCardDescriptors().map(card=>({short:card.short,html:'<p>다중 상품 미리보기: '+cleanMarkup(card.short)+'</p>'}));
+ if(window.vpInstagramSingleStoryForSlide){
+  return ['후킹·궁금증','불편한 순간','제품으로 해결','핵심 장점','구매 전 체크'].map((label,i)=>({
+   short:String(i+1)+'. '+label,
+   html:'<div class="content"><div class="num">'+String(i+1).padStart(2,'0')+' / 05</div><h3>'+cleanMarkup(window.vpInstagramSingleStoryForSlide(i)?.title||label)+'</h3><p>'+cleanMarkup(window.vpInstagramSingleStoryForSlide(i)?.detail||'')+'</p></div>'
+  }));
+ }
  const cover=cleanMarkup(getInstagramCoverHeadline()).replace(/\n/g,'<br>'); return [
  {short:'후킹 표지',html:`<div class="bg scene1"></div><div class="content"><div><div class="num">01 / 05</div><h3>${cover}</h3><p>${p.name}</p></div><div class="cta">넘겨서 보기 →</div></div>`},
  {short:'문제 공감',html:`<div class="bg scene2"></div><div class="content"><div><div class="num">02 / 05</div><h3>은근 반복되는<br>이 불편</h3><p>${p.problem}</p></div><div class="productBox">${p.visual}<br><span style="font-size:10px;font-weight:700">이미지 연동 전 시안</span></div></div>`},
@@ -3568,18 +3577,19 @@ function drawInstagramStorySlide(ctx,p,slide,variant=0){
  bottom.addColorStop(0,'rgba(19,25,31,0)');
  bottom.addColorStop(1,'rgba(18,23,29,.82)');
  ctx.fillStyle=bottom;ctx.fillRect(0,1000,1080,350);
- const title={
+ const story=window.vpInstagramSingleStoryForSlide?.(slide-1);
+ const title=story?.title||({
   2:'이런 불편, 자주 겪나요?',
   3:'이 제품은 어떨까요?',
   4:'어떤 기능을 살펴볼까?',
   5:'구매 전 꼭 확인하세요'
- }[slide];
- const detail={
+ }[slide]);
+ const detail=story?.detail||({
   2:p.problem||'생활 속 불편을 먼저 살펴봅니다.',
   3:p.name,
   4:p.novel||'실제 기능과 사용 조건을 확인해 보세요.',
   5:'최신 가격 · 상품 옵션 · 재고 · 리뷰를 다시 확인하세요.'
- }[slide];
+ }[slide]);
  ctx.fillStyle='#b84e19';ctx.fillRect(72,90,46,8);
  ctx.font='900 27px "Noto Sans KR","Malgun Gothic",sans-serif';
  ctx.fillStyle='#734b37';ctx.textAlign='left';ctx.textBaseline='top';
@@ -4356,5 +4366,7 @@ const q=new URLSearchParams(location.search).get('view');if(['dashboard','discov
 <script src="/workspace-upgrade.js?v=2"></script>
 <script src="/creator-assets.js?v=3"></script>
 <script src="/thread-pairs.js?v=4"></script>
+<script src="/instagram-single-story.js?v=1"></script>
+<script src="/studio-product-card.js?v=1"></script>
 </body>
 </html>
