@@ -22,7 +22,7 @@ test('Threads and Instagram header use current selection thumbnail and an allowe
  assert.match(headers,/vpStudioProductThumb/);
  assert.match(headers,/vpStudioProductLink/);
  assert.match(headers,/isCoupangProductLink\(href\)/);
- assert.match(html,/studio-product-card\.js\?v=1/);
+ assert.match(html,/studio-product-card\.js\?v=2/);
 });
 test('Threads linked hooks are selected before AI copy, not spliced into an existing draft',()=>{
  assert.doesNotThrow(()=>new Script(hooks));
