@@ -32,7 +32,9 @@ test('selected product evidence and two-part Threads are available',()=>{
  assert.match(html,/function copyThreadPart\(/);
  assert.match(studio,/vpThreadReplyEditor/);
  assert.match(copy,/response_format/);
- assert.match(copy,/첫 줄에 단독으로 광고라고 쓰지 않는다/);
+ assert.match(copy,/THREADS_TONE_RULES/);
+ const tone=readFileSync(new URL('../lib/copy-tone.js',import.meta.url),'utf8');
+ assert.match(tone,/광고.*첫 줄에 단독으로 쓰지 마라/);
 });
 test('reference-based image editing is separate from scene generation',()=>{
  assert.match(image,/\/v1\/images\/edits/);
