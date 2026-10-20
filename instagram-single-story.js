@@ -81,7 +81,7 @@ async function generate(){
   const review=$('#vpAiReviews')?.value||'';
   const data=await backendRequest('/api/instagram-story',{method:'POST',body:JSON.stringify({
    product:p.name,description:$('#vpAiDescription')?.value||'',reviews:review,
-   problem:p.problem,novel:p.novel,audience:p.audience,hookPair:currentPair()
+   problem:p.problem,novel:p.novel,audience:p.audience,hookPair:currentPair(),webResearch:window.vpProductResearchContext?.()||null
   })});
   if(!Array.isArray(data.slides)||data.slides.length!==5)throw Error('5장 스토리가 생성되지 않았습니다.');
   if(productId!==productKey())throw Error('작업 상품이 바뀌어 이전 상품의 스토리는 적용하지 않았습니다.');
