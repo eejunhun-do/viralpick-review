@@ -110,3 +110,25 @@
 
 .vpPairApplyCopy{margin-top:12px;max-width:100%;white-space:normal;text-align:center}
 #vpAssetStudioThreads.vpThreadPairMode .vpCreatorUpload details{display:none!important}
+
+/* The Threads editor is a flex column; explicit order prevents 04 from appearing before 03. */
+#vpAssetStudioThreads.vpThreadPairMode .vpPairHookStage{order:0}
+#vpAssetStudioThreads.vpThreadPairMode .vpPairStagePain{order:1}
+#vpAssetStudioThreads.vpThreadPairMode .vpCreatorPhotoStep{order:2}
+#vpAssetStudioThreads.vpThreadPairMode .vpPairFinish{order:3}
+#vpAssetStudioThreads.vpThreadPairMode .vpCreatorHookStep{display:none!important}
+/* Two separate 4:5 images are attached to a single Threads 1/2 post, in this order. */
+.vpPairGallery,.vpPairFinishGallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:100%;max-width:610px;margin:12px 0}
+.vpPairGallery figure,.vpPairFinishGallery figure{min-width:0;margin:0}
+.vpPairGallery figcaption,.vpPairFinishGallery figcaption{text-align:center;margin-top:6px;font-size:12px;font-weight:700;color:#66748a}
+.vpPairGallery .vpPairFinalMedia{width:100%;min-width:0;margin:0}
+.vpPairGallery .vpPairFinalMedia img{display:block;width:100%;height:auto;aspect-ratio:4/5;object-fit:contain;border:1px solid #dbe0e9;border-radius:12px}
+.vpPairGallery .vpPairBlank{display:grid;min-height:0;height:auto;aspect-ratio:4/5;place-items:center;border:1px dashed #cbd5e1;border-radius:12px;padding:10px}
+.vpPairFinishGallery .vpPairArtwork{width:100%;min-width:0;max-width:none;margin:0}
+#vpThreadSocialReview .vpPreviewMedia,#vpThreadVisualReview .vpPreviewMedia{display:none!important}
+#vpThreadVisualReview{margin:0 0 14px}
+@media(max-width:650px){
+ .vpPairGallery,.vpPairFinishGallery{gap:7px}
+ .vpPairGallery figcaption,.vpPairFinishGallery figcaption{font-size:11px}
+ .vpPairGallery .vpPairBlank{font-size:11px}
+}
