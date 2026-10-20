@@ -23,7 +23,7 @@
   const sources=research.sources.slice(0,8).map(x=>({title:trim(x.title,110),url:trim(x.url,1600)}));
   const known=new Set(sources.map(x=>x.url));
   const facts=research.facts.filter(x=>x.confidence!=='unverified-lead'&&known.has(x.source_url)&&['feature','advantage','usage'].includes(x.type)&&!/(?:검색 결과 후보|검색된 자료 후보|확인된 제품 장점으로 사용하지 않습니다)/.test(String(x.claim||''))&&!negative.test(String(x.claim||''))).slice(0,12).map(x=>({type:trim(x.type,24),claim:trim(x.claim,270),source_url:trim(x.source_url,1600)}));
-   return {summary:facts.length?facts.slice(0,3).map(f=>f.claim).join(' ').slice(0,550):'검증 가능한 장점 자료가 부족합니다. 추가 조사가 필요합니다.',model:trim(research.model,140),
+   return {summary:facts.length?facts.slice(0,3).map(f=>f.claim).join(' ').slice(0,550):'검증 가능한 장점 자료가 부족합니다. 추가 조사가 필요합니다.',model:trim(research.model,140),scope:research.scope==='category'?'category':'model',
    facts,
    sources:facts.length?sources:[],notCustomerReviews:true};
  }
@@ -52,7 +52,7 @@
   const view=panel.querySelector('.vpWebResearchResult');clear(view);
   const evidence=context();
   if(!evidence)return;
-  view.append(text('strong','웹 검색 요약 (구매후기가 아님)'));
+  view.append(text('strong',evidence.scope==='category'?'제품 종류별 일반 정보 (선택 상품 개별 사양은 미확인)':'웹 검색 요약 (구매후기가 아님)'));
   if(evidence.summary)view.append(text('p',evidence.summary,'vpWebResearchSummary'));
   const labels={feature:'확인된 제품 설명',advantage:'웹자료에 소개된 장점',usage:'활용 상황'};
   const list=document.createElement('div');list.className='vpWebResearchClaims';
@@ -90,7 +90,7 @@
    all[productId]={productName:name,query:q,research:response.research,createdAt:response.generatedAt||new Date().toISOString()};
    const entries=Object.entries(all).slice(-24);
    try{localStorage.setItem(KEY,JSON.stringify(Object.fromEntries(entries)))}catch{currentMessage='브라우저 저장 공간 부족으로 결과를 보관하지 못했습니다.';return}
-   currentMessage='공개 웹정보 '+response.research.facts.length+'건 · 출처 '+response.research.sources.length+'곳을 연결했습니다. 이제 Threads/Instagram AI 문구 생성에 자동 반영됩니다.';
+   currentMessage=(response.research.scope==='category'?'제품 종류별 일반 자료 · ':'상품별 웹정보 · ')+response.research.facts.length+'건 / 출처 '+response.research.sources.length+'곳. 확인된 내용만 SNS AI 문구에 자동 반영합니다.';
   }catch(e){currentMessage='웹조사 실패: '+trim(e?.message,300)}
   finally{working=false;render()}
  }
@@ -99,8 +99,8 @@
   if(!source||root())return;
   const panel=document.createElement('section');panel.id='vpProductWebResearch';panel.className='vpProductWebResearch';
   panel.innerHTML='<h3>상품명·모델명 기반 AI 웹정보 조사</h3>'+
-   '<p class="queueHint">모바일에서도 사용 가능 · 공개 블로그·웹페이지에서 확인된 장점과 활용 상황을 조사합니다. 실제 구매후기와 구분해 사용하며 출처를 제공합니다.</p>'+
-   '<label class="vpWebResearchQuery">조사할 상품명 또는 모델명<input class="vpWebResearchModel" maxlength="140" placeholder="예: 브랜드 + 정확한 모델명" autocomplete="off"></label>'+
+   '<p class="queueHint">모바일에서도 사용 가능 · 제품 종류만 입력하면 일반 정보, 브랜드·모델명을 입력하면 해당 모델 자료를 찾습니다. 출처가 확인된 장점·활용 상황만 수집합니다.</p>'+
+   '<label class="vpWebResearchQuery">조사할 상품명 또는 모델명<input class="vpWebResearchModel" maxlength="140" placeholder="예: 휴대용 점프스타터 또는 브랜드 + 모델명" autocomplete="off"></label>'+
    '<button type="button" class="btn primary vpWebResearchRun">AI로 블로그·웹 제품정보 조사</button>'+
    '<p class="vpWebResearchStatus queueHint" role="status"></p><div class="vpWebResearchResult" aria-live="polite"></div>';
   const anchor=source.querySelector('#vpAiDescription')?.closest('.field');
