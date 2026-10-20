@@ -1,3 +1,4 @@
+import {researchProduct} from '../lib/product-research.js';
 import {THREADS_TONE_RULES,INSTAGRAM_TONE_RULES,validateThreadsTone} from '../lib/copy-tone.js';
 import {session,getKeys} from '../lib/account-store.js';
 import {json,preflight,checkAccess,safePayload} from '../lib/api-guard.js';
@@ -23,6 +24,7 @@ export async function POST(req){
  const key=user?(await getKeys(user)).openaiApiKey:process.env.OPENAI_API_KEY;
  if(!key)return json(req,{ok:false,message:'내 API 등록에서 OpenAI API 키를 등록하세요.'},503);
  let data;try{data=await safePayload(req,48000)}catch(e){return json(req,{ok:false,message:e.message},400)}
+ if(data?.action==='product-research')return researchProduct(req,data,key);
  const platform=data.platform==='Instagram'?'Instagram':'Threads';
  const products=Array.isArray(data.products)?data.products.slice(0,10):[];
  if(!products.length)return json(req,{ok:false,message:'상품을 먼저 선택하세요.'},400);
