@@ -175,6 +175,10 @@ function renderHistory(){
  if(status)status.textContent=(d.problems.length?'일부 데이터 조회 실패: '+d.problems.slice(0,3).join(' / '):'쿠팡 실제 API 데이터 조회 완료')+' · '+iso(d.from)+' ~ '+iso(d.to);
  const dates=[...d.daily.keys()].sort(),monthly=(parseDay(d.to)-parseDay(d.from))/DAY>45;
  const chart=new Map();
+ if(d.valid.commission){
+  if(monthly){let month=monthStart(d.from);while(month<=d.to){chart.set(month.slice(0,6),0);month=monthStart(shift(monthEnd(month),1))}}
+  else{for(let day=d.from;day<=d.to;day=shift(day,1))chart.set(day,0)}
+ }
  for(const date of dates){
   const id=monthly?date.slice(0,6):date,p=d.daily.get(date);
   chart.set(id,(chart.get(id)||0)+p.commission);
@@ -226,7 +230,7 @@ function createView(){
   if(!custom)void refreshHistory(false);
  };
  $('#vpPerfRefresh').onclick=()=>void refresh(true);
- $('#vpPerfApply').onclick=()=>void refreshHistory(false);
+ $('#vpPerfApply').onclick=()=>{const next=$('#vpPerfSubId')?.value.trim()||'';if(next!==state.subId)void refresh(true);else void refreshHistory(false)};
  $('#vpPerfMore').onclick=()=>{state.shown+=30;renderHistory()};
  $('#vpPerfCsv').onclick=exportCsv;
  renderOverview();renderHistory();
