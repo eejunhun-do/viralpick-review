@@ -132,6 +132,23 @@ async function makePairs(){
  }catch(e){status('후킹 생성 실패: '+e.message)}
  finally{busy=false;render()}
 }
+function applyHooksToPosts(){
+ const {r,pair}=current(),pain=sentence(pair.pain),solve=sentence(pair.solve);
+ if(!pain||!solve){status('먼저 연결된 불편·해결 후킹 두 문장을 작성해 주세요.');return}
+ if(typeof getCurrentThreadText!=='function'||typeof getThreadReplyText!=='function'){status('Threads 본문 편집기를 불러오지 못했습니다.');return}
+ // Do not unexpectedly overwrite edited AI copy: user explicitly requests this action.
+ let first=getCurrentThreadText().trim();
+ let second=typeof readThreadReply==='function'?String(readThreadReply()||'').trim():'';
+ if(r.appliedPain&&first.startsWith(r.appliedPain))first=first.slice(r.appliedPain.length).trimStart();
+ if(r.appliedSolve&&second.startsWith(r.appliedSolve))second=second.slice(r.appliedSolve.length).trimStart();
+ if(!first.startsWith(pain))first=pain+'\\n\\n'+first;
+ if(!second.startsWith(solve))second=solve+'\\n\\n'+(second||'제품 정보와 실제 후기를 비교해 봐.\\n옵션과 제한 사항도 확인해 봐.');
+ customThreadEdits[threadEditKey()]=first;
+ saveThreadReply(second);
+ r.appliedPain=pain;r.appliedSolve=solve;save();
+ renderThreads();window.vpCreatorRenderReview?.();
+ status('선택한 두 후킹을 Threads 1단·2단 첫 줄에 각각 반영했습니다. 본문은 다시 검토해 주세요.');
+}
 async function makeImage(slot){
  if(busy)return;
  const productId=owner(),{index,pair}=current(),hook=pair[slot];
@@ -189,7 +206,7 @@ function render(){
   if(input&&document.activeElement!==input)input.value=pair[slot]||'';
   imageNode(slot,root.querySelector('.vpPairStage'+(slot==='pain'?'Pain':'Solve')+' .vpPairArtwork'));
  }
- root.querySelectorAll('.vpPairGenerate,.vpPairsGenerate,.vpPairSave').forEach(b=>b.disabled=busy);
+ root.querySelectorAll('.vpPairGenerate,.vpPairsGenerate,.vpPairSave,.vpPairApplyCopy').forEach(b=>b.disabled=busy);
  const both=Boolean(pictureFor('pain')&&pictureFor('solve'));
  root.querySelector('.vpPairSave').disabled=busy||!both;
  root.querySelector('.vpPairState').textContent=(pictureFor('pain')?'1번 사진 완료':'1번 사진 대기')+' · '+(pictureFor('solve')?'2번 사진 완료':'2번 사진 대기')+' · 저장 위치: 이 브라우저';
@@ -225,7 +242,8 @@ function install(){
  pair.innerHTML='<div class="vpCreatorPhaseLabel"><span>01</span><strong>불편 → 해결 후킹 5세트</strong><small>한 세트를 고르면 두 문장과 두 이미지가 1:1로 연결됩니다. 기능은 상품정보로 확인한 내용만 사용하세요.</small></div>'+
  '<div class="vpPairTools"><button type="button" class="btn primary vpPairsGenerate">✨ AI 연결형 후킹 5세트 생성</button><p id="vpPairStatus" role="status">후킹을 AI로 생성하거나 선택한 세트를 직접 작성하세요. AI 생성에는 별도 요금이 발생합니다.</p></div>'+
  '<div class="vpPairChoices" role="group" aria-label="불편 해결 후킹 세트"></div>'+
- '<div class="vpPairEditors"><label>1번 · 불편한 상황 후킹<textarea class="vpPairEditPain" rows="2" maxlength="120" placeholder="예: 요리할 때 계속 저어야 해서 귀찮지?"></textarea></label><label>2번 · 연결된 해결 후킹<textarea class="vpPairEditSolve" rows="2" maxlength="120" placeholder="예: 자동으로 저어주면 손이 한결 편하겠지?"></textarea></label></div>';
+ '<div class="vpPairEditors"><label>1번 · 불편한 상황 후킹<textarea class="vpPairEditPain" rows="2" maxlength="120" placeholder="예: 요리할 때 계속 저어야 해서 귀찮지?"></textarea></label><label>2번 · 연결된 해결 후킹<textarea class="vpPairEditSolve" rows="2" maxlength="120" placeholder="예: 자동으로 저어주면 손이 한결 편하겠지?"></textarea></label></div>'+
+ '<button type="button" class="btn vpPairApplyCopy">선택 후킹을 Threads 1단·2단 첫 줄에 적용</button>';
  const problem=document.createElement('section');problem.className='vpCreatorPhase vpPairStagePain';
  problem.innerHTML='<div class="vpCreatorPhaseLabel"><span>02</span><strong>1번 이미지 · 불편한 상황</strong><small>제품 이미지는 사용하지 않습니다. 불편한 장면만 사진으로 보여줍니다.</small></div>'+
  '<div class="vpPairArtwork"></div><button type="button" class="btn primary vpPairGenerate vpPainCreate">불편한 상황 실사 1장 생성</button>';
@@ -241,6 +259,7 @@ function install(){
  if(photo&&photo.parentNode===container){container.insertBefore(problem,photo);photo.after(finish)}
  else{container.append(problem,finish)}
  root.querySelector('.vpPairsGenerate').onclick=()=>void makePairs();
+ root.querySelector('.vpPairApplyCopy').onclick=applyHooksToPosts;
  root.querySelector('.vpPainCreate').onclick=()=>void makeImage('pain');
  root.querySelector('.vpSolveCreate').onclick=()=>void makeImage('solve');
  root.querySelector('.vpPairSave').onclick=()=>void exportTwo().catch(e=>status('저장 실패: '+e.message));
