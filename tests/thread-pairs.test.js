@@ -21,7 +21,7 @@ test('five distinct linked hook pairs required',()=>{
 });
 test('client script parses and is loaded only after the existing creator gallery',()=>{
  assert.doesNotThrow(()=>new Script(frontend));
- assert.match(html,/creator-assets\.js\?v=3"><\/script>\s*<script src="\/thread-pairs\.js\?v=3"/);
+ assert.match(html,/creator-assets\.js\?v=3"><\/script>\s*<script src="\/thread-pairs\.js\?v=4"/);
  assert.match(frontend,/window\.vpCreatorReferencePayload\('threads'\)/);
  assert.match(frontend,/purpose:slot==='pain'\?'threads-pain':'threads-solve'/);
  assert.match(frontend,/slot==='solve'\?await window\.vpCreatorReferencePayload\('threads'\):\{imageMode:'scene'\}/);
@@ -85,4 +85,10 @@ test('Threads steps are in strict DOM and CSS order 01,02,03,04 and final stage 
  assert.match(frontend,/vpPairFinishGallery/);
  assert.match(frontend,/vpPairFinishPain/);
  assert.match(frontend,/vpPairFinishSolve/);
+});
+
+test('paired images are suppressed in multiple-products mode',()=>{
+ assert.match(frontend,/gallery\.hidden=multi/);
+ assert.match(frontend,/if\(multi\)continue/);
+ assert.match(css,/\.vpPairGallery\[hidden\]\{display:none!important\}/);
 });
