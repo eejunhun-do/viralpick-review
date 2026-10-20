@@ -107,3 +107,6 @@
 .vpPairFinalMedia .vpPairBlank{min-height:150px;border:1px dashed #cbd5e1;border-radius:12px}
 #vpThreadSocialReview .vpPreviewMedia{display:none!important}
 @media(max-width:650px){.vpPairChoices,.vpPairEditors{grid-template-columns:minmax(0,1fr)}.vpPairOption{padding:12px}.vpPairOption.active{padding:11px}.vpPairArtwork{width:min(100%,360px)}}
+
+.vpPairApplyCopy{margin-top:12px;max-width:100%;white-space:normal;text-align:center}
+#vpAssetStudioThreads.vpThreadPairMode .vpCreatorUpload details{display:none!important}
