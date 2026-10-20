@@ -2981,6 +2981,7 @@ async function generateProductCopy(platform){
   const reviewNotes=$('#vpAiReviews')?.value.trim()||'';
   const evidence=loadReviewEvidence(reviewEvidenceKey(selected));
   const data=await backendRequest('/api/copy',{method:'POST',body:JSON.stringify({platform,multi:useMulti,...(pair?{hookPair:{pain:pair.pain,solve:pair.solve}}:{}),products:items.map(p=>({title:p.name,price:p.price,category:p.type,description,reviewNotes: p.id===selected.id?reviewNotes:'',webResearch:p.id===selected.id?window.vpProductResearchContext?.(p.id)||null:null,reviewStats:p.id===selected.id&&evidence?{rating:evidence.rating,reviewCount:evidence.count,writtenCount:evidence.writtenCount,images:evidence.images}:null}))})});
+  if(items.some(p=>p.source==='coupang'&&!partnerLink(p)&&isCoupangProductLink(p.originalUrl)))await Promise.all(items.filter(p=>p.source==='coupang'&&!partnerLink(p)&&isCoupangProductLink(p.originalUrl)).map(p=>issueCoupangLink(p)));
   const links=(useMulti?items:[selected]).map(p=>partnerLink(p)).filter(Boolean);
   const promoLinks=[...new Set(links)].join('\n');
   const instagramCopy=String(data.text||'').trim()+'\n\n'+(promoLinks?promoLinks+'\n':'')+affiliateDisclosure;
@@ -3039,6 +3040,7 @@ function renderThreadReplyEditor(){
 }
 function onThreadReplyEdit(value){saveThreadReply(value);window.vpCreatorRenderReview?.()}
 async function copyThreadPart(part){
+ if(part===2&&selected?.source==='coupang'&&!partnerLink(selected))await issueCoupangLink(selected);
  const text=part===2?getThreadReplyText():getCurrentThreadText();
  try{await navigator.clipboard.writeText(text);toast('Threads '+part+'단 복사 완료')}catch{toast('브라우저 복사 권한을 확인해 주세요')}
 }
@@ -3468,8 +3470,9 @@ function fitPosterType(ctx,text,maxWidth,maxHeight,initial=84,minimum=34,limit=3
   if(rows.length<=limit&&rows.length*lineHeight<=maxHeight)return {size,lineHeight,lines:rows};
  }
  ctx.font='900 '+minimum+'px "Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
- const lines=canvasWrap(ctx,text,maxWidth,100);
- return {size:minimum,lineHeight:Math.ceil(minimum*1.18),lines:lines.slice(0,limit)};
+ const lines=canvasWrap(ctx,text,maxWidth,100).slice(0,limit);
+ if(lines.length&&canvasWrap(ctx,text,maxWidth,100).length>limit){let last=lines.length-1;while(lines[last].length>1&&ctx.measureText(lines[last]+'…').width>maxWidth)lines[last]=lines[last].slice(0,-1);lines[last]=lines[last].replace(/[,. ]+$/,'')+'…'}
+ return {size:minimum,lineHeight:Math.ceil(minimum*1.18),lines};
 }
 function posterText(ctx,text,x,y,width,height,{size=90,min=40,color='#16191d',limit=3}={}){
  const layout=fitPosterType(ctx,text,width,height,size,min,limit);
@@ -3513,14 +3516,15 @@ function drawFullBleedCover(ctx,p,headline,variant=0,options={}){
   overlay.addColorStop(1,'rgba(255,250,238,0)');
  }
  ctx.fillStyle=overlay;ctx.fillRect(0,0,1080,815);
- const [main,accent]=pickHeadlineParts(headline);
+ const visualHeadline=String(headline||'').replace(/\s+/g,' ').trim();
+ const [main,accent]=pickHeadlineParts(visualHeadline.length>43?visualHeadline.slice(0,42).replace(/\s+\S*$/,'')+'…':visualHeadline);
  let headlineY=variant%3===1?118:142;
  const x=72,available=936;
- const firstEnd=posterText(ctx,main,x,headlineY,available,245,{size:91,min:48,color:'#14171c',limit:3});
+ const firstEnd=posterText(ctx,main,x,headlineY,available,204,{size:77,min:43,color:'#14171c',limit:2});
  if(accent){
   const secondY=firstEnd+10;
   const color=variant%3===2?'#a94218':'#bf4b0e';
-  const secondEnd=posterText(ctx,accent,x,secondY,available,185,{size:103,min:51,color,limit:2});
+  const secondEnd=posterText(ctx,accent,x,secondY,available,150,{size:84,min:43,color,limit:2});
   ctx.strokeStyle=variant%3===2?'rgba(177,73,28,.49)':'rgba(226,131,61,.45)';
   ctx.lineWidth=13;ctx.lineCap='round';ctx.beginPath();
   ctx.moveTo(x+15,Math.min(650,secondEnd+12));
