@@ -65,3 +65,14 @@ test('Vercel hobby compatibility: product research shares existing copy endpoint
  assert.match(copy,/import \{researchProduct\} from '..\/lib\/product-research.js'/);
  assert.match(copy,/if\(data\?\.action==='product-research'\)/);
 });
+
+test('unverified search leads are rejected before reuse or showing successful research',()=>{
+ assert.doesNotMatch(api,/mode:'web-search-leads'/);
+ assert.match(api,/reason:'no_verified_product_facts'/);
+ assert.match(frontend,/x\.confidence!=='unverified-lead'/);
+ assert.match(frontend,/response\?\.verificationIncomplete/);
+ const url='https://example.com/guide';
+ const result=normalizeProductResearch({product:'X',sources:[{title:'sample',url}],facts:[{type:'advantage',claim:'사용자에게 편리한 기능을 지원합니다',source_url:url},{type:'drawback',claim:'무거워서 휴대하기 불편합니다',source_url:url}]});
+ assert.equal(result.facts.length,1);
+ assert.equal(result.facts[0].type,'advantage');
+});
