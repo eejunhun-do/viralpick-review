@@ -19,6 +19,8 @@ test('respectful language and obvious promotional product copy is rejected in bo
  assert.ok(a.problems.some(m=>m.includes('홈쇼핑식')));
  const b=validateThreadsTone({...casual,part2:'사용하기 좋아요.\n구매해 보세요.'});
  assert.equal(b.ok,false);
+ assert.equal(validateThreadsTone({...casual,part2:'이 제품은 실용적입니다. 요리할 때 도움이 됩니다.'}).ok,false);
+ assert.equal(validateThreadsTone({...casual,part2:'계량을 정확하게 합니다. 취향에 따라 선택합니다.'}).ok,false);
 });
 test('affiliate disclaimer and ad heading stay out of AI copy',()=>{
  assert.equal(validateThreadsTone({...casual,part1:'쿠팡 파트너스 활동의 일환으로 수수료 받음'}).ok,false);
