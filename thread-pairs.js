@@ -236,7 +236,10 @@ function install(){
  finish.innerHTML='<div class="vpCreatorPhaseLabel"><span>04</span><strong>2장 연결형 이미지 최종 확인</strong><small>선택한 두 문구와 각각의 생성 이미지를 확인한 뒤 저장하세요.</small></div>'+
  '<p class="vpPairState" aria-live="polite"></p><button type="button" class="btn primary vpPairSave">불편 + 해결 이미지 2장 ZIP 저장</button>'+
  '<p class="vpCreatorEmpty">AI 생성 사진은 실제 제품·효능과 다를 수 있습니다. 기능과 이미지 활용 권한은 게시 전에 확인하세요.</p>';
- root.prepend(pair);if(photo){root.insertBefore(problem,photo);photo.after(finish)}else{root.append(problem,finish)}
+ const container=root.querySelector('.vpCreatorReference')||root;
+ container.prepend(pair);
+ if(photo&&photo.parentNode===container){container.insertBefore(problem,photo);photo.after(finish)}
+ else{container.append(problem,finish)}
  root.querySelector('.vpPairsGenerate').onclick=()=>void makePairs();
  root.querySelector('.vpPainCreate').onclick=()=>void makeImage('pain');
  root.querySelector('.vpSolveCreate').onclick=()=>void makeImage('solve');
