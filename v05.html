@@ -2980,7 +2980,7 @@ async function generateProductCopy(platform){
   const description=$('#vpAiDescription')?.value.trim()||'';
   const reviewNotes=$('#vpAiReviews')?.value.trim()||'';
   const evidence=loadReviewEvidence(reviewEvidenceKey(selected));
-  const data=await backendRequest('/api/copy',{method:'POST',body:JSON.stringify({platform,multi:useMulti,...(pair?{hookPair:{pain:pair.pain,solve:pair.solve}}:{}),products:items.map(p=>({title:p.name,price:p.price,category:p.type,description,reviewNotes: p.id===selected.id?reviewNotes:'',reviewStats:p.id===selected.id&&evidence?{rating:evidence.rating,reviewCount:evidence.count,writtenCount:evidence.writtenCount,images:evidence.images}:null}))})});
+  const data=await backendRequest('/api/copy',{method:'POST',body:JSON.stringify({platform,multi:useMulti,...(pair?{hookPair:{pain:pair.pain,solve:pair.solve}}:{}),products:items.map(p=>({title:p.name,price:p.price,category:p.type,description,reviewNotes: p.id===selected.id?reviewNotes:'',webResearch:window.vpProductResearchContext?.(p.id)||null,reviewStats:p.id===selected.id&&evidence?{rating:evidence.rating,reviewCount:evidence.count,writtenCount:evidence.writtenCount,images:evidence.images}:null}))})});
   const links=(useMulti?items:[selected]).map(p=>partnerLink(p)).filter(Boolean);
   const promoLinks=[...new Set(links)].join('\n');
   const instagramCopy=String(data.text||'').trim()+'\n\n'+(promoLinks?promoLinks+'\n':'')+affiliateDisclosure;
@@ -4369,6 +4369,7 @@ const q=new URLSearchParams(location.search).get('view');if(['dashboard','discov
 <script src="/thread-pairs.js?v=5"></script>
 <script src="/instagram-single-story.js?v=1"></script>
 <script src="/studio-product-card.js?v=1"></script>
+<script src="/product-research.js?v=1"></script>
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
  if(typeof renderInstagram==='function')renderInstagram();
