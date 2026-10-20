@@ -216,11 +216,14 @@ function render(){
 }
 function updateFinal(){
  // Both images belong to Threads post 1/2, never the 2/2 product-link reply.
+ const multi=typeof isMultiMode==='function'&&isMultiMode('Threads');
  for(const panel of ['#vpThreadVisualReview','#vpThreadSocialReview']){
-  const first=$(panel+' .vpFirstPost .vpPairGallery');
-  if(!first)continue;
-  imageNode('pain',first.querySelector('[data-pair-photo="pain"]'));
-  imageNode('solve',first.querySelector('[data-pair-photo="solve"]'));
+  const gallery=$(panel+' .vpFirstPost .vpPairGallery');
+  if(!gallery)continue;
+  gallery.hidden=multi;
+  if(multi)continue;
+  imageNode('pain',gallery.querySelector('[data-pair-photo="pain"]'));
+  imageNode('solve',gallery.querySelector('[data-pair-photo="solve"]'));
  }
 }
 async function exportTwo(){
