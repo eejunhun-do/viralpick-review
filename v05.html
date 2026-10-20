@@ -2984,7 +2984,7 @@ async function generateProductCopy(platform){
   const reviewNotes=$('#vpAiReviews')?.value.trim()||'';
   const evidence=loadReviewEvidence(reviewEvidenceKey(selected));
   const data=await backendRequest('/api/copy',{method:'POST',body:JSON.stringify({platform,multi:useMulti,...(pair?{hookPair:{pain:pair.pain,solve:pair.solve}}:{}),products:items.map(p=>({title:p.name,price:p.price,category:p.type,description,reviewNotes: p.id===selected.id?reviewNotes:'',webResearch:p.id===selected.id?window.vpProductResearchContext?.(p.id)||null:null,reviewStats:p.id===selected.id&&evidence?{rating:evidence.rating,reviewCount:evidence.count,writtenCount:evidence.writtenCount,images:evidence.images}:null}))})});
-  if(items.some(p=>p.source==='coupang'&&!partnerLink(p)&&isCoupangProductLink(p.originalUrl)))await Promise.all(items.filter(p=>p.source==='coupang'&&!partnerLink(p)&&isCoupangProductLink(p.originalUrl)).map(p=>issueCoupangLink(p)));
+  await Promise.all(items.filter(p=>p.source==='coupang'&&(!partnerLink(p)||new URL(partnerLink(p)).hostname!=='coupa.ng')).map(p=>issueCoupangLink(p)));
   const links=(useMulti?items:[selected]).map(p=>partnerLink(p)).filter(Boolean);
   const promoLinks=[...new Set(links)].join('\n');
   const instagramCopy=String(data.text||'').trim()+'\n\n'+(promoLinks?promoLinks+'\n':'')+affiliateDisclosure;
