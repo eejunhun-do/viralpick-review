@@ -44,8 +44,10 @@ function update(index,key,value){
 function redraw(){
  const root=$('#vpInstagramSingleStory');if(!root)return;
  const multi=typeof isMultiMode==='function'&&isMultiMode('Instagram');
- root.hidden=multi;
- if(multi)return;
+ root.hidden=false;
+ root.querySelector('.vpSingleSlideList').hidden=multi;
+ const generateButton=root.querySelector('#vpInstagramSingleGenerate');if(generateButton)generateButton.disabled=multi||creating;
+ if(multi){const notice=root.querySelector('.vpSingleStoryMode');if(notice)notice.textContent='모음형 선택 중입니다. 위 단품형 전환 버튼을 눌러 같은 상품의 캐러셀을 제작할 수 있습니다.';return}
  const story=getStory(),container=root.querySelector('.vpSingleSlideList');
  container.replaceChildren();
  const labels=['01 · 시선 끄는 공감 표지','02 · 불편한 순간','03 · 제품으로 해결','04 · 확인된 장점','05 · 구매 전 체크 · 저장'];
@@ -83,7 +85,7 @@ async function generate(){
   })});
   if(!Array.isArray(data.slides)||data.slides.length!==5)throw Error('5장 스토리가 생성되지 않았습니다.');
   if(productId!==productKey())throw Error('작업 상품이 바뀌어 이전 상품의 스토리는 적용하지 않았습니다.');
-  drafts.set(productId,{slides:data.slides.map(s=>({title:trim(s.title,90),detail:trim(s.detail,220),scene:trim(s.scene,420)})),generated:true});
+  drafts.set(productId,{slides:data.slides.map(s=>({title:trim(s.title,90),detail:trim(s.detail,220),scene:trim(s.scene,420)})),caption:trim(data.caption,3000),generated:true});
   save();
   const key=selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex;
   const link=typeof partnerLink==='function'?partnerLink(selected):'';
@@ -109,6 +111,7 @@ function init(){
  };
  panel.querySelector('#vpInstagramSingleGenerate').onclick=()=>void generate();
  window.vpInstagramSingleStoryForSlide=slide;
+ window.vpInstagramSingleCaption=()=>getStory().caption||'';
  window.vpInstagramSingleStoryRefresh=redraw;
  // Hook the normal product selection sync without disturbing the Threads editor.
  const prior=window.vpCreatorRefresh;
