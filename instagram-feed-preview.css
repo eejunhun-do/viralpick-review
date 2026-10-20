@@ -48,3 +48,7 @@
  .vpInstagramFeedCaption{font-size:11px}
  #instagram .carouselImageToolsRow button{min-width:100%;flex:1}
 }
+#instagram .vpSingleSceneAdvanced{margin-top:8px;border-top:1px dashed #e6e9ef;padding-top:9px}
+#instagram .vpSingleSceneAdvanced summary{font-size:11px;font-weight:750;color:#7b8797;cursor:pointer;padding:7px 0}
+#instagram .vpSingleSceneAdvanced label{display:grid;gap:7px;margin-top:8px}
+#instagram .vpSingleSceneAdvanced textarea{width:100%;background:#f9fbff;border:1px solid #dce3ed;border-radius:9px;padding:10px}
