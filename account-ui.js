@@ -30,7 +30,9 @@
  const original=backendRequest;
  backendRequest=async function(path,options={}){
  if(!state.token)return original(path,options);
- const base=persistBackendUrl(),ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),150000);
+ // Account login selects the same site's API automatically; no separate access password.
+ const base=location.hostname.endsWith('.vercel.app')?location.origin:persistBackendUrl();
+ const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),150000);
  try{const res=await fetch(base+path,{...options,headers:{...(options.headers||{}),Authorization:'Bearer '+state.token,...(options.body?{'Content-Type':'application/json'}:{})},signal:ctl.signal,cache:'no-store'});
  const data=await res.json().catch(()=>({}));
  if(!res.ok||!data.ok)throw Error(data.message||'요청 실패 ('+res.status+')');return data
@@ -41,10 +43,30 @@
  const res=await fetch(path,{method,headers:{'Content-Type':'application/json',...(state.token?{Authorization:'Bearer '+state.token}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store'});
  const data=await res.json().catch(()=>({}));if(!res.ok||!data.ok)throw Error(data.message||'서버 오류');return data;
  }
+ async function connectAfterLogin(){
+  if(!state.token)return;
+  try{
+   const status=await backendRequest('/api/status');
+   const label='로그인 계정 '+state.user+' · 서버 자동 연결됨 · OpenAI '+(status.imageReady?'등록됨':'키 미등록')+' · 쿠팡 '+(status.coupangConfigured?'등록됨':'키 미등록');
+   if(typeof showBackendState==='function')showBackendState('connected',label);
+   const health=$('#apiHealth');if(health)health.title=label;
+   const connect=$('#vpAutoConnectedNote');if(connect)connect.textContent=label;
+   if(typeof refreshCoupangCatalog==='function')void refreshCoupangCatalog();
+  }catch(e){
+   if(typeof showBackendState==='function')showBackendState('disconnected','로그인은 되었으나 계정 API 확인 실패: '+e.message);
+   const connect=$('#vpAutoConnectedNote');if(connect)connect.textContent='API 연결 확인 실패: '+e.message;
+  }
+ }
+ const connectedNote=document.createElement('p');
+ connectedNote.id='vpAutoConnectedNote';connectedNote.className='queueHint';
+ connectedNote.textContent='로그인하면 계정의 API 설정을 자동 연결합니다. 별도 서버 연결 암호를 입력하지 않습니다.';
+ root.querySelector('.top')?.append(connectedNote);
+ // The manual shared-password connector is for pre-account legacy use only.
+ if(oldPanel){const wrapper=document.getElementById('vpLegacyConnectionPanel');if(wrapper)wrapper.hidden=true}
  let initialSetup=false;
  async function initialize(){
  try{const result=await request(API);initialSetup=!result.initialized;$('#vpLoginButton').disabled=false;$('#vpAuthError').textContent='';
- if(state.token){const verify=await request(API);if(verify.loggedIn){state.user=verify.user;state.role=verify.role;gate.classList.remove('visible');if(typeof refreshCoupangCatalog==='function')void refreshCoupangCatalog();return}state.token='';sessionStorage.removeItem('vp_session')}
+ if(state.token){const verify=await request(API);if(verify.loggedIn){state.user=verify.user;state.role=verify.role;gate.classList.remove('visible');await connectAfterLogin();return}state.token='';sessionStorage.removeItem('vp_session')}
  $('#vpAuthTip').textContent=initialSetup?'관리자 계정을 최초 생성합니다. 기존 서버 연결 암호를 확인한 후 관리자 비밀번호를 설정하세요.':'아이디와 비밀번호로 로그인하세요.';
  $('#vpBootstrap').style.display=initialSetup?'block':'none';$('#vpLoginButton').textContent=initialSetup?'관리자 계정 생성':'로그인';gate.classList.add('visible');
  }catch(e){$('#vpAuthTip').textContent='로그인 서버 연결 실패: Redis 환경변수 및 배포 상태를 확인해 주세요.';$('#vpAuthError').textContent='서버 응답: '+e.message;$('#vpLoginButton').disabled=true;$('#vpLoginButton').textContent='서버 확인 중';gate.classList.add('visible');}
@@ -54,7 +76,7 @@
  if(!/^[A-Za-z0-9_-]{3,32}$/.test($('#vpUsername').value)){ $('#vpAuthError').textContent='사이트 주소가 아닌 영문 관리자 아이디를 입력해 주세요.';return; }
  const button=$('#vpLoginButton');button.disabled=true;button.textContent='처리 중…';
  try{const data=await request(API,'POST',{action:initialSetup?'setup':'login',user:$('#vpUsername').value,password:$('#vpPassword').value,...(initialSetup?{bootstrap:$('#vpBootstrap').value}:{})});
- state.token=data.token;state.user=data.user;state.role=data.role||'admin';sessionStorage.setItem('vp_session',data.token);$('#vpPassword').value='';$('#vpBootstrap').value='';gate.classList.remove('visible');show('apiSettings');loadKeys();if(typeof refreshCoupangCatalog==='function')void refreshCoupangCatalog();
+ state.token=data.token;state.user=data.user;state.role=data.role||'admin';sessionStorage.setItem('vp_session',data.token);$('#vpPassword').value='';$('#vpBootstrap').value='';gate.classList.remove('visible');show('apiSettings');await loadKeys();await connectAfterLogin();
  }catch(e){$('#vpAuthError').textContent=e.message}
  finally{const b=$('#vpLoginButton');b.disabled=false;b.textContent=initialSetup?'관리자 계정 생성':'로그인'}
  });
@@ -68,10 +90,10 @@
  const fields={coupangAccessKey:'#vpCoupangAccess',coupangSecretKey:'#vpCoupangSecret',tossApiKey:'#vpTossKey',openaiApiKey:'#vpOpenAIKey'};
  const updates={};for(const [k,sel] of Object.entries(fields)){const v=$(sel).value.trim();if(v)updates[k]=v}
  if(!Object.keys(updates).length){$('#vpKeysStatus').textContent='입력한 값이 없습니다.';return}
- try{await request('/api/credentials','POST',updates);Object.values(fields).forEach(sel=>$(sel).value='');await loadKeys();$('#vpKeysStatus').textContent+=' · 저장 완료'}catch(e){$('#vpKeysStatus').textContent=e.message}
+ try{await request('/api/credentials','POST',updates);Object.values(fields).forEach(sel=>$(sel).value='');await loadKeys();await connectAfterLogin();$('#vpKeysStatus').textContent+=' · 저장 완료'}catch(e){$('#vpKeysStatus').textContent=e.message}
  };
  $('#vpCreateUser').onclick=async()=>{try{const data=await request('/api/account','POST',{action:'create_user',user:$('#vpNewUser').value.trim(),password:$('#vpNewPassword').value});$('#vpNewPassword').value='';$('#vpUserStatus').textContent='사용자 '+data.user+' 계정 생성 완료'}catch(e){$('#vpUserStatus').textContent=e.message}};
- $('#vpKeyDelete').onclick=async()=>{const key=$('#vpDeleteSelect').value;if(!confirm('선택한 API 키를 서버에서 삭제할까요?'))return;try{await request('/api/credentials','POST',{[key]:null});await loadKeys()}catch(e){$('#vpKeysStatus').textContent=e.message}};
- $('#vpLogout').onclick=()=>{state.token='';state.user='';state.role='';sessionStorage.removeItem('vp_session');gate.classList.add('visible');show('dashboard')};
+ $('#vpKeyDelete').onclick=async()=>{const key=$('#vpDeleteSelect').value;if(!confirm('선택한 API 키를 서버에서 삭제할까요?'))return;try{await request('/api/credentials','POST',{[key]:null});await loadKeys();await connectAfterLogin()}catch(e){$('#vpKeysStatus').textContent=e.message}};
+ $('#vpLogout').onclick=()=>{state.token='';state.user='';state.role='';sessionStorage.removeItem('vp_session');if(typeof showBackendState==='function')showBackendState('disconnected','로그아웃됨');const note=$('#vpAutoConnectedNote');if(note)note.textContent='로그인하면 서버가 자동 연결됩니다.';gate.classList.add('visible');show('dashboard')};
  initialize();
 })();
