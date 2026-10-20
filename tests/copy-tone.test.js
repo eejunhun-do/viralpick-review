@@ -38,7 +38,7 @@ test('separate voice rules are explicit, and API validates before publishing',()
  assert.match(INSTAGRAM_TONE_RULES,/존댓말/);
  const api=readFileSync(new URL('../api/copy.js',import.meta.url),'utf8');
  assert.match(api,/validateThreadsTone\(parts\)/);
- assert.match(api,/if\(!check\.ok\)/);
+ assert.match(api,/if\(!check\.ok\|\|!coherence\.ok\)/);
  assert.match(api,/toneVerified:true/);
  assert.match(api,/messages\.push/);
 });
