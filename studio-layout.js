@@ -60,7 +60,7 @@ function build(platform){
   const titles={
    source:['상품과 근거 자료','단일 상품을 선택하거나 모음형을 설정하고, 추출한 후기·상세 정보를 연결하세요.'],
    copy:['문구 생성과 수정','AI로 사실 기반 문구를 만들고, 최종 게시 문장을 직접 검토하세요.'],
-   visual:['이미지 및 카드 제작','후킹 이미지와 캐러셀을 만들고 미리보기를 확인하세요.'],
+   visual:['이미지 및 카드 제작','Threads는 연결된 불편·해결 이미지 2장, Instagram은 캐러셀을 제작하세요.'],
    final:['최종 검토 · 내보내기','문구·이미지·제휴 고지를 확인한 후 저장하거나 예약하세요.']
   };
   const heading=el('div','vpStudioSectionHeading');
@@ -152,7 +152,7 @@ function build(platform){
  const quick=el('div','vpStudioStageQuick');
  if(key==='threads'){
   const copy=el('button','btn','본문 복사');copy.type='button';copy.onclick=()=>window.copyThread();
-  const save=el('button','btn primary','후킹 이미지 PNG 저장');save.type='button';save.onclick=()=>window.downloadThreadPNG();
+  const save=el('button','btn primary','불편·해결 이미지 2장 ZIP 저장');save.type='button';save.onclick=()=>window.downloadThreadPNG();
   stages.copy.insertBefore(copy,stages.copy.children[2]||null);
   quick.appendChild(save);
  }else{
