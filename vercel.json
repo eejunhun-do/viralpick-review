@@ -6,5 +6,15 @@
       "destination": "/v05.html",
       "permanent": false
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/thread-hook-pairs",
+      "destination": "/api/hooks?route=thread-pairs"
+    },
+    {
+      "source": "/api/instagram-story",
+      "destination": "/api/hooks?route=instagram-story"
+    }
   ]
 }
