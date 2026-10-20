@@ -3,6 +3,7 @@
  'use strict';
  const $=selector=>document.querySelector(selector);
  const KEY='vp-product-web-research-v1';
+ const negative=/(?:단점|아쉬|불편하|불편함|무겁|부족|불량|고장|한계|약점|문제점|단,|다만|하지만|반면|구매 전|구매전|체크사항|주의사항|유의사항|제약|제한적|쉽지 않|어렵다|못한다|안 된다)/i;
  let working=false,productSeen='',currentMessage='';
  function trim(v,max){return String(v||'').trim().slice(0,max)}
  function id(){return String(typeof selected==='undefined'?'':selected?.id||'')}
@@ -21,8 +22,9 @@
   if(!research||!Array.isArray(research.facts)||!Array.isArray(research.sources))return null;
   const sources=research.sources.slice(0,8).map(x=>({title:trim(x.title,110),url:trim(x.url,1600)}));
   const known=new Set(sources.map(x=>x.url));
-  return {summary:trim(research.summary,550),model:trim(research.model,140),
-   facts:research.facts.filter(x=>known.has(x.source_url)).slice(0,12).map(x=>({type:trim(x.type,24),claim:trim(x.claim,270),source_url:trim(x.source_url,1600)})),
+  const facts=research.facts.filter(x=>known.has(x.source_url)&&['feature','advantage','usage'].includes(x.type)&&!negative.test(String(x.claim||''))).slice(0,12).map(x=>({type:trim(x.type,24),claim:trim(x.claim,270),source_url:trim(x.source_url,1600)}));
+   return {summary:facts.length?facts.slice(0,3).map(f=>f.claim).join(' ').slice(0,550):'검증 가능한 장점 자료가 부족합니다. 추가 조사가 필요합니다.',model:trim(research.model,140),
+   facts,
    sources,notCustomerReviews:true};
  }
  function root(){return $('#vpProductWebResearch')}
@@ -52,7 +54,7 @@
   if(!evidence)return;
   view.append(text('strong','웹 검색 요약 (구매후기가 아님)'));
   if(evidence.summary)view.append(text('p',evidence.summary,'vpWebResearchSummary'));
-  const labels={feature:'확인된 제품 설명',advantage:'웹자료에 소개된 장점',drawback:'웹자료에 언급된 단점',usage:'활용 상황',caution:'구매 전 확인'};
+  const labels={feature:'확인된 제품 설명',advantage:'웹자료에 소개된 장점',usage:'활용 상황'};
   const list=document.createElement('div');list.className='vpWebResearchClaims';
   evidence.facts.forEach(f=>{
    const row=document.createElement('div');row.className='vpWebResearchClaim';
@@ -97,7 +99,7 @@
   if(!source||root())return;
   const panel=document.createElement('section');panel.id='vpProductWebResearch';panel.className='vpProductWebResearch';
   panel.innerHTML='<h3>상품명·모델명 기반 AI 웹정보 조사</h3>'+
-   '<p class="queueHint">모바일에서도 사용 가능 · 공개 블로그·웹페이지에서 장점·단점·사용 상황을 조사합니다. 실제 구매후기와 구분해 사용하며 출처를 제공합니다.</p>'+
+   '<p class="queueHint">모바일에서도 사용 가능 · 공개 블로그·웹페이지에서 확인된 장점과 활용 상황을 조사합니다. 실제 구매후기와 구분해 사용하며 출처를 제공합니다.</p>'+
    '<label class="vpWebResearchQuery">조사할 상품명 또는 모델명<input class="vpWebResearchModel" maxlength="140" placeholder="예: 브랜드 + 정확한 모델명" autocomplete="off"></label>'+
    '<button type="button" class="btn primary vpWebResearchRun">AI로 블로그·웹 제품정보 조사</button>'+
    '<p class="vpWebResearchStatus queueHint" role="status"></p><div class="vpWebResearchResult" aria-live="polite"></div>';
