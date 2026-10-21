@@ -147,10 +147,25 @@ function preview(){
  root.append(make('h1','',title()),make('div','vpBlogDisclosure','※ 제휴 링크를 통한 구매 시 일정 수수료를 제공받을 수 있습니다.'));
  if(url){const fig=make('figure','vpBlogFigure'),img=make('img');img.src=url;img.alt=p.name+' 실제 상품 썸네일';img.loading='lazy';fig.append(img,make('figcaption','','실제 상품 썸네일 · 사용 권한 검토 필요'));root.append(fig)}
  const all=state.edited||fullText();
+ const recycled=[];
+ if(typeof carouselImageForSlide==='function'){
+  for(const [number,label] of [[1,'SNS 후킹 상황 이미지'],[3,'상품 등장·활용 상황 이미지']]){
+   const asset=carouselImageForSlide(number,p?.id);
+   if(typeof asset?.data==='string'&&/^data:image\/(?:png|jpeg|webp);base64,/.test(asset.data))recycled.push({src:asset.data,label});
+  }
+ }
+ let paragraphCount=0,imageCount=0;
  for(const line of all.split(/\n+/).map(x=>x.trim()).filter(Boolean).slice(0,100)){
   if(line===title()||line.startsWith('※'))continue;
   const heading=/^\[[^\]]{2,90}\]$/.test(line);
   root.append(make(heading?'h2':'p','',heading?line.slice(1,-1):line));
+  if(!heading)paragraphCount++;
+  if(recycled[imageCount]&&(paragraphCount===2||paragraphCount===7)){
+   const {src,label}=recycled[imageCount++];
+   const fig=make('figure','vpBlogFigure'),img=make('img');img.src=src;img.loading='lazy';img.alt=label;
+   fig.append(img,make('figcaption','',label+' · 기존 Instagram 제작 이미지 재활용 (AI 생성 이미지)'));
+   root.append(fig);
+  }
  }
  const link=partnerUrl(p);
  if(link){const a=make('a','vpBlogAffiliate','상품 정보 확인하기 ↗');a.href=link;a.target='_blank';a.rel='sponsored noopener noreferrer nofollow';root.append(a)}
