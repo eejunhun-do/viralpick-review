@@ -90,3 +90,11 @@
  .vpBlogWriteTools button{width:100%}
  .vpBlogPreview{font-size:13px}
 }
+
+.vpBlogScoreDetail{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0 18px}
+.vpBlogFactor{padding:10px 12px;background:#f8faff;border:1px solid #e9eef8;border-radius:11px}
+.vpBlogFactorHead{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:10px;color:#78859b}
+.vpBlogFactorHead strong{font-size:12px;color:#365a9c;white-space:nowrap}
+.vpBlogFactorTrack{height:5px;margin-top:7px;border-radius:20px;background:#e5ebf5;overflow:hidden}
+.vpBlogFactorTrack>span{display:block;height:100%;background:#6585d1;border-radius:20px}
+@media(max-width:580px){.vpBlogScoreDetail{grid-template-columns:1fr}}
