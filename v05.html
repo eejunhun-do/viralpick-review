@@ -1746,7 +1746,11 @@ async function loadRememberedAccess(){
  }
 }
 async function quickConnectFromHeader(){
- if(window.vpAccountLoggedIn?.()){show('apiSettings');return}
+ if(window.vpAccountLoggedIn?.()){
+  if(backendConnectionState==='connected'){show('apiSettings');return}
+  if(typeof window.vpAccountReconnect==='function'){await window.vpAccountReconnect();return}
+  show('apiSettings');return;
+ }
  await connectionRestoreTask;
  if(backendConnectionBusy)return;
  if(backendConnectionState==='connected'){openQuickConnection('서버에 연결되어 있습니다. 저장 암호를 관리하거나 연결을 다시 확인할 수 있습니다.');return}
@@ -4319,7 +4323,7 @@ connectionRestoreTask=loadRememberedAccess();
 const q=new URLSearchParams(location.search).get('view');if(['dashboard','discover','integrations','lab','threads','instagram','analytics','blog','scheduler'].includes(q))show(q);
 </script>
 <script src="/studio-layout.js?v=4"></script>
-<script src="/account-ui.js?v=3"></script>
+<script src="/account-ui.js?v=4"></script>
 <script src="/workspace-upgrade.js?v=4"></script>
 <script src="/creator-assets.js?v=7"></script>
 <script src="/thread-pairs.js?v=5"></script>

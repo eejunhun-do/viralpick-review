@@ -32,7 +32,7 @@
  if(!state.token)return original(path,options);
  // Account login selects the same site's API automatically; no separate access password.
  const base=location.hostname.endsWith('.vercel.app')?location.origin:persistBackendUrl();
- const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),150000);
+ const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),path==='/api/status'?12000:150000);
  try{const res=await fetch(base+path,{...options,headers:{...(options.headers||{}),Authorization:'Bearer '+state.token,...(options.body?{'Content-Type':'application/json'}:{})},signal:ctl.signal,cache:'no-store'});
  const data=await res.json().catch(()=>({}));
  if(!res.ok||!data.ok)throw Error(data.message||'요청 실패 ('+res.status+')');return data
@@ -44,23 +44,42 @@
  const res=await fetch(path,{method,headers:{'Content-Type':'application/json',...(state.token?{Authorization:'Bearer '+state.token}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store'});
  const data=await res.json().catch(()=>({}));if(!res.ok||!data.ok)throw Error(data.message||'서버 오류');return data;
  }
+ // Authenticated accounts use the current site's API. Restoring old manual
+ // connection passwords must never block their automatic server check.
+ let connectionTask=null,lastConnectionAttempt=0;
  async function connectAfterLogin(){
-  if(!state.token)return;
-  // Finish any legacy vault restoration before marking the authenticated API connected.
-  if(typeof connectionRestoreTask!=='undefined')await Promise.resolve(connectionRestoreTask).catch(()=>{});
-  try{
-   const status=await backendRequest('/api/status');
-   const label='로그인 계정 '+state.user+' · 서버 자동 연결됨 · OpenAI '+(status.imageReady?'등록됨':'키 미등록')+' · 쿠팡 '+(status.coupangConfigured?'등록됨':'키 미등록');
-   if(typeof showBackendState==='function')showBackendState('connected',label);
-   const health=$('#apiHealth');if(health)health.title=label;
-   const connect=$('#vpAutoConnectedNote');if(connect)connect.textContent=label;
-   if(typeof refreshCoupangCatalog==='function')void refreshCoupangCatalog();
-   if(typeof window.vpPerformanceOnLogin==='function')window.vpPerformanceOnLogin();
-  }catch(e){
-   if(typeof showBackendState==='function')showBackendState('disconnected','로그인은 되었으나 계정 API 확인 실패: '+e.message);
-   const connect=$('#vpAutoConnectedNote');if(connect)connect.textContent='API 연결 확인 실패: '+e.message;
-  }
+  if(!state.token)return false;
+  if(connectionTask)return connectionTask;
+  lastConnectionAttempt=Date.now();
+  connectionTask=(async()=>{
+   if(typeof showBackendState==='function')showBackendState('connecting','로그인 계정의 서버 연결을 확인하고 있습니다.');
+   try{
+    const status=await backendRequest('/api/status');
+    const label='로그인 계정 '+state.user+' · 서버 자동 연결됨 · OpenAI '+(status.imageReady?'등록됨':'키 미등록')+' · 쿠팡 '+(status.coupangConfigured?'등록됨':'키 미등록');
+    if(typeof showBackendState==='function')showBackendState('connected',label);
+    const health=$('#apiHealth');if(health)health.title=label;
+    const note=$('#vpAutoConnectedNote');if(note)note.textContent=label;
+    if(typeof refreshCoupangCatalog==='function')void refreshCoupangCatalog();
+    if(typeof window.vpPerformanceOnLogin==='function')window.vpPerformanceOnLogin();
+    return true;
+   }catch(e){
+    const label='로그인 계정의 서버 확인 실패: '+e.message;
+    if(typeof showBackendState==='function')showBackendState('disconnected',label);
+    const note=$('#vpAutoConnectedNote');if(note)note.textContent=label+' · 상단 연결 버튼으로 다시 확인할 수 있습니다.';
+    return false;
+   }
+  })();
+  try{return await connectionTask}finally{connectionTask=null}
  }
+ // Manual recheck never requires the legacy shared-access password.
+ window.vpAccountReconnect=()=>connectAfterLogin();
+ function refreshConnectionOnReturn(){
+  if(!state.token||document.visibilityState==='hidden')return;
+  if(Date.now()-lastConnectionAttempt>=60000)void connectAfterLogin();
+ }
+ window.addEventListener('focus',refreshConnectionOnReturn);
+ document.addEventListener('visibilitychange',refreshConnectionOnReturn);
+ window.setInterval(refreshConnectionOnReturn,120000);
  const connectedNote=document.createElement('p');
  connectedNote.id='vpAutoConnectedNote';connectedNote.className='queueHint';
  connectedNote.textContent='로그인하면 계정의 API 설정을 자동 연결합니다. 별도 서버 연결 암호를 입력하지 않습니다.';
@@ -80,7 +99,7 @@
  if(!/^[A-Za-z0-9_-]{3,32}$/.test($('#vpUsername').value)){ $('#vpAuthError').textContent='사이트 주소가 아닌 영문 관리자 아이디를 입력해 주세요.';return; }
  const button=$('#vpLoginButton');button.disabled=true;button.textContent='처리 중…';
  try{const data=await request(API,'POST',{action:initialSetup?'setup':'login',user:$('#vpUsername').value,password:$('#vpPassword').value,...(initialSetup?{bootstrap:$('#vpBootstrap').value}:{})});
- state.token=data.token;state.user=data.user;state.role=data.role||'admin';sessionStorage.setItem('vp_session',data.token);$('#vpPassword').value='';$('#vpBootstrap').value='';gate.classList.remove('visible');show('apiSettings');await loadKeys();await connectAfterLogin();
+ state.token=data.token;state.user=data.user;state.role=data.role||'admin';sessionStorage.setItem('vp_session',data.token);$('#vpPassword').value='';$('#vpBootstrap').value='';gate.classList.remove('visible');show('apiSettings');await connectAfterLogin();void loadKeys();
  }catch(e){$('#vpAuthError').textContent=e.message}
  finally{const b=$('#vpLoginButton');b.disabled=false;b.textContent=initialSetup?'관리자 계정 생성':'로그인'}
  });
@@ -98,6 +117,6 @@
  };
  $('#vpCreateUser').onclick=async()=>{try{const data=await request('/api/account','POST',{action:'create_user',user:$('#vpNewUser').value.trim(),password:$('#vpNewPassword').value});$('#vpNewPassword').value='';$('#vpUserStatus').textContent='사용자 '+data.user+' 계정 생성 완료'}catch(e){$('#vpUserStatus').textContent=e.message}};
  $('#vpKeyDelete').onclick=async()=>{const key=$('#vpDeleteSelect').value;if(!confirm('선택한 API 키를 서버에서 삭제할까요?'))return;try{await request('/api/credentials','POST',{[key]:null});await loadKeys();await connectAfterLogin()}catch(e){$('#vpKeysStatus').textContent=e.message}};
- $('#vpLogout').onclick=()=>{state.token='';state.user='';state.role='';sessionStorage.removeItem('vp_session');if(typeof showBackendState==='function')showBackendState('disconnected','로그아웃됨');const note=$('#vpAutoConnectedNote');if(note)note.textContent='로그인하면 서버가 자동 연결됩니다.';gate.classList.add('visible');show('dashboard')};
+ $('#vpLogout').onclick=()=>{state.token='';state.user='';state.role='';lastConnectionAttempt=0;sessionStorage.removeItem('vp_session');if(typeof showBackendState==='function')showBackendState('disconnected','로그아웃됨');const note=$('#vpAutoConnectedNote');if(note)note.textContent='로그인하면 서버가 자동 연결됩니다.';gate.classList.add('visible');show('dashboard')};
  initialize();
 })();
