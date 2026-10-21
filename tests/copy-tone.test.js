@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {THREADS_TONE_RULES,INSTAGRAM_TONE_RULES,validateThreadsTone} from '../lib/copy-tone.js';
+import {THREADS_TONE_RULES,INSTAGRAM_TONE_RULES,validateThreadsTone,validateThreadsPart1} from '../lib/copy-tone.js';
 import {readFileSync} from 'node:fs';
 
 const casual={
@@ -41,4 +41,16 @@ test('separate voice rules are explicit, and API validates before publishing',()
  assert.match(api,/if\(!check\.ok\|\|!coherence\.ok\)/);
  assert.match(api,/toneVerified:true/);
  assert.match(api,/messages\.push/);
+});
+
+test('Threads 1단 must include a substantive body after the selected hook',()=>{
+ const hook='요리할 때 양념 눈대중으로 넣는 편임?';
+ assert.equal(validateThreadsPart1(hook,hook).ok,false);
+ assert.equal(validateThreadsPart1(hook+'\n짧음',hook).ok,false);
+ assert.equal(validateThreadsPart1('다른 후킹\n요리할 때 결과가 달라지더라\n같은 레시피도 편차가 나서 궁금해지잖아',hook).ok,false);
+ const valid=hook+'\n같은 레시피인데도 한 번씩 간이 달라져서 신경 쓰일 때 있잖아\n다들 소량 재료를 어떻게 재는지 궁금한데 매번 감으로 하기 어려운 사람도 있음';
+ assert.equal(validateThreadsPart1(valid,hook).ok,true);
+ const api=readFileSync(new URL('../api/copy.js',import.meta.url),'utf8');
+ assert.match(api,/validateThreadsPart1\(parts\.part1,hookPair\?\.pain\)/);
+ assert.match(api,/story\.ok/);
 });
