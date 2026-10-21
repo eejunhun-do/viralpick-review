@@ -53,3 +53,14 @@ test('Automatic scheduler uses actual queue, manual editor is optional, and poll
  assert.match(ui,/실제 예약 · 발행 내역/);
  assert.match(ui,/const product=''/);
 });
+
+test('Media reservation does not silently fall back to text-only after a Blob failure',()=>{
+ const ui=readFileSync(new URL('../social-publishing-ui.js',import.meta.url),'utf8');
+ const backend=readFileSync(new URL('../lib/social-publishing.js',import.meta.url),'utf8');
+ assert.match(ui,/if\(!status\.blobConfigured\)throw Error/);
+ assert.match(ui,/vpThreadPairPrepareForReservation/);
+ assert.match(ui,/imageUrls\.length!==count/);
+ assert.match(ui,/이미지.*업로드 실패/);
+ assert.match(backend,/Threads 1단·2단 각각 500자/);
+ assert.match(backend,/await waitMedia\(container\.id\)/);
+});

@@ -101,3 +101,10 @@ test('Two-image generation gives separate progress and preserves existing photo 
  assert.match(frontend,/이미지 제작 진행 · 오류 로그/);
  assert.match(css,/vpPairProgress\[data-phase="failed"\]/);
 });
+
+test('Threads paired-image scheduling requires both decoded, real photos rather than fallback artwork',()=>{
+ assert.match(frontend,/async function prepareImagesForReservation\(\)/);
+ assert.match(frontend,/vpThreadPairPrepareForReservation=prepareImagesForReservation/);
+ assert.match(frontend,/if\(!r\.images\[index\+':\'\+slot\]\)/);
+ assert.match(frontend,/img\.complete/);
+});
