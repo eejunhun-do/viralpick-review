@@ -10,7 +10,7 @@ function safe(text,max=160){
  return String(text||'').replace(/https?:\/\/\S+/gi,'[주소]').replace(/(api[_ -]?key|secret|password|token|access[_ -]?key)\s*[:=]\s*\S+/gi,'[민감정보]').replace(/[\r\n\t]+/g,' ').slice(0,max);
 }
 function read(){
- try{const value=JSON.parse(sessionStorage.getItem(LOG_KEY)||'[]');
+ try{const value=JSON.parse(sessionStorage.getItem(LOG_KEY)||sessionStorage.getItem('vp-activity-log-v1')||'[]');
   return Array.isArray(value)?value.filter(v=>v&&['info','busy','success','error','warning'].includes(v.level)).slice(0,LIMIT):[]
  }catch{return []}
 }
@@ -127,7 +127,7 @@ function commandArea(button){
 }
 function commandClick(event){
  const element=event.target;
- const button=element?.closest?.('button,[role="button"],input[type="submit"],input[type="button"]');
+ const button=element?.closest?.('button,[role="button"],input[type="submit"],input[type="button"],a.btn,.modeCard,.product,.cardThumb,.visual,.copyTab,[onclick]');
  if(!button||button.disabled||button.closest?.('#vpActivityDock'))return;
  const area=commandArea(button),label=commandLabel(button);
  // Covers dynamically added dashboard, discovery, Threads, Instagram, blog and modal buttons.
