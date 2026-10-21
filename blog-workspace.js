@@ -21,7 +21,12 @@ function partnerUrl(p){
  const link=typeof publishPartnerLink==='function'?publishPartnerLink(p):null;
  return typeof link==='string'&&/^https:\/\/(?:coupa\.ng|link\.coupang\.com)\//.test(link)?link:'';
 }
-function putStatus(msg,kind='info'){const el=$('#vpBlogStatus');if(el){el.textContent=msg;el.dataset.kind=kind}}
+function putStatus(msg,kind='info'){
+ const el=$('#vpBlogStatus');if(el){el.textContent=msg;el.dataset.kind=kind}
+ // These are actual completed/failed UI outcomes, distinct from button-click intent.
+ if(kind==='error')window.vpActivity?.error('블로그 · 작업 실패',String(msg).slice(0,190));
+ else if(kind==='success')window.vpActivity?.info('블로그 · 처리 완료',String(msg).slice(0,190));
+}
 function setBusy(b,msg){
  state.busy=b;
  for(const id of ['vpBlogAnalyze','vpBlogRefresh','vpBlogWrite']){const btn=$('#'+id);if(btn)btn.disabled=b||!pCurrent()}
@@ -135,11 +140,16 @@ function renderDraft(){
  const d=state.draft;if(!d)return;
  $('#vpBlogDraftSection').hidden=false;const list=$('#vpBlogTitles');list.replaceChildren();
  d.titles.forEach((val,index)=>{
-  const b=clickable((index+1)+'. '+val,'vpBlogTitleOption '+(state.title===index?'active':''),()=>{
+  const role=d.titleRoles?.[index]||[
+  {label:'검색 키워드 · 문제 해결'},{label:'검색 키워드 · 사용 방법'},{label:'검색 키워드 · 정보 탐색'},{label:'구매 직전 · 선택 기준'},{label:'확인된 상품명 또는 제품군'}
+ ][index];
+ const b=clickable('', 'vpBlogTitleOption '+(state.title===index?'active':''),()=>{
    const original=state.edited===fullText();state.title=index;
    if(original)state.edited=fullText();
    renderDraft();
-  });list.append(b);
+  });
+  b.append(make('span','vpBlogTitleRole',(index+1)+'번 · '+role.label),make('span','vpBlogTitleText',val));
+  list.append(b);
  });
  if(!state.edited)state.edited=fullText();
  $('#vpBlogFinalEdit').value=state.edited;
