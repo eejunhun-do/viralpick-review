@@ -1,0 +1,51 @@
+/* ViralPick persistent activity center, fixed above the mobile navigation. */
+.vpActivityDock{position:fixed;right:20px;bottom:18px;z-index:94;width:min(410px,calc(100vw - 28px));font-family:inherit;color:#1c293b}
+.vpActivitySummary{width:100%;min-height:62px;display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #dce3ec;border-radius:16px;padding:10px 13px;box-shadow:0 6px 20px #14253d24;text-align:left;cursor:pointer;color:inherit}
+.vpActivityIndicator{width:30px;height:30px;border-radius:50%;background:#eef2fb;color:#4664a7;font-size:19px;font-weight:900;display:grid;place-items:center;flex:none}
+.vpActivityDock[data-status="busy"] .vpActivityIndicator{color:#1e62bc;background:#e6f2ff;animation:vpActivityPulse 1.6s ease-in-out infinite}
+.vpActivityDock[data-status="success"] .vpActivityIndicator{color:#117a59;background:#e3f6ea}
+.vpActivityDock[data-status="error"] .vpActivityIndicator{color:#b92e42;background:#ffe6eb}
+.vpActivityText{min-width:0;display:grid;gap:3px;flex:1}
+.vpActivityText strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:900}
+.vpActivityText small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#66748b;font-size:10px}
+.vpActivityCount{font-size:10px;color:#64728b;white-space:nowrap;font-weight:800}
+.vpActivityArrow{color:#64748b;transition:transform .2s}
+.vpActivityDock.expanded .vpActivityArrow{transform:rotate(180deg)}
+.vpActivityPanel{position:absolute;bottom:calc(100% + 7px);left:0;right:0;max-height:min(52vh,450px);background:white;border-radius:15px;border:1px solid #dce3ec;box-shadow:0 10px 30px #14253d40;overflow:hidden;display:flex;flex-direction:column}
+.vpActivityPanel[hidden]{display:none!important}
+.vpActivityHeading{padding:11px 13px;border-bottom:1px solid #e8edf5;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.vpActivityHeading strong{font-size:12px}
+.vpActivityClear{border:0;background:#f2f4f7;border-radius:8px;padding:7px 9px;color:#5d6d82;cursor:pointer;font-size:10px}
+.vpActivityList{list-style:none;margin:0;padding:8px 11px;overflow:auto;overscroll-behavior:contain}
+.vpActivityRow{display:flex;align-items:flex-start;gap:9px;padding:9px 3px;border-bottom:1px solid #edf0f4}
+.vpActivityRow:last-child{border:0}
+.vpActivityDot{width:7px;height:7px;margin:5px 2px 0;border-radius:50%;background:#a0aabb;flex:none}
+.vpActivityRow.busy .vpActivityDot{background:#3f7cda;animation:vpActivityPulse 1.5s infinite}
+.vpActivityRow.success .vpActivityDot{background:#19a371}
+.vpActivityRow.error .vpActivityDot{background:#db4658}
+.vpActivityRow.warning .vpActivityDot{background:#e9a23a}
+.vpActivityRow>div{min-width:0;flex:1}
+.vpActivityLine{display:flex;justify-content:space-between;gap:12px;align-items:start}
+.vpActivityLine strong{font-size:11px;font-weight:850;line-height:1.4}
+.vpActivityLine time{color:#9aa3b2;font-size:9px;flex:none;white-space:nowrap}
+.vpActivityRow p{margin:3px 0 0;font-size:10px;color:#68768d;line-height:1.5;overflow-wrap:anywhere}
+.vpActivityEmpty{font-size:11px;text-align:center;color:#8893a4;padding:20px 5px}
+@keyframes vpActivityPulse{50%{opacity:.45;transform:scale(.94)}}
+.mobileTopBrandButton,.brandHomeButton{border:0;background:transparent;color:inherit;cursor:pointer;padding:0;text-align:left;font:inherit;max-width:100%}
+.brandHomeButton{font-weight:950;font-size:25px;letter-spacing:-1px}
+.mobileTopBrandButton{display:grid;gap:4px;align-content:center;min-width:0}
+.mobileTopBrandButton .mobileTopBrand{display:block}
+.mobileTopBrandButton .mobileTopSub{display:block;margin:0}
+.mobileTopBrandButton:focus-visible,.brandHomeButton:focus-visible{outline:2px solid #5579db;outline-offset:4px;border-radius:4px}
+@media(max-width:930px){
+ body{padding-bottom:calc(146px + env(safe-area-inset-bottom,0px))}
+ .vpActivityDock{bottom:calc(75px + env(safe-area-inset-bottom,0px));left:8px;right:8px;width:auto}
+ .vpActivitySummary{min-height:57px;border-radius:12px;padding:8px 10px;box-shadow:0 -3px 15px #14253d12}
+ .vpActivityIndicator{width:29px;height:29px}
+ .vpActivityCount{font-size:9px}
+ .vpActivityPanel{max-height:min(55dvh,475px)}
+ .toast{bottom:calc(148px + env(safe-area-inset-bottom,0px))!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .vpActivityDock[data-status="busy"] .vpActivityIndicator,.vpActivityRow.busy .vpActivityDot{animation:none}
+}
