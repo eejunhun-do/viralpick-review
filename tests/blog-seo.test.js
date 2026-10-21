@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {Script} from 'node:vm';
-import {BLOG_TYPES,SEO_WEIGHTS,blogProductInput,validateBlogPlan,validateBlogDraft} from '../lib/blog-seo.js';
+import {BLOG_TYPES,BLOG_TITLE_ROLES,SEO_WEIGHTS,blogProductInput,validateBlogPlan,validateBlogDraft} from '../lib/blog-seo.js';
 
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const html=read('v05.html'),ui=read('blog-workspace.js'),css=read('blog-workspace.css'),api=read('api/blog.js');
@@ -83,4 +83,21 @@ test('server blog generation is protected and never claims measured Naver search
  assert.match(api,/measuredSearchVolume:false/);
  assert.match(api,/직접 제품을 사용|직접 제품을 사용하거나 구매/);
  assert.match(api,/실제 키워드 검색량/);
+});
+
+test('blog AI title mix contains exactly three search titles, one purchase and one verified product/category option',()=>{
+ assert.deepEqual(BLOG_TITLE_ROLES.map(x=>x.kind),['search','search','search','buying','named']);
+ const draft=validateBlogDraft({
+  titles:['차량 방전 시 대처하는 방법 정리','점프스타터를 사용하기 전에 알아둘 정보','자동차 시동이 안 걸릴 때 확인 방법','휴대용 점프스타터 선택 기준을 알아보기','배터리가 방전된 상황에 필요한 준비 방법'],
+  sections:Array.from({length:5},(_,i)=>({heading:'본문 '+i,paragraphs:['운전자라면 문제를 해결할 방법부터 확인하세요. 안전 사항도 설명합니다.']}))
+ });
+ assert.equal(draft.titleRoles.length,5);
+ assert.deepEqual(draft.titleRoles.map(x=>x.kind),['search','search','search','buying','named']);
+ assert.match(api,/1번=일반 검색어\/문제 해결 중심/);
+ assert.match(api,/4번은 제품군 \+ 고르는 법/);
+ assert.match(api,/임의 브랜드나 모델명을 만들지 않는다/);
+ assert.match(ui,/vpBlogTitleRole/);
+ assert.match(css,/\.vpBlogTitleRole/);
+ const repeat=Array(5).fill('배터리 방전 해결 방법, 필요한 제품은 무엇일까요');
+ assert.equal(validateBlogDraft({titles:repeat,sections:draft.sections}),null);
 });
