@@ -120,7 +120,7 @@ test('blog preview auto-inserts 1-4 photos between paragraphs with source and po
  assert.match(ui,/root\.append\(inlineFigure\(/);
  assert.match(ui,/state\.media\.consent&&p&&typeof loadReviewEvidence/);
  assert.match(ui,/5\*1024\*1024/);
- assert.match(ui,/이미지 파일을 별도로 업로드/);
+ assert.match(html,/이미지 파일을 별도로 업로드/);
  assert.match(css,/vpBlogInlineFigure/);
  assert.match(css,/vpBlogImageRows/);
 });
