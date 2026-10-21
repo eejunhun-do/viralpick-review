@@ -1070,43 +1070,9 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 </section>
 
 <section id="blog" class="view">
-  <div class="top"><div><span class="badge green">Performance → Blog</span><h1>반응이 검증된 상품만 블로그로 확장</h1><p>Threads·Instagram의 실제 반응과 링크 클릭·구매 성과를 분석해 블로그로 확장할 가치가 높은 콘텐츠를 먼저 추천합니다.</p></div><div class="btnrow"><button class="btn" onclick="cycleBlogPerformance()">성과 데이터 시뮬레이션</button><button class="btn primary" onclick="refreshBlogRecommendations()">추천 다시 분석</button></div></div>
-
-  <div class="performanceHero">
-    <div class="perfBox"><div class="pk">분석 게시물</div><div class="pv" id="perfPosts">42</div><div class="ps">최근 7일 Threads + Instagram</div></div>
-    <div class="perfBox"><div class="pk">총 링크 클릭</div><div class="pv" id="perfClicks">1,284</div><div class="ps">파트너스 링크 이동</div></div>
-    <div class="perfBox"><div class="pk">구매 발생</div><div class="pv" id="perfSales">37</div><div class="ps">성과 데이터 연결 예정</div></div>
-    <div class="perfBox"><div class="pk">블로그 확장 추천</div><div class="pv" id="perfRecommended">3</div><div class="ps">성과점수 70 이상</div></div>
-  </div>
-
-  <div class="panel"><div class="panelHead"><h2>성과 기반 추천 콘텐츠</h2><div class="statusline"><span class="status">최근 7일</span><span class="status">클릭·저장·구매 가중</span><span class="status">점수 높은 순</span></div></div><div class="pad">
-    <div class="aiNote" style="margin-bottom:12px"><b>추천 원칙</b> · 조회수만 높은 상품보다 저장/공유가 많고 링크 클릭과 구매 의도가 확인된 상품을 우선합니다. SNS에서 이미 관심이 검증된 주제를 검색형 장문 콘텐츠로 확장하는 방식입니다.</div>
-    <div class="recommendList" id="blogRecommendList"></div>
-  </div></div>
-
-  <div id="blogComposer">
-    <div class="blogGate" id="blogGate"><b>추천 콘텐츠를 하나 선택해주세요</b>위 추천 리스트에서 성과를 확인한 뒤 ‘블로그로 확장’을 누르면 제목·키워드·본문을 생성합니다.</div>
-    <div id="blogGeneratedArea" style="display:none">
-      <div class="panel"><div class="panelHead"><h2>선택한 성과 콘텐츠</h2><span class="badge blue" id="selectedBlogScore">성과점수 -</span></div><div class="pad" id="selectedBlogSummary"></div></div>
-
-      <div class="twocol">
-        <div>
-          <div class="panel"><div class="panelHead"><h2>검색형 제목 5안</h2><span class="badge blue">성과 기반 SEO 초안</span></div><div class="pad"><div class="blogTitleGrid" id="blogTitles"></div></div></div>
-          <div class="panel"><div class="panelHead"><h2>검색 키워드</h2><span class="badge">자연스럽게 사용</span></div><div class="pad"><div class="keywordWrap" id="blogKeywords"></div><p class="footnote">SNS에서 반응했던 문제·질문·상품 사용 맥락을 검색 키워드로 확장합니다.</p></div></div>
-          <div class="panel"><div class="panelHead"><h2>블로그용 이미지 구성</h2></div><div class="pad statusline"><span class="status">성과 후킹 대표 이미지</span><span class="status">상황 이미지</span><span class="status">상품 원본</span><span class="status">핵심 기능 카드</span><span class="status">구매판단 카드</span></div></div>
-        </div>
-        <div class="panel"><div class="panelHead"><h2>블로그 설정</h2><span class="badge orange" id="blogTypeBadge">성과확장형</span></div><div class="pad blogTools">
-          <div class="field"><label>작성 플랫폼</label><select><option>네이버 블로그</option><option disabled>티스토리 · 추후 지원</option><option disabled>WordPress · 추후 지원</option></select></div>
-          <div class="field"><label>글 유형</label><select id="blogType" onchange="renderBlogComposer()"><option>성과확장형</option><option>구매가이드형</option><option>문제해결형</option><option>제품분석형</option></select></div>
-          <div class="field"><label>본문 길이</label><select id="blogLength"><option>기본 · 약 1,500~2,500자</option><option>짧게 · 약 1,000자</option><option>상세 · 약 3,000자</option></select></div>
-          <div class="btnrow"><button class="btn" onclick="cycleBlogTitles()">제목 5안 재생성</button><button class="btn primary" onclick="copyBlog()">본문 전체 복사</button></div>
-          <div class="aiNote">블로그 글의 첫 방향은 선택 상품의 SNS 성과에서 가져옵니다. 예: ‘저장률이 높음’이면 체크리스트/구매가이드, ‘댓글 질문이 많음’이면 문제해결형, ‘클릭률이 높음’이면 구매판단형을 우선합니다.</div>
-        </div></div>
-      </div>
-
-      <div class="panel"><div class="panelHead"><h2>네이버 블로그 미리보기</h2><span class="badge green">성과 근거 + 검색형 장문</span></div><div class="pad"><article class="blogPreview" id="blogPreview"></article></div></div>
-    </div>
-  </div>
+ <div id="vpBlogStudio" class="vpBlogStudio">
+  <div class="vpBlogLoading">블로그 제작 화면 준비 중…</div>
+ </div>
 </section>
 
 <section id="scheduler" class="view">
@@ -4035,149 +4001,11 @@ function blogFromAnalytics(productId){show('blog');setTimeout(()=>chooseBlogReco
 function resetAnalyticsFilters(){if($('#anPeriod'))$('#anPeriod').value='7';if($('#anPlatform'))$('#anPlatform').value='all';if($('#anType'))$('#anType').value='all';if($('#anSearch'))$('#anSearch').value='';renderAnalytics()}
 function cycleAnalyticsData(){analyticsScenario=(analyticsScenario+1)%analyticsSets.length;analyticsSelectedId=null;renderAnalytics();toast('게시 성과 데이터 시나리오를 변경했습니다')}
 
-let blogSelectedId=null, blogPerformanceScenario=0;
-const blogPerformanceSets=[
- [
-  {id:2,threadViews:16200,replies:96,instaReach:18800,saves:612,clicks:506,sales:18,score:96,signal:'클릭·구매 강함',angle:'구매판단형',reason:'링크 클릭과 구매 전환이 가장 높아 검색 유입을 구매로 연결할 가능성이 큼'},
-  {id:1,threadViews:23800,replies:182,instaReach:12400,saves:438,clicks:420,sales:14,score:94,signal:'Threads 반응 강함',angle:'문제해결형',reason:'Threads 조회·답글과 링크 클릭이 함께 높아 문제 해결 검색어로 확장하기 좋음'},
-  {id:3,threadViews:10800,replies:145,instaReach:22200,saves:804,clicks:358,sales:5,score:89,signal:'저장·공유형',angle:'체크리스트형',reason:'Instagram 저장 반응이 매우 높아 사용법·추천대상·체크리스트형 검색 콘텐츠에 적합'}
- ],
- [
-  {id:3,threadViews:14500,replies:201,instaReach:28600,saves:1120,clicks:486,sales:11,score:97,signal:'저장률 급상승',angle:'문제해결형',reason:'저장과 댓글 질문이 동시에 증가해 상세 사용 상황을 설명하는 블로그 확장 가치가 높음'},
-  {id:2,threadViews:19400,replies:112,instaReach:17100,saves:521,clicks:544,sales:20,score:95,signal:'구매전환 강함',angle:'구매가이드형',reason:'클릭 대비 구매가 꾸준해 기능·옵션·추천대상을 정리한 구매가이드가 유리'},
-  {id:1,threadViews:18400,replies:151,instaReach:13800,saves:390,clicks:362,sales:10,score:87,signal:'질문 반응',angle:'FAQ형',reason:'댓글 질문이 많아 자주 묻는 질문 중심의 검색형 글로 확장할 만함'}
- ],
- [
-  {id:1,threadViews:30100,replies:244,instaReach:16600,saves:566,clicks:618,sales:22,score:98,signal:'전 채널 강세',angle:'구매판단형',reason:'조회·댓글·클릭·구매가 모두 높아 가장 먼저 검색형 장문으로 확장할 후보'},
-  {id:2,threadViews:13100,replies:84,instaReach:20500,saves:704,clicks:401,sales:13,score:91,signal:'Instagram 강세',angle:'비교체크형',reason:'저장과 클릭이 높아 핵심 기능과 구매 체크포인트를 정리하면 검색 전환을 기대할 수 있음'},
-  {id:3,threadViews:12100,replies:162,instaReach:19800,saves:690,clicks:274,sales:4,score:78,signal:'관심은 높음',angle:'정보형',reason:'저장·댓글은 높지만 구매는 낮아 판매형보다 정보형 블로그로 확장하는 편이 적합'}
- ]
-];
-
-function currentBlogPerformance(){return blogPerformanceSets[blogPerformanceScenario%blogPerformanceSets.length]}
-function performanceFor(id){return currentBlogPerformance().find(x=>x.id===id)}
-function blogProduct(id){return products.find(p=>p.id===id)||products[0]}
-function blogKeywordList(p){
-  if(p.id===1) return ['디지털 수평계','레이저 수평계','가구 조립 수평계','DIY 공구','선반 수평 맞추기'];
-  if(p.id===2) return ['무선 핸디 청소기','차량용 청소기','차량 틈새 청소','미니 청소기','자취 생활템'];
-  return ['강아지 발 세정컵','반려동물 발 세척','산책 후 발 닦기','강아지 산책용품','반려견 생활용품'];
-}
-function blogTitleList(p,perf){
- const k=blogKeywordList(p)[0], angle=perf?.angle||'구매판단형';
- const sets=[
-  [
-   `${k} 필요할까? ${p.name} 기능·장단점·가격 정리`,
-   `${p.name} 구매 전 확인할 점｜추천 대상과 아쉬운 점`,
-   `${p.problem.replace('는데','다면')}? ${p.name} 활용 포인트 정리`,
-   `${k} 고를 때 무엇을 볼까? ${p.name} 체크리스트`,
-   `${p.name}, 가격보다 먼저 볼 기능과 사용 상황`
-  ],
-  [
-   `${p.name} 어떤 사람에게 잘 맞을까? 실제 사용 상황 중심 정리`,
-   `${k} 찾는다면 먼저 볼 것들｜기능·옵션·가격 체크`,
-   `${p.name} 구매 전 5분 정리: 장점·주의점·추천 대상`,
-   `${p.problem.replace('는데','다면')} 알아둘 ${k} 선택 기준`,
-   `${angle}으로 정리한 ${p.name} 핵심 체크포인트`
-  ]
- ]; return sets[blogSeed%sets.length];
-}
-function blogBody(p,perf){
- const title=blogTitleList(p,perf)[blogTitleIndex], k=blogKeywordList(p);
- const strategy=perf?.angle||'성과확장형';
- return {
-  title,
-  html:`<div class="badge green">성과 확장형 · ${strategy}</div><h1>${title}</h1>
-  <div class="aiNote">※ 이 글에는 토스쇼핑 쉐어링크가 포함될 수 있으며, 구매 발생 시 일정 수수료를 제공받을 수 있습니다.</div>
-  <div class="blogHero">대표 이미지<br><b>${p.name}</b><br><span style="font-size:10px;font-weight:700">SNS에서 반응한 문제·후킹을 검색형 제목으로 재구성</span></div>
-  <p>${p.problem} 이런 상황은 짧은 SNS 콘텐츠에서도 관심을 끌기 쉬운 주제입니다. 블로그에서는 여기서 한 단계 더 들어가, 이 제품이 어떤 상황에서 필요한지와 구매 전에 확인할 부분을 차분하게 정리해보겠습니다.</p>
-  <h2>왜 관심을 받는 제품일까?</h2>
-  <div class="blogImage">성과가 좋았던 상황 이미지<br>${p.visual}</div>
-  <p>${p.name}의 핵심은 <b>${p.novel}</b>이라는 점입니다. 특히 ${p.audience}처럼 같은 불편을 반복해서 겪는 경우라면 기능을 이해하기 쉽고 구매 필요성도 판단하기 편합니다.</p>
-  <h2>어떤 사람에게 잘 맞을까?</h2>
-  <div class="blogImage">토스 제공 상품 원본 이미지 자리</div>
-  <p>${p.audience} 중에서도 해당 문제를 자주 겪는 사람에게 더 적합합니다. 반대로 사용 빈도가 낮거나 비슷한 기능의 제품을 이미 가지고 있다면 꼭 새로 구매할 필요는 없습니다.</p>
-  <h2>구매 전에 확인할 점</h2>
-  <div class="proscons"><div class="pc"><b>추천 포인트</b><div>✓ ${p.novel}<br>✓ 반복 불편을 줄이는 목적이 분명함<br>✓ ${perf.signal} 반응을 보인 주제</div></div><div class="pc"><b>확인할 점</b><div>• 실제 옵션·크기·사양 확인<br>• 최신 리뷰와 판매 상태 확인<br>• 내 사용 빈도와 필요성 확인</div></div></div>
-  <h2>현재 가격은?</h2>
-  <p>작성 화면 기준 토스쇼핑 판매가는 <b>${fmt(p.price)}</b>, 표시 할인율은 <b>${p.discount}%</b>입니다. 가격과 재고는 바뀔 수 있으므로 실제 구매 시점에는 최신 정보를 다시 확인해 주세요.</p>
-  <div class="blogImage">구매판단 카드<br>${k.slice(0,3).join(' · ')}</div>
-  <h2>정리</h2>
-  <p>${p.name}은 단순히 할인율만 보고 고르기보다 내가 ${p.problem.replace('는데','는 상황을 얼마나 자주 겪는지')}를 먼저 생각해보는 편이 좋습니다. 사용 상황과 기능이 맞는다면 가격·옵션·최신 리뷰를 확인한 뒤 결정하는 것을 추천합니다.</p>
-  <div class="cta">최신 상품 정보와 가격은 쉐어링크에서 확인</div>`,
-  text:`${title}
-
-※ 이 글에는 토스쇼핑 쉐어링크가 포함될 수 있으며, 구매 발생 시 일정 수수료를 제공받을 수 있습니다.
-
-${p.problem} 이런 상황은 짧은 SNS 콘텐츠에서도 관심을 끌기 쉬운 주제입니다. 블로그에서는 이 제품이 어떤 상황에서 필요한지와 구매 전에 확인할 부분을 정리합니다.
-
-[왜 관심을 받는 제품일까?]
-${p.name}의 핵심은 ${p.novel}이라는 점입니다. 특히 ${p.audience}에게 활용도가 높을 수 있습니다.
-
-[어떤 사람에게 잘 맞을까?]
-해당 문제를 자주 겪는 사람에게 더 적합합니다. 사용 빈도가 낮다면 꼭 필요하지 않을 수도 있습니다.
-
-[구매 전에 확인할 점]
-추천 포인트: ${p.novel}
-확인할 점: 옵션·크기·사양, 최신 리뷰, 판매 상태, 사용 빈도
-
-[현재 가격]
-작성 화면 기준 토스쇼핑 판매가는 ${fmt(p.price)}, 표시 할인율은 ${p.discount}%입니다. 실제 구매 시점에는 최신 정보를 다시 확인해 주세요.
-
-[정리]
-사용 상황과 기능이 맞는지 먼저 확인하고 가격·옵션·최신 리뷰를 보고 결정하는 것을 추천합니다.`
- };
-}
-function renderBlogRecommendations(){
- const rows=currentBlogPerformance().slice().sort((a,b)=>b.score-a.score);
- if(!$('#blogRecommendList')) return;
- $('#blogRecommendList').innerHTML=rows.map((r,idx)=>{
-   const p=blogProduct(r.id), selectedRow=blogSelectedId===r.id?'selected':'';
-   return `<div class="recommendItem ${selectedRow}">
-    <div><div class="recProd"><div class="miniThumb">상품<br>원본</div><div><span class="badge ${idx===0?'green':'blue'}">${idx===0?'1순위 추천':r.signal}</span><b style="display:block;margin-top:6px">${p.name}</b><span>${r.angle} 추천</span></div></div><div class="recReason">${r.reason}</div></div>
-    <div class="perfMetrics">
-      <div class="perfMetric"><b>${r.threadViews.toLocaleString()}</b><span>Threads 조회</span></div>
-      <div class="perfMetric"><b>${r.saves.toLocaleString()}</b><span>IG 저장</span></div>
-      <div class="perfMetric"><b>${r.clicks.toLocaleString()}</b><span>링크 클릭</span></div>
-      <div class="perfMetric"><b>${r.sales}</b><span>구매</span></div>
-    </div>
-    <div class="opportunity"><span>블로그 확장점수</span><b>${r.score}</b><div class="oppbar"><i style="width:${r.score}%"></i></div></div>
-    <button class="btn primary" onclick="chooseBlogRecommendation(${r.id})">블로그로 확장</button>
-   </div>`;
- }).join('');
- const clicks=rows.reduce((s,r)=>s+r.clicks,0), sales=rows.reduce((s,r)=>s+r.sales,0);
- $('#perfClicks').textContent=clicks.toLocaleString();$('#perfSales').textContent=sales;$('#perfRecommended').textContent=rows.filter(r=>r.score>=70).length;
-}
-function chooseBlogRecommendation(id){
- blogSelectedId=id;blogTitleIndex=0;blogSeed=0;
- renderBlogRecommendations();renderBlogComposer();
- $('#blogGate').style.display='none';$('#blogGeneratedArea').style.display='block';
- toast('성과가 검증된 상품을 블로그 제작 대상으로 선택했습니다');
- document.getElementById('blogGeneratedArea').scrollIntoView({behavior:'smooth',block:'start'});
-}
-function renderBlogComposer(){
- if(!blogSelectedId) return;
- const p=blogProduct(blogSelectedId), perf=performanceFor(blogSelectedId);
- const titles=blogTitleList(p,perf), keys=blogKeywordList(p);
- $('#blogTitles').innerHTML=titles.map((t,i)=>`<div class="blogTitle ${blogTitleIndex===i?'active':''}" onclick="blogTitleIndex=${i};renderBlogComposer()"><span style="color:#9299a3;margin-right:7px">${i+1}</span>${t}</div>`).join('');
- $('#blogKeywords').innerHTML=keys.map(k=>`<span class="keyword"># ${k}</span>`).join('');
- $('#blogPreview').innerHTML=blogBody(p,perf).html;
- $('#blogTypeBadge').textContent=$('#blogType')?$('#blogType').value:perf.angle;
- $('#selectedBlogScore').textContent='성과점수 '+perf.score;
- $('#selectedBlogSummary').innerHTML=`<div class="detail"><div class="heroImg" style="width:82px;height:82px">상품 원본<br>이미지</div><div><span class="badge green">${perf.signal}</span><h3 style="margin:6px 0">${p.name}</h3><p style="margin:0">${perf.reason}</p></div></div><div class="statusline" style="margin-top:12px"><span class="status">Threads 조회 ${perf.threadViews.toLocaleString()}</span><span class="status">Instagram 저장 ${perf.saves.toLocaleString()}</span><span class="status">링크 클릭 ${perf.clicks.toLocaleString()}</span><span class="status">구매 ${perf.sales}</span><span class="status">추천 글형식 ${perf.angle}</span></div>`;
-}
-function cycleBlogTitles(){if(!blogSelectedId){toast('먼저 추천 콘텐츠를 선택해주세요');return}blogSeed++;blogTitleIndex=0;renderBlogComposer();toast('성과 기반 제목 5안을 새로 만들었습니다')}
-function cycleBlogPerformance(){
- blogPerformanceScenario=(blogPerformanceScenario+1)%blogPerformanceSets.length;blogSelectedId=null;
- $('#blogGate').style.display='block';$('#blogGeneratedArea').style.display='none';
- const postCounts=[42,48,45];$('#perfPosts').textContent=postCounts[blogPerformanceScenario];
- renderBlogRecommendations();toast('성과 데이터 시나리오를 변경했습니다');
-}
-function refreshBlogRecommendations(){renderBlogRecommendations();toast('최근 성과를 다시 분석해 추천 순위를 갱신했습니다')}
-async function copyBlog(){
- if(!blogSelectedId){toast('먼저 추천 콘텐츠를 선택해주세요');return}
- const p=blogProduct(blogSelectedId),perf=performanceFor(blogSelectedId);
- try{await navigator.clipboard.writeText(blogBody(p,perf).text);toast('블로그 본문을 복사했습니다')}catch(e){toast('브라우저 복사 권한을 확인해주세요')}
-}
+// The old example-based blog dashboard has been retired. No invented SNS performance metrics.
+function renderBlogRecommendations(){window.vpBlogSync?.()}
+function chooseBlogRecommendation(productId){window.vpBlogSelectProduct?.(productId)}
+function refreshBlogRecommendations(){window.vpBlogPlan?.()}
+function cycleBlogPerformance(){window.vpBlogPlan?.()}
 
 function clampNum(v,min,max,fallback){const n=Number(v);return Number.isFinite(n)?Math.min(max,Math.max(min,n)):fallback}
 function setPostMode(mode){postingSettings.mode=mode;renderPostingSettings();syncPostingSettings()}
@@ -4491,6 +4319,8 @@ const q=new URLSearchParams(location.search).get('view');if(['dashboard','discov
 <script src="/studio-product-card.js?v=2"></script>
 <script src="/product-research.js?v=5"></script>
 <script src="/performance-dashboard.js?v=2"></script>
+<link rel="stylesheet" href="/blog-workspace.css?v=1">
+<script src="/blog-workspace.js?v=1"></script>
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
  if(typeof renderInstagram==='function')renderInstagram();
