@@ -30,7 +30,19 @@ test('server pins verified DNS address, accepts only actual images and limits si
  let pinned='';
  const mockHttps=(url,options,onResponse)=>{
   assert.equal(url.hostname,'images.shop-example.net');
-  options.lookup(url.hostname,{},(_err,ip,family)=>{pinned=ip;assert.equal(family,4)});
+  // Reproduce Node/Vercel autoSelectFamily; lookup({all:true}) needs an ARRAY.
+  options.lookup(url.hostname,{all:true},(_err,addresses)=>{
+   assert.equal(_err,null);
+   assert.ok(Array.isArray(addresses),'Node all:true must return an array of address records');
+   assert.deepEqual(addresses,[{address:'8.8.4.4',family:4}]);
+   pinned=addresses[0].address;
+  });
+  // Other Node callers still expect the ordinary (ip,family) signature.
+  options.lookup(url.hostname,{all:false},(_err,ip,family)=>{
+   assert.equal(_err,null);
+   assert.equal(ip,'8.8.4.4');
+   assert.equal(family,4);
+  });
   const req=new EventEmitter();
   req.end=()=>{
    const stream=Readable.from([png]);
