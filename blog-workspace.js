@@ -2,7 +2,7 @@
 (function(){
 'use strict';
 const $=s=>document.querySelector(s);
-const state={id:null,fp:'',plan:null,type:null,draft:null,title:0,edited:'',busy:false,plans:new Map(),drafts:new Map()};
+const state={id:null,fp:'',plan:null,type:null,draft:null,title:0,edited:'',busy:false,plans:new Map(),drafts:new Map(),media:{owner:null,slots:null,uploads:[],consent:false}};
 const typeIds=['problem','howto','cause','compare','buying','faq','situation','checklist'];
 const weights=[['검색 수요 추정',35],['검색 의도',25],['차별화 여지',20],['정보 신뢰성',10],['구매 연관성',10]];
 const make=(tag,cls,value)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(value!==undefined)e.textContent=value;return e};
@@ -41,6 +41,15 @@ function init(){
  $('#vpBlogWrite').onclick=()=>void generateArticle();
  $('#vpBlogCopy').onclick=()=>void copyDraft();
  $('#vpBlogDownload').onclick=downloadDraft;
+ $('#vpBlogRestoreImages').onclick=()=>{
+  state.media.slots=null;renderImageManager();preview();
+  putStatus('사용 가능한 사진을 기준으로 본문 이미지 추천 배치를 복원했습니다.','success');
+ };
+ $('#vpBlogImageRights').onchange=e=>{
+  state.media.consent=!!e.target.checked;state.media.slots=null;
+  renderImageManager();preview();
+ };
+ $('#vpBlogImageUploads').onchange=e=>void uploadBlogImages(e.target.files);
  $('#vpBlogFinalEdit').oninput=()=>{state.edited=$('#vpBlogFinalEdit').value;preview()};
  for(const [name,score] of weights){
   const el=make('div','vpBlogWeight');el.append(make('span','',name),make('strong','',score+'점'));$('#vpBlogWeights').append(el);
@@ -55,6 +64,7 @@ function init(){
 function sync(){
  const p=pCurrent(),id=p?String(p.id):null,input=productInput(),fp=JSON.stringify(input||{}).slice(0,10000);
  if(state.id!==id||state.fp!==fp){
+  if(state.id!==id){state.media={owner:id,slots:null,uploads:[],consent:false};if($('#vpBlogImageRights'))$('#vpBlogImageRights').checked=false}
   state.id=id;state.fp=fp;state.plan=null;state.draft=null;state.edited='';state.title=0;state.type=null;
   const saved=state.plans.get(id);
   if(saved&&saved.fp===fp){state.plan=saved.plan;state.type=saved.plan.recommended[0]}
@@ -136,6 +146,142 @@ function fullText(){
  lines.push(link?'상품 상세정보(제휴 링크): '+link:'※ 제휴 링크가 발급되지 않았습니다. 게시 전 별도로 확인해 주세요.');
  return lines.join('\n').trim();
 }
+const mediaPlacements=[
+ {fraction:.2,label:'도입 이후 (약 20%)'},
+ {fraction:.4,label:'본문 초반 (약 40%)'},
+ {fraction:.6,label:'본문 중후반 (약 60%)'},
+ {fraction:.8,label:'마무리 이전 (약 80%)'}
+];
+function validInlineImage(src){
+ return typeof src==='string'&&src.length<14000000&&/^data:image\/(?:png|jpeg|webp);base64,[a-zA-Z0-9+/=]+$/.test(src);
+}
+function safeRemoteImage(src,detail=false){
+ try{
+  const u=new URL(src);
+  if(u.protocol!=='https:'||u.port||u.username||u.password||u.hostname.length>240)return false;
+  return !detail||(u.hostname==='coupangcdn.com'||u.hostname.endsWith('.coupangcdn.com'));
+ }catch{return false}
+}
+function availableBlogImages(){
+ const images=[],used=new Set(),p=pCurrent();
+ const add=(id,label,src,kind)=>{
+  if(!src||used.has(src))return;
+  if(kind==='generated'||kind==='upload'){
+   if(!validInlineImage(src))return;
+  }else if(!safeRemoteImage(src,kind==='detail'))return;
+  used.add(src);
+  images.push({id,label,src,kind});
+ };
+ if(typeof carouselImageForSlide==='function'&&p){
+  for(const n of [1,3,4,5,2]){
+   const asset=carouselImageForSlide(n,p.id);
+   add('instagram:'+n,'Instagram '+n+'번 · '+(n<3?'문제 상황':'제품 활용')+' (AI 생성)',asset?.data,'generated');
+  }
+ }
+ const own=typeof currentMedia==='function'?currentMedia()?.product:null;
+ if(own?.kind==='licensed-upload')add('licensed','직접 등록한 제품 사진',own.data,'upload');
+ for(const photo of state.media.uploads)add(photo.id,photo.label,photo.src,'upload');
+ // A product thumbnail can be shown in the editor. Users must still check publication rights.
+ if(p)add('thumb','상품 대표 썸네일 · 게시 권한 확인 필요',imageUrl(p),'thumbnail');
+ if(state.media.consent&&p&&typeof loadReviewEvidence==='function'){
+  const detail=loadReviewEvidence(String(p.coupangProductId||''))?.images||[];
+  if(Array.isArray(detail))detail.slice(0,12).forEach((url,i)=>add('detail:'+i,'상품 상세 이미지 '+(i+1),url,'detail'));
+ }
+ return images;
+}
+function ensureImageSlots(sources){
+ const media=state.media;
+ if(media.slots===null){
+  media.slots=sources.slice(0,4).map((src,i)=>({id:src.id,placement:i}));
+ }
+ media.slots=media.slots.filter(slot=>sources.some(src=>src.id===slot.id)).slice(0,4);
+ return media.slots;
+}
+function renderImageManager(){
+ const box=$('#vpBlogImageRows'),info=$('#vpBlogImageStatus');if(!box||!state.draft)return;
+ const sources=availableBlogImages(),slots=ensureImageSlots(sources);
+ box.replaceChildren();
+ if(!sources.length){
+  info.textContent='재사용할 사진이 없습니다. Instagram 이미지를 먼저 만들거나 아래에서 직접 사진을 추가해 주세요.';
+  return;
+ }
+ info.textContent='본문 이미지 '+slots.length+'장 배치 · 사용 가능한 사진 '+sources.length+'장 · 업로드한 사진은 현재 브라우저 탭에서만 유지됩니다.';
+ slots.forEach((slot,index)=>{
+  const source=sources.find(item=>item.id===slot.id);if(!source)return;
+  const row=make('div','vpBlogImageRow');
+  const thumb=make('img','vpBlogImageThumb');thumb.src=source.src;thumb.alt='본문 이미지 '+(index+1);thumb.loading='lazy';
+  const fields=make('div','vpBlogImageFields'),selected=make('select','vpBlogImageSelect');
+  selected.setAttribute('aria-label',(index+1)+'번째 본문 이미지 변경');
+  sources.forEach(item=>{
+   const option=make('option','',item.label);option.value=item.id;option.selected=item.id===slot.id;selected.append(option);
+  });
+  selected.onchange=()=>{slot.id=selected.value;renderImageManager();preview()};
+  const placement=make('select','vpBlogPlaceSelect');
+  placement.setAttribute('aria-label',(index+1)+'번째 이미지 배치 위치');
+  mediaPlacements.forEach((point,i)=>{
+   const option=make('option','',point.label);option.value=String(i);option.selected=slot.placement===i;placement.append(option);
+  });
+  placement.onchange=()=>{slot.placement=Number(placement.value);preview()};
+  const actions=make('div','vpBlogImageActions');
+  const remove=clickable('제거','vpBlogImageRemove',()=>{
+   state.media.slots.splice(index,1);renderImageManager();preview();
+  });
+  actions.append(remove);
+  if(source.kind==='generated'||source.kind==='upload'){
+   const link=make('a','vpBlogImageDownload','파일 저장');
+   link.href=source.src;link.download='ViralPick_블로그_이미지_'+(index+1)+'.png';actions.append(link);
+  }else{
+   const link=make('a','vpBlogImageDownload','원본 보기');
+   link.href=source.src;link.target='_blank';link.rel='noopener noreferrer';actions.append(link);
+  }
+  fields.append(selected,placement,actions);row.append(thumb,fields);box.append(row);
+ });
+ if(slots.length<4&&sources.some(src=>!slots.some(slot=>slot.id===src.id))){
+  box.append(clickable('＋ 사용 가능한 이미지 추가','vpBlogAddImage',()=>{
+   const next=sources.find(src=>!state.media.slots.some(slot=>slot.id===src.id));
+   if(next){state.media.slots.push({id:next.id,placement:Math.min(3,state.media.slots.length)});renderImageManager();preview()}
+  }));
+ }
+}
+async function uploadBlogImages(files){
+ const allowed=['image/jpeg','image/png','image/webp'];
+ const chosen=Array.from(files||[]).slice(0,4);
+ const messages=[];
+ for(const file of chosen){
+  if(state.media.uploads.length>=4){messages.push('추가 사진은 최대 4장입니다.');break}
+  if(!allowed.includes(file.type)||file.size>5*1024*1024||file.size<100){
+   messages.push(file.name+'은 지원 형식 또는 5MB 제한을 확인해 주세요.');continue;
+  }
+  try{
+   const data=await new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(reader.result);
+    reader.onerror=()=>reject(Error('파일을 읽지 못했습니다.'));
+    reader.readAsDataURL(file);
+   });
+   if(!validInlineImage(data))throw Error('지원하지 않는 이미지 데이터입니다.');
+   state.media.uploads.push({id:'custom:'+Date.now()+':'+state.media.uploads.length,label:'추가 사진 '+(state.media.uploads.length+1),src:data});
+  }catch(e){messages.push(file.name+': '+e.message)}
+ }
+ if($('#vpBlogImageUploads'))$('#vpBlogImageUploads').value='';
+ // Fresh upload should be visible immediately, even when all other image slots were assigned.
+ const sources=availableBlogImages();
+ ensureImageSlots(sources);
+ const newPhotos=state.media.uploads.filter(x=>!state.media.slots.some(slot=>slot.id===x.id));
+ for(const photo of newPhotos){
+  if(state.media.slots.length>=4)break;
+  state.media.slots.push({id:photo.id,placement:state.media.slots.length});
+ }
+ renderImageManager();preview();
+ if(messages.length)putStatus(messages.join(' / '),'error');
+ else putStatus('블로그 이미지 '+chosen.length+'장 업로드를 처리했습니다. 배치 위치를 확인해 주세요.','success');
+}
+function inlineFigure(source){
+ const fig=make('figure','vpBlogFigure vpBlogInlineFigure'),img=make('img');
+ img.loading='lazy';img.src=source.src;img.alt=source.label;
+ fig.append(img,make('figcaption','',source.label+(source.kind==='generated'?' · AI 생성 이미지':' · 게시 권한 확인 필요')));
+ return fig;
+}
 function renderDraft(){
  const d=state.draft;if(!d)return;
  $('#vpBlogDraftSection').hidden=false;const list=$('#vpBlogTitles');list.replaceChildren();
@@ -153,7 +299,7 @@ function renderDraft(){
  });
  if(!state.edited)state.edited=fullText();
  $('#vpBlogFinalEdit').value=state.edited;
- preview();
+ renderImageManager();preview();
  const checks=$('#vpBlogVerification');checks.replaceChildren();checks.append(make('strong','','게시 전 사실 확인'));
  const notes=['직접 써본 후기처럼 표현되지는 않았는지 확인','상품 스펙·사용 조건·안전 안내를 공식 자료와 대조','최신 가격·재고 및 제휴 고지 확인',...(partnerUrl(pCurrent())?[]:['제휴 링크 미발급: 쿠팡 파트너스 링크를 별도 확인해야 합니다.']),...(d.verificationNotes||[])];
  notes.forEach(x=>checks.append(make('p','','• '+x)));
@@ -161,32 +307,38 @@ function renderDraft(){
 function preview(){
  const root=$('#vpBlogPreview');if(!root||!state.draft)return;
  root.replaceChildren();
- const d=state.draft,p=pCurrent(),url=imageUrl(p);
+ const p=pCurrent(),url=imageUrl(p);
  root.append(make('h1','',title()),make('div','vpBlogDisclosure','※ 제휴 링크를 통한 구매 시 일정 수수료를 제공받을 수 있습니다.'));
- if(url){const fig=make('figure','vpBlogFigure'),img=make('img');img.src=url;img.alt=p.name+' 실제 상품 썸네일';img.loading='lazy';fig.append(img,make('figcaption','','실제 상품 썸네일 · 사용 권한 검토 필요'));root.append(fig)}
- const all=state.edited||fullText();
- const recycled=[];
- if(typeof carouselImageForSlide==='function'){
-  for(const [number,label] of [[1,'SNS 후킹 상황 이미지'],[3,'상품 등장·활용 상황 이미지']]){
-   const asset=carouselImageForSlide(number,p?.id);
-   if(typeof asset?.data==='string'&&/^data:image\/(?:png|jpeg|webp);base64,/.test(asset.data))recycled.push({src:asset.data,label});
-  }
+ if(url){
+  const fig=make('figure','vpBlogFigure'),img=make('img');
+  img.src=url;img.loading='lazy';img.alt=p.name+' 상품 썸네일';
+  fig.append(img,make('figcaption','','상품 대표 이미지 · 실제 게시 시 이용 권한 확인 필요'));root.append(fig);
  }
- let paragraphCount=0,imageCount=0;
- for(const line of all.split(/\n+/).map(x=>x.trim()).filter(Boolean).slice(0,100)){
-  if(line===title()||line.startsWith('※'))continue;
-  const heading=/^\[[^\]]{2,90}\]$/.test(line);
+ const all=state.edited||fullText();
+ const lines=all.split(/\n+/).map(x=>x.trim()).filter(x=>x&&x!==title()&&!x.startsWith('※')).slice(0,110);
+ const isHeading=line=>/^\[[^\]]{2,90}\]$/.test(line);
+ const paragraphs=lines.filter(x=>!isHeading(x)).length;
+ const sources=availableBlogImages(),slots=ensureImageSlots(sources);
+ const placements=slots.map((slot,index)=>({
+  source:sources.find(x=>x.id===slot.id),
+  after:Math.max(1,Math.ceil(paragraphs*(mediaPlacements[slot.placement]?.fraction||.2))),
+  index
+ })).filter(x=>x.source).sort((a,b)=>a.after-b.after||a.index-b.index);
+ let consumed=0,paragraphCount=0;
+ for(const line of lines){
+  const heading=isHeading(line);
   root.append(make(heading?'h2':'p','',heading?line.slice(1,-1):line));
   if(!heading)paragraphCount++;
-  if(recycled[imageCount]&&(paragraphCount===2||paragraphCount===7)){
-   const {src,label}=recycled[imageCount++];
-   const fig=make('figure','vpBlogFigure'),img=make('img');img.src=src;img.loading='lazy';img.alt=label;
-   fig.append(img,make('figcaption','',label+' · 기존 Instagram 제작 이미지 재활용 (AI 생성 이미지)'));
-   root.append(fig);
+  while(placements[consumed]&&placements[consumed].after<=paragraphCount){
+   root.append(inlineFigure(placements[consumed++].source));
   }
  }
+ while(placements[consumed])root.append(inlineFigure(placements[consumed++].source));
  const link=partnerUrl(p);
- if(link){const a=make('a','vpBlogAffiliate','상품 정보 확인하기 ↗');a.href=link;a.target='_blank';a.rel='sponsored noopener noreferrer nofollow';root.append(a)}
+ if(link){
+  const a=make('a','vpBlogAffiliate','상품 정보 확인하기 ↗');
+  a.href=link;a.target='_blank';a.rel='sponsored noopener noreferrer nofollow';root.append(a);
+ }
 }
 async function generateArticle(){
  if(state.busy||!state.plan)return;
