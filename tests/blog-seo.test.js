@@ -64,8 +64,8 @@ test('live blog replaces fabricated performance data and has complete generation
  assert.match(css,/vpBlogFactorTrack/);
  assert.match(html,/id="vpBlogTitles"/);
  assert.match(html,/id="vpBlogFinalEdit"/);
- assert.match(html,/blog-workspace\.js\?v=2/);
- assert.match(html,/blog-workspace\.css\?v=2/);
+ assert.match(html,/blog-workspace\.js\?v=3/);
+ assert.match(html,/blog-workspace\.css\?v=3/);
  assert.doesNotMatch(html,/blogPerformanceSets|currentBlogPerformance\(|토스 제공 상품 원본 이미지 자리/);
  assert.match(ui,/window\.vpProductResearchContext/);
  assert.match(ui,/action:'plan'/);
@@ -100,4 +100,27 @@ test('blog AI title mix contains exactly three search titles, one purchase and o
  assert.match(css,/\.vpBlogTitleRole/);
  const repeat=Array(5).fill('배터리 방전 해결 방법, 필요한 제품은 무엇일까요');
  assert.equal(validateBlogDraft({titles:repeat,sections:draft.sections}),null);
+});
+
+test('blog preview auto-inserts 1-4 photos between paragraphs with source and position controls',()=>{
+ assert.match(html,/id="vpBlogImageRows"/);
+ assert.match(html,/id="vpBlogImageUploads"/);
+ assert.match(html,/id="vpBlogRestoreImages"/);
+ assert.match(html,/id="vpBlogImageRights"/);
+ assert.match(ui,/function availableBlogImages\(\)/);
+ assert.match(ui,/for\(const n of \[1,3,4,5,2\]\)/);
+ assert.match(ui,/carouselImageForSlide\(n,p\.id\)/);
+ assert.match(ui,/function ensureImageSlots\(sources\)/);
+ assert.match(ui,/sources\.slice\(0,4\)/);
+ assert.match(ui,/function renderImageManager\(\)/);
+ assert.match(ui,/function uploadBlogImages\(files\)/);
+ assert.match(ui,/placement\.onchange/);
+ assert.match(ui,/function inlineFigure\(source\)/);
+ assert.match(ui,/Math\.ceil\(paragraphs\*\(mediaPlacements\[slot\.placement\]/);
+ assert.match(ui,/root\.append\(inlineFigure\(/);
+ assert.match(ui,/state\.media\.consent&&p&&typeof loadReviewEvidence/);
+ assert.match(ui,/5\*1024\*1024/);
+ assert.match(ui,/이미지 파일을 별도로 업로드/);
+ assert.match(css,/vpBlogInlineFigure/);
+ assert.match(css,/vpBlogImageRows/);
 });
