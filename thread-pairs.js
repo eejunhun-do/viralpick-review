@@ -5,6 +5,39 @@ const $=selector=>document.querySelector(selector);
 const PAIR_DB='viralpick-thread-pairs-v1',STORE='pair-stories';
 const memo=new Map(),loadedImages=new Map(),loading=new Set(),edits=new Map();
 let busy=false,ready=false,loadError='';
+const imageStage={pain:{phase:'idle',detail:'생성 대기',started:0},solve:{phase:'idle',detail:'참조 상품 사진 확인 필요',started:0}};
+const imageHistory=[];let stageTimer=null;
+const phaseLabels={idle:'대기',preparing:'준비 중',requesting:'서버 호출 중',generating:'AI 생성 중',saving:'저장 중',complete:'완료',failed:'실패'};
+function renderImageStages(){
+ for(const [slot,id] of [['pain','vpPairProgressPain'],['solve','vpPairProgressSolve']]){
+  const node=$('#'+id),st=imageStage[slot];if(!node)continue;
+  const active=['preparing','requesting','generating','saving'].includes(st.phase);
+  const sec=active?' · '+Math.max(0,Math.floor((Date.now()-st.started)/1000))+'초':'';
+  node.dataset.phase=st.phase;
+  node.textContent=(phaseLabels[st.phase]||st.phase)+sec+' — '+st.detail+
+   (active&&Date.now()-st.started>30000?' (응답 지연 중, 중복 클릭하지 마세요)':'');
+ }
+ const list=$('#vpPairEventList');if(list){
+  list.replaceChildren();
+  for(const item of imageHistory.slice(0,18)){
+   const li=document.createElement('li');
+   li.textContent=new Date(item.at).toLocaleTimeString('ko-KR')+' · '+(item.slot==='pain'?'1번':'2번')+' '+(phaseLabels[item.phase]||item.phase)+' · '+item.message;
+   list.append(li);
+  }
+ }
+}
+function markStage(slot,phase,message){
+ const st=imageStage[slot];st.phase=phase;st.detail=String(message).slice(0,260);
+ if(phase==='preparing')st.started=Date.now();
+ imageHistory.unshift({slot,phase,message:st.detail,at:Date.now()});
+ if(imageHistory.length>36)imageHistory.length=36;
+ const label=(slot==='pain'?'1번 불편':'2번 해결')+' 이미지';
+ if(phase==='failed')window.vpActivity?.error?.('Threads 이미지 실패',label+' · '+st.detail);
+ else if(phase==='complete')window.vpActivity?.info?.('Threads 이미지 완료',label+' · '+st.detail);
+ else window.vpActivity?.info?.('Threads 이미지 진행',label+' · '+phaseLabels[phase]);
+ renderImageStages();
+}
+
 function owner(){return String(typeof selected!=='undefined'?selected?.id||'':'')}
 function emptyRecord(){return {pairs:Array.from({length:5},()=>({pain:'',solve:''})),selectedIndex:0,images:{},appliedPain:'',appliedSolve:''}}
 function record(){
@@ -140,32 +173,67 @@ function applyHooksToPosts(){
  window.vpStudioGo?.('Threads','copy');
  const node=$('#vpPairCopyStatus');if(node)node.textContent='후킹 세트가 선택됐습니다. 아래 AI 문구 생성을 누르면 이 두 문장부터 이어지는 1단·2단을 새로 작성합니다.';
 }
-async function makeImage(slot){
- if(busy)return;
+async function makeImage(slot,{confirmed=false,preparedReference=null}={}){
+ if(busy)return false;
  const productId=owner(),{index,pair}=current(),hook=pair[slot];
- if(!hook||hook.length<8){status('먼저 선택한 세트의 '+(slot==='pain'?'불편':'해결')+' 후킹 문장을 입력해 주세요.');return}
- const confirmText=slot==='pain'?'불편 상황만 보여주는 사진 1장을 생성할까요?':'선택한 실제 제품으로 불편이 완화되는 사진 1장을 생성할까요?';
- if(!window.confirm(confirmText+' OpenAI 이미지 생성 비용이 발생합니다.'))return;
- busy=true;render();status(slot==='pain'?'1번 불편한 상황 사진을 생성 중…':'2번 실제 제품 사용 사진을 생성 중…');
+ if(!hook||hook.length<8){markStage(slot,'failed','후킹 문구를 먼저 작성해 주세요.');return false}
+ if(!confirmed&&!window.confirm((slot==='pain'?'불편':'해결')+' 이미지 1장 생성 시 OpenAI 요금이 발생합니다. 계속할까요?'))return false;
+ busy=true;render();stageTimer=setInterval(renderImageStages,1000);
+ const activityId=window.vpActivity?.begin?.('Threads '+(slot==='pain'?'1번':'2번')+' 이미지','생성 준비');
+ let ok=false;
  try{
+  markStage(slot,'preparing',slot==='pain'?'후킹·장면 준비 중':'실제 제품 사진·AI 편집 권한 검사 중');
   const style=typeof hookPhotoStyle==='string'?hookPhotoStyle:'warm-editorial';
-  const note=String(selected?.visual||'').slice(0,190);
-  const scene=(slot==='pain'
-   ?'Before the solution. Show the everyday inconvenience in the Korean hook. No advertised product. '
-   :'After the problem. Show the selected real product naturally reducing the very same inconvenience. ')
-   +'Hook: '+hook+'. Context: '+note;
+  const scene=(slot==='pain'?'Before the solution. Show the everyday inconvenience. No advertised product. ':
+   'After the problem. Show the exact selected reference product reducing the inconvenience. ')+
+   'Hook: '+hook+'. Context: '+String(selected?.visual||'').slice(0,190);
   const common={purpose:slot==='pain'?'threads-pain':'threads-solve',product:selected.name,hook,scene:scene.slice(0,500),style};
-  const ref=slot==='solve'?await window.vpCreatorReferencePayload('threads'):{imageMode:'scene'};
+  let ref={imageMode:'scene'};
+  if(slot==='solve'){
+   if(typeof window.vpCreatorThreadsPreparedReference!=='function')
+    throw Error('제품 사진 준비 기능이 로드되지 않았습니다. 새로고침해 주세요.');
+   try{ref=preparedReference||await window.vpCreatorThreadsPreparedReference()}
+   catch(e){throw Error('2번 이미지에 사용할 제품 사진을 준비할 수 없습니다: '+String(e.message||'사진 오류')+
+    ' · 상업적 AI 편집 권한을 체크하거나 권한 있는 사진을 직접 업로드해 주세요.')}
+  }
+  if(productId!==owner())throw Error('작업 상품이 변경되어 요청을 중지했습니다.');
+  markStage(slot,'requesting','OpenAI 이미지 서버에 요청을 보냅니다.');
+  window.vpActivity?.update?.(activityId,'이미지 '+(slot==='pain'?'1':'2')+'번 서버 호출');
+  markStage(slot,'generating','GPT Image 2 결과 응답 대기 중');
   const result=await backendRequest('/api/image',{method:'POST',body:JSON.stringify({...common,...ref})});
   const data=Array.isArray(result.images)?result.images[0]:result.image;
-  if(result.count!==1||typeof data!=='string'||!/^data:image\/(?:webp|png|jpeg);base64,/.test(data))throw Error('이미지 1장을 정상적으로 받지 못했습니다.');
-  if(productId!==owner())throw Error('생성 도중 선택한 상품이 변경되었습니다. 이전 상품에 자동 반영하지 않았습니다.');
-  const r=record();if(r.selectedIndex!==index||r.pairs[index][slot]!==hook)throw Error('생성 도중 후킹 문구가 변경되어 결과를 적용하지 않았습니다.');
-  r.images[index+':'+slot]=data;
-  await getLoaded(index,slot);
-  save();status((slot==='pain'?'불편':'해결')+' 이미지 생성 완료 · 두 사진을 확인하고 ZIP으로 저장할 수 있습니다.');
- }catch(e){status('이미지 생성 실패: '+e.message)}
- finally{busy=false;render()}
+  if(result.count!==1||typeof data!=='string'||!/^data:image\/(?:webp|png|jpeg);base64,/.test(data))
+   throw Error('서버에서 유효한 이미지 1장을 받지 못했습니다. API 사용량 및 응답 상태를 확인해 주세요.');
+  if(productId!==owner())throw Error('다른 상품으로 바뀌어 결과를 적용하지 않았습니다.');
+  const r=record();
+  if(r.selectedIndex!==index||r.pairs[index][slot]!==hook)throw Error('작업 중 후킹 문구가 바뀌어 반영하지 않았습니다.');
+  markStage(slot,'saving','이미지를 받았습니다. 브라우저 기록에 저장 중');
+  r.images[index+':'+slot]=data;await getLoaded(index,slot);
+  const persisted=await save();
+  if(persisted===false)throw Error('현재 이미지 미리보기는 유지되지만 브라우저 기록 저장에 실패했습니다. ZIP으로 저장해 주세요.');
+  markStage(slot,'complete','이미지 생성과 기록 저장 완료');
+  window.vpActivity?.end?.(activityId,true,'이미지 정상 생성 완료');ok=true;
+ }catch(e){
+  const msg=String(e?.message||'알 수 없는 오류').slice(0,300);
+  markStage(slot,'failed',msg);status((slot==='pain'?'1번':'2번')+' 이미지 실패: '+msg);
+  window.vpActivity?.end?.(activityId,false,msg);
+ }finally{busy=false;clearInterval(stageTimer);stageTimer=null;render();renderImageStages()}
+ return ok;
+}
+async function generateMissingPair(){
+ if(busy)return;
+ const {r,index,pair}=current();
+ if(!pair.pain||!pair.solve){status('불편·해결 후킹 두 문장을 먼저 선택해 주세요.');return}
+ const todo=['pain','solve'].filter(slot=>!r.images[index+':'+slot]);
+ if(!todo.length){status('두 이미지가 모두 준비되어 있습니다. 각각 다시 생성할 수 있습니다.');return}
+ if(!window.confirm('아직 없는 '+todo.length+'장의 이미지 생성에 AI 요금이 발생합니다. 진행할까요?'))return;
+ let prepared=null;
+ if(todo.includes('solve')){
+  try{markStage('solve','preparing','제품 사진을 미리 검사합니다.');prepared=await window.vpCreatorThreadsPreparedReference()}
+  catch(e){const m='상품 사진 준비 실패: '+String(e.message||e)+' · 사진 선택·AI 편집 권한을 확인하세요.';
+   markStage('solve','failed',m);status(m);return}
+ }
+ for(const slot of todo){if(!await makeImage(slot,{confirmed:true,preparedReference:slot==='solve'?prepared:null})){status('실패한 이미지만 다시 생성해 주세요. 성공한 이미지는 유지됩니다.');break}}
 }
 function pictureFor(slot){
  const {r,index}=current(),cached=loadedImages.get(imageKey(owner(),index,slot));
@@ -221,6 +289,10 @@ function render(){
  root.querySelector('.vpPairSave').disabled=busy||!both;
  renderCopyHooks();
  root.querySelector('.vpPairState').textContent=(pictureFor('pain')?'1번 사진 완료':'1번 사진 대기')+' · '+(pictureFor('solve')?'2번 사진 완료':'2번 사진 대기')+' · 저장 위치: 이 브라우저';
+  const missing=['pain','solve'].filter(slot=>!r.images[index+':'+slot]).length;
+  const batch=root.querySelector('.vpPairMakeMissing');if(batch){batch.textContent=missing?'남은 이미지 '+missing+'장 생성':'두 이미지 준비 완료';batch.disabled=busy||!missing}
+  for(const slot of ['pain','solve']){const b=root.querySelector(slot==='pain'?'.vpPainCreate':'.vpSolveCreate');if(b)b.textContent=r.images[index+':'+slot]?'해당 이미지 다시 생성':'이미지 생성'}
+  renderImageStages();
  updateFinal();
 }
 function updateFinal(){
@@ -278,6 +350,12 @@ function install(){
  if(photo&&photo.parentNode===container)container.append(pair,problem,photo,finish);
  else container.append(pair,problem,finish);
  root.querySelector('.vpPairsGenerate').onclick=()=>void makePairs();
+  const createMissing=document.createElement('button');createMissing.type='button';createMissing.className='btn primary vpPairMakeMissing';createMissing.textContent='남은 이미지 완성하기';createMissing.onclick=()=>void generateMissingPair();pair.querySelector('.vpPairTools')?.prepend(createMissing);
+  const advanced=document.createElement('details');advanced.className='vpPairAdvancedHooks';const title=document.createElement('summary');title.textContent='후킹 세트 선택·수정 (고급)';advanced.append(title);
+  for(const cls of ['vpPairChoices','vpPairEditors']){const el=pair.querySelector('.'+cls);if(el)advanced.append(el)}pair.append(advanced);
+  const duplicate=pair.querySelector('.vpPairsGenerate');if(duplicate)duplicate.hidden=true;
+  for(const [slot,sel] of [['pain','.vpPairStagePain'],['solve','.vpPairStageSolve']]){const btn=root.querySelector(sel+' .vpPairGenerate');if(!btn)continue;const line=document.createElement('p');line.className='vpPairProgress';line.id='vpPairProgress'+(slot==='pain'?'Pain':'Solve');line.setAttribute('role','status');btn.after(line)}
+  const details=document.createElement('details');details.className='vpPairDetailedLog';const summary=document.createElement('summary');summary.textContent='이미지 제작 진행 · 오류 로그';const list=document.createElement('ol');list.id='vpPairEventList';details.append(summary,list);finish.append(details);renderImageStages();
 
  root.querySelector('.vpPainCreate').onclick=()=>void makeImage('pain');
  root.querySelector('.vpSolveCreate').onclick=()=>void makeImage('solve');

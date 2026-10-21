@@ -347,6 +347,7 @@ function init(){
  if(second){const panel=makeInstagramPreview();panel.id='vpInstagramSocialReview';second.insertBefore(panel,second.querySelector('.vpStudioReviewNote')||second.children[1])}
  window.vpCreatorSetGenerating=setGenerating;
  window.vpCreatorReferencePayload=payload;
+ window.vpCreatorThreadsPreparedReference=async()=>referenceFromAsset(getReference('threads'));
  window.vpCreatorReferencePayloadForInstagramSlide=payloadForInstagramSlide;
  window.vpCreatorSceneText=sceneText;
  window.vpCreatorRefresh=refresh;
