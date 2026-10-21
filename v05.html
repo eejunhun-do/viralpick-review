@@ -640,13 +640,13 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 <body>
 <header class="mobileTop" aria-label="모바일 상단 메뉴">
  <button class="mobileMenuButton" id="mobileOpenButton" type="button" onclick="openMobileMenu()" aria-label="전체 메뉴 열기" aria-controls="siteSidebar" aria-expanded="false">☰</button>
- <div><div class="mobileTopBrand">ViralPick</div><span class="mobileTopSub" id="mobileCurrentView">대시보드</span></div>
+ <button type="button" class="mobileTopBrandButton" onclick="show('dashboard')" aria-label="ViralPick 로고 · 대시보드로 이동"><span class="mobileTopBrand">ViralPick</span><span class="mobileTopSub" id="mobileCurrentView">대시보드</span></button>
  <button class="serverConnectButton mobileConnect" id="mobileServerConnect" type="button" onclick="quickConnectFromHeader()" aria-label="서버 연결하기">● 서버 연결하기</button>
 </header>
 <div class="mobileBackdrop" id="mobileBackdrop" onclick="closeMobileMenu()" aria-hidden="true"></div>
 <div class="app">
 <aside class="side" id="siteSidebar" aria-label="전체 메뉴">
-  <div class="sideHeader"><div class="brand">ViralPick</div><button type="button" class="mobileClose" onclick="closeMobileMenu()" aria-label="전체 메뉴 닫기">✕</button></div>
+  <div class="sideHeader"><div class="brand"><button type="button" class="brandHomeButton" onclick="show('dashboard')" aria-label="ViralPick 대시보드로 이동">ViralPick</button></div><button type="button" class="mobileClose" onclick="closeMobileMenu()" aria-label="전체 메뉴 닫기">✕</button></div>
   <div class="ver">ViralPick Studio · 상품 발굴 / SNS 제작 / 성과 분석</div>
   <nav class="nav">
     <button data-view="dashboard" class="active">🏠 대시보드</button>
@@ -655,7 +655,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
     <button data-view="lab">🧠 상품 분석</button>
     <button data-view="threads">💬 Threads 제작</button>
     <button data-view="instagram">▦ Instagram 제작</button>
-    <button data-view="analytics">📊 게시 성과 분석</button>
+    
     <button data-view="blog">📝 Blog 제작</button>
     <button data-view="scheduler">📅 자동게시 설정</button>
     
@@ -1171,10 +1171,11 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 </main>
 </div>
 <nav class="mobileBottom" aria-label="모바일 빠른 메뉴">
+  <button type="button" data-quick-view="dashboard" onclick="show('dashboard')"><span class="quickIcon">🏠</span><span>대시보드</span></button>
   <button type="button" data-quick-view="discover" onclick="show('discover')"><span class="quickIcon">🔥</span><span>상품 발굴</span></button>
   <button type="button" data-quick-view="threads" onclick="show('threads')"><span class="quickIcon">💬</span><span>Threads</span></button>
   <button type="button" data-quick-view="instagram" onclick="show('instagram')"><span class="quickIcon">▦</span><span>Instagram</span></button>
-  <button type="button" data-quick-view="analytics" onclick="show('analytics')"><span class="quickIcon">📊</span><span>성과 분석</span></button>
+  
   <button type="button" id="quickMoreButton" onclick="openMobileMenu()" aria-label="전체 메뉴 열기"><span class="quickIcon">☰</span><span>전체 메뉴</span></button>
 </nav>
 <div class="reservationOverlay" id="reservationOverlay" hidden role="presentation" onclick="if(event.target===this)closeReservation()">
@@ -1218,7 +1219,8 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
  <section class="reservationDialog" role="dialog" aria-modal="true" aria-labelledby="queueDetailHeading"><div class="reservationHeader"><div><span class="badge green">예약된 콘텐츠</span><h2 id="queueDetailHeading">예약 상세보기</h2><p id="queueDetailMeta"></p></div><button class="reservationClose" type="button" onclick="closeQueueDetail()" aria-label="닫기">✕</button></div><div class="reservationBody"><div class="reservationSummary" id="queueDetailSnapshot"></div><textarea id="queueDetailText" rows="8" readonly aria-label="예약된 게시글 본문"></textarea><p class="queueHint">실제 게시가 아닌 저장된 모의 예약입니다.</p></div><div class="reservationFooter"><button class="btn primary" type="button" onclick="closeQueueDetail()">닫기</button></div></section>
 </div>
 <div class="toast" id="toast"></div>
-
+<link rel="stylesheet" href="/activity-log.css?v=1">
+<script src="/activity-log.js?v=1"></script>
 <script>
 const products=[
  {source:'sample',id:1,name:'디지털 레이저 수평계',price:18900,old:32900,discount:42,viral:92,thread:94,insta:88,blog:91,ad:21,type:'신기템형',reason:'가구 조립 때 반복되는 수평 확인 문제를 해결하고 레이저·디지털 숫자 표시가 시각적으로 이해하기 쉬움.',problem:'가구 조립할 때 수평 안 맞아서 다시 맞추는 게 은근 스트레스인데',novel:'갖다 대면 각도가 숫자로 바로 뜨고 레이저 선까지 나옴',audience:'DIY·셀프 인테리어 관심층',visual:'삐뚤어진 선반과 조립 중인 작업대'},
