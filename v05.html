@@ -1093,7 +1093,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
       <div class="modeCard active" data-mode="review" onclick="setPostMode('review')"><b>② 검수 후 자동</b><span>사용자가 승인한 콘텐츠만 지정 시간에 자동 게시합니다.</span></div>
       <div class="modeCard" data-mode="auto" onclick="setPostMode('auto')"><b>③ 완전 자동</b><span>상품 선정부터 생성·검사·게시까지 조건 충족 시 자동 진행합니다.</span></div>
     </div>
-    <div class="limitNotice" style="margin-top:12px">프로토타입에서는 실제 SNS 게시를 실행하지 않습니다. Meta 계정 연결과 API 권한이 준비되면 Threads·Instagram 게시 기능을 서버에서 실행하는 구조입니다.</div>
+    <div class="limitNotice" style="margin-top:12px">기존 이 화면의 설정·추천 시뮬레이션은 실제 자동 게시 제한에 적용되지 않습니다. 실제 서버 예약은 위의 Meta 연동 영역에서 계정 및 실행 상태를 확인하세요.</div>
   </div></div>
 
   <div class="settingGrid">
@@ -1167,9 +1167,9 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
     <label class="reserveApproval"><input type="checkbox" id="reserveLinkCheck" onchange="updateReservationButton()"><span>게시에 사용할 제휴 링크와 고지 문구를 직접 확인했습니다.</span></label>
     <div class="reserveCheckActions"><button type="button" class="btn" id="reserveCheckAllBtn" onclick="toggleAllReservationChecks()" aria-pressed="false">✓ 모두 동의하기</button><span>위 3가지 사항을 실제로 확인한 뒤 선택해 주세요.</span></div>
   </div>
-    <div class="reserveWarning" id="reserveWarning" aria-live="polite">※ 현재는 실제 SNS 게시가 아닌 브라우저에 저장되는 모의 예약입니다.</div>
+    <div class="reserveWarning" id="reserveWarning" aria-live="polite">※ 실제 Meta API 예약입니다. 등록 전 공식 계정 연결과 이미지 저장 설정이 필요합니다.</div>
   </div>
-  <div class="reservationFooter"><button type="button" class="btn" onclick="closeReservation()">취소</button><button type="button" class="btn primary" id="confirmReserveBtn" onclick="confirmReservation()" disabled>예약 큐에 등록</button></div>
+  <div class="reservationFooter"><button type="button" class="btn" onclick="closeReservation()">취소</button><button type="button" class="btn primary" id="confirmReserveBtn" onclick="confirmReservation()" disabled>Meta 실제 예약 등록</button></div>
  </section>
 </div>
 <div class="quickConnectionOverlay" id="quickConnectionOverlay" hidden role="presentation" onclick="if(event.target===this)closeQuickConnection()">
@@ -4187,7 +4187,7 @@ function openReservation(platform){
  $('#reserveProductCheck').checked=false;
  $('#reserveLinkCheck').checked=false;
  $('#reserveWarning').textContent=(many?'※ 모음형 카드는 권한이 확인된 편집 이미지만 합성합니다. 쿠팡 API 사진은 편집 허가 없이는 합성하지 않습니다. ':'')+
-  '실제 자동게시가 아닌 브라우저 저장용 모의 예약입니다. 각 상품의 가격·재고·이미지 사용권·쿠팡 파트너스 링크를 직접 검수해 주세요.';
+  'Meta 공식 API로 실제 게시 예약을 등록합니다. 계정 연결, 공개 이미지 업로드 및 예약 실행 설정이 필요합니다. 가격·재고·이미지 사용권·파트너스 링크를 직접 확인해 주세요.';
  $('#reserveWarning').classList.remove('error');
  updateReservationButton();
  $('#reservationOverlay').hidden=false;
