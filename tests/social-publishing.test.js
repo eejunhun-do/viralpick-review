@@ -24,10 +24,10 @@ test('Cron denies unconfigured or missing authorization',async()=>{
 test('ViralPick has dedicated real Meta integration while legacy draft remains separate',()=>{
  const html=readFileSync(new URL('../v05.html',import.meta.url),'utf8');
  const social=readFileSync(new URL('../social-publishing-ui.js',import.meta.url),'utf8');
- assert.match(html,/social-publishing-ui\.js\?v=1/);
+ assert.match(html,/social-publishing-ui\.js\?v=2/);
  assert.match(social,/vpMetaPanel/);
  assert.match(social,/vpMetaApproved/);
- assert.match(social,/Meta 서버 실제 예약/);
+ assert.match(social,/실제 서버 예약/);
  assert.match(social,/vpSocialPostRows/);
 });
 
@@ -40,4 +40,16 @@ test('Published sync accepts exactly matching body and timestamp, never fuzzy or
  assert.equal(matchPublishedPost(job,[{...exact,timestamp:new Date(scheduledAt-600000).toISOString()}],scheduledAt+120000).length,0);
  assert.equal(matchPublishedPost(job,[exact],scheduledAt+30000).length,0);
  assert.equal(matchPublishedPost(job,[exact,exact],scheduledAt+120000).length,2);
+});
+
+test('Automatic scheduler uses actual queue, manual editor is optional, and polling is enabled',()=>{
+ const ui=readFileSync(new URL('../social-publishing-ui.js',import.meta.url),'utf8');
+ assert.match(ui,/organizeScheduler/);
+ assert.match(ui,/#scheduler>\.settingGrid/);
+ assert.match(ui,/setInterval/);
+ assert.match(ui,/visibilitychange/);
+ assert.match(ui,/action:'reconcile'/);
+ assert.match(ui,/vpMetaReplyText/);
+ assert.match(ui,/실제 예약 · 발행 내역/);
+ assert.match(ui,/const product=''/);
 });
