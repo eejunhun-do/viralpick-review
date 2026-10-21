@@ -109,6 +109,14 @@ function renderPlan(){
  const words=$('#vpBlogKeywords');words.replaceChildren();
  row.keywords.forEach(kw=>words.append(make('span','vpBlogKeyword',kw)));
  target('vpBlogAngle',row.angle||row.reason);
+ const detail=$('#vpBlogScoreDetail');detail.replaceChildren();
+ for(const [key,name,weight] of [['demand','검색 수요 추정',35],['intent','검색 의도 적합성',25],['competition','차별화 여지',20],['trust','정보 신뢰성',10],['conversion','구매 연결성',10]]){
+  const score=Number(row.ratings?.[key])||0;
+  const item=make('div','vpBlogFactor'),head=make('div','vpBlogFactorHead');
+  head.append(make('span','',name+' · 가중치 '+weight+'점'),make('strong','',score+'/100'));
+  const track=make('div','vpBlogFactorTrack'),fill=make('span');fill.style.width=score+'%';track.append(fill);
+  item.append(head,track);detail.append(item);
+ }
  $('#vpBlogDraftSection').hidden=!state.draft;
  if(state.draft)renderDraft();
 }
