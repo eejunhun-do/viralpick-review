@@ -800,7 +800,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 </section>
 
 <section id="threads" class="view">
-<div class="panel" id="vpAiCopyPanel" style="margin:12px 0"><div class="panelHead"><h2>AI 상품정보 기반 문구 생성</h2></div><div class="pad"><p class="queueHint">제품명·가격은 선택 상품에서 가져옵니다. 상세설명·실제 후기 요약은 확인된 내용을 붙여넣으세요. 쿠팡 파트너스 API는 상세페이지 본문과 댓글을 제공하지 않습니다.</p><div class="btnrow"><button class="btn" type="button" id="vpAutoScrape" onclick="fetchSelectedProductPage()">상품 상세페이지 자동 읽기</button><button class="btn" type="button" onclick="openSelectedProductPage()">상품 페이지 열기</button><button class="btn" type="button" onclick="pasteProductDetailFromClipboard()">복사한 상세정보 가져오기</button></div><p class="queueHint" id="vpScrapeStatus">공개 페이지의 접근 가능한 설명을 읽습니다. 구매후기는 확인되지 않으면 비워둡니다.</p><div class="field"><label>리뷰 추출기 마크다운 붙여넣기</label><textarea id="vpReviewMarkdown" rows="7" placeholder="## Product&#10;- 상품명: ...&#10;- 상품 ID: ...&#10;## 제품 상세 이미지&#10;## Reviews&#10;### Review 1 ..."></textarea></div><div class="btnrow"><button class="btn primary" type="button" onclick="importReviewMarkdown()">마크다운 분석 · 현재 상품에 연결</button><button class="btn" type="button" onclick="restoreReviewMarkdown()">저장된 추출 자료 불러오기</button></div><p class="queueHint" id="vpMarkdownStatus" role="status">상품 ID 일치 여부를 확인한 뒤 실제 본문이 있는 후기와 상세 이미지 URL을 분리합니다. 가격은 쿠팡 API에서 가져옵니다.</p><div id="vpReviewImagePreview" class="btnrow" style="flex-wrap:wrap"></div><div class="field"><label>상품 상세정보 (검증된 사실)</label><textarea id="vpAiDescription" rows="4" placeholder="상세페이지에서 확인한 기능, 규격, 구성, 사용법 등을 붙여넣기"></textarea></div><div class="field"><label>실제 구매후기 요약 (선택)</label><textarea id="vpAiReviews" rows="3" placeholder="직접 확인한 후기의 장단점만 요약. 없으면 비워두세요"></textarea></div><div class="btnrow"><button class="btn primary" type="button" id="vpAiThreads" onclick="generateProductCopy('Threads')">AI Threads 문구 생성</button><button class="btn primary" type="button" id="vpAiInstagram" onclick="generateProductCopy('Instagram')">AI Instagram 문구 생성</button></div><p id="vpAiCopyStatus" class="queueHint" role="status">상품 정보에 근거한 문구를 생성합니다. 생성 비용이 발생할 수 있습니다.</p></div></div>
+<div class="panel" id="vpAiCopyPanel" style="margin:12px 0"><div class="panelHead"><h2>AI 상품정보 기반 문구 생성</h2></div><div class="pad"><p class="queueHint">제품명·가격은 선택 상품에서 가져옵니다. 상세설명·실제 후기 요약은 확인된 내용을 붙여넣으세요. 쿠팡 파트너스 API는 상세페이지 본문과 댓글을 제공하지 않습니다.</p><div class="btnrow"><button class="btn" type="button" id="vpAutoScrape" onclick="fetchSelectedProductPage()">상품 상세페이지 자동 읽기</button><button class="btn" type="button" onclick="openSelectedProductPage()">상품 페이지 열기</button><button class="btn" type="button" onclick="pasteProductDetailFromClipboard()">복사한 상세정보 가져오기</button></div><p class="queueHint" id="vpScrapeStatus">공개 페이지의 접근 가능한 설명을 읽습니다. 구매후기는 확인되지 않으면 비워둡니다.</p><div class="field"><label>리뷰 추출기 마크다운 붙여넣기</label><textarea id="vpReviewMarkdown" rows="7" placeholder="## Product&#10;- 상품명: ...&#10;- 상품 ID: ...&#10;## 제품 상세 이미지&#10;## Reviews&#10;### Review 1 ..."></textarea></div><div class="btnrow"><button class="btn primary" type="button" onclick="importReviewMarkdown()">마크다운 분석 · 현재 상품에 연결</button><button class="btn" type="button" onclick="restoreReviewMarkdown()">저장된 추출 자료 불러오기</button></div><p class="queueHint" id="vpMarkdownStatus" role="status">상품 ID 일치 여부를 확인한 뒤 실제 본문이 있는 후기와 상세 이미지 URL을 분리합니다. 가격은 쿠팡 API에서 가져옵니다.</p><div id="vpReviewImagePreview" class="btnrow" style="flex-wrap:wrap"></div><div class="field"><label>상품 상세정보 (검증된 사실)</label><textarea id="vpAiDescription" rows="4" placeholder="상세페이지에서 확인한 기능, 규격, 구성, 사용법 등을 붙여넣기"></textarea></div><div class="field"><label>실제 구매후기 요약 (선택)</label><textarea id="vpAiReviews" rows="3" placeholder="직접 확인한 후기의 장단점만 요약. 없으면 비워두세요"></textarea></div><div class="btnrow"><button class="btn primary" type="button" id="vpAiThreads" onclick="generateProductCopy('Threads')">AI Threads 문구 생성</button><button class="btn primary" type="button" id="vpAiInstagram" onclick="generateProductCopy('Instagram')">AI Instagram 문구 생성</button></div><p id="vpAiCopyStatus" class="queueHint" role="status">상품 정보에 근거한 문구를 생성합니다. 생성 비용이 발생할 수 있습니다.</p><p id="vpThreadDraftStatus" class="queueHint" role="status">Threads 1단·2단 문구는 이 브라우저에 상품별로 자동 저장됩니다.</p></div></div>
  <div class="openingHookPanel" id="openingHookThreads">
   <div class="openingHookHeading"><div><b>본문 첫 줄 · 궁금증 유발 후킹</b><small>손해·반박·의문·후기 검증·결론 유보 중 선택하세요.</small></div><span>제품명보다 궁금증을 먼저</span></div>
   <div class="openingHookTools">
@@ -1196,6 +1196,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 <div class="toast" id="toast"></div>
 <link rel="stylesheet" href="/activity-log.css?v=1">
 <script src="/activity-log.js?v=4"></script>
+<script src="/threads-draft-storage.js?v=1"></script>
 <script>
 const products=[
  {source:'sample',id:1,name:'디지털 레이저 수평계',price:18900,old:32900,discount:42,viral:92,thread:94,insta:88,blog:91,ad:21,type:'신기템형',reason:'가구 조립 때 반복되는 수평 확인 문제를 해결하고 레이저·디지털 숫자 표시가 시각적으로 이해하기 쉬움.',problem:'가구 조립할 때 수평 안 맞아서 다시 맞추는 게 은근 스트레스인데',novel:'갖다 대면 각도가 숫자로 바로 뜨고 레이저 선까지 나옴',audience:'DIY·셀프 인테리어 관심층',visual:'삐뚤어진 선반과 조립 중인 작업대'},
@@ -2360,7 +2361,7 @@ function applyOpeningToDraft(platform){
   multiStudio.captions[platform]=updated;persistMultiStudio();
   if(platform==='Threads')renderMultiThreads();else renderMultiInstagram();
  }else if(platform==='Threads'){
-  customThreadEdits[threadEditKey()]=updated;renderThreads();
+  customThreadEdits[threadEditKey()]=updated;rememberThreadSelection();renderThreads();
  }else{
   customInstagramCaptions[selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex]=updated;
   renderInstagram();
@@ -2733,7 +2734,7 @@ async function refreshCoupangCatalog(force=false){
 function selectProduct(id){
  selected=products.find(p=>p.id===id)||products[0];
  saveCurrentWorkspace();
- threadImageIndex=0;coverIndex=0;
+ threadImageIndex=0;coverIndex=0;activateThreadSelection(selected?.id);
  renderProductLists();renderLab();renderThreads();renderInstagram();syncProductInputs();
  renderPhotoHistories();show('threads');void restorePhotoHistory(selected.id);
  window.vpCreatorRefresh?.();
@@ -2898,7 +2899,7 @@ function threadBodies(p){
 }
 function changeThreadDiversity(v){
  if(!['stable','balanced','creative'].includes(v))return;
- threadDiversity=v;threadCopyIndex=0;threadImageIndex=0;renderThreads();
+ threadDiversity=v;threadCopyIndex=0;threadImageIndex=0;rememberThreadSelection();renderThreads();
 }
 function threadVisuals(p){
  return [0,1,2].map(i=>{
@@ -3049,7 +3050,13 @@ async function generateProductCopy(platform){
    if(platform==='Threads'&&data.part2)saveThreadReply(data.part2);
    refreshMultiOutputs();
   }else if(platform==='Threads'){
+   const cleaned=cleanThreadPart(copy);
+   const lines=cleaned.split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
+   const narrative=pair&&cleaned.startsWith(pair.pain)?cleaned.slice(pair.pain.length).trim():cleaned;
+   if(lines.length<3||narrative.length<42)
+    throw new Error('AI 1단이 후킹 제목만 생성된 불완전한 결과입니다. 기존 본문은 유지했습니다. 다시 생성해 주세요.');
    customThreadEdits[threadEditKey()]=copy;
+   rememberThreadSelection();
    if(typeof data.part2==='string')saveThreadReply(data.part2);
    if(data.hook&&typeof hookHeadlineEdits==='object'&&!pair)hookHeadlineEdits[hookEditKey()]=data.hook;
    renderThreads();
@@ -3105,7 +3112,7 @@ async function copyThreadPart(part){
  const text=part===2?getThreadReplyText():getCurrentThreadText();
  try{await navigator.clipboard.writeText(text);toast('Threads '+part+'단 복사 완료')}catch{toast('브라우저 복사 권한을 확인해 주세요')}
 }
-function onThreadFinalEdit(){customThreadEdits[threadEditKey()]=$('#threadFinalText').value;renderThreadDupStatus();window.vpCreatorRenderReview?.()}
+function onThreadFinalEdit(){customThreadEdits[threadEditKey()]=$('#threadFinalText').value;rememberThreadSelection();renderThreadDupStatus();window.vpCreatorRenderReview?.()}
 function getCurrentInstagramCaption(){if(isMultiMode('Instagram'))return getMultiCaption('Instagram');return Object.prototype.hasOwnProperty.call(customInstagramCaptions,selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex)?customInstagramCaptions[selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex]:instaCaption(selected)}
 function onInstagramFinalEdit(){if(isMultiMode('Instagram')){editMultiCaption('Instagram',$('#instaCaption').value);window.vpCreatorRenderReview?.();return}customInstagramCaptions[selected.id+':'+instagramDiversity+':'+coverSeed+':'+coverIndex]=$('#instaCaption').value;renderInstagramDupStatus();window.vpCreatorRenderReview?.();window.vpInstagramFeedRefresh?.()}
 
@@ -3206,7 +3213,7 @@ function renderThreads(){
  const p=selected,b=threadBodies(p),hs=threadHooks(p),cls=['scene1','scene2','scene3'];
  $('#threadTypeBadge').textContent=p.type;
  $('#threadDiversity').value=threadDiversity;
- $('#threadTabs').innerHTML=b.map((x,i)=>`<div class="copyTab ${threadCopyIndex===i?'active':''}" onclick="threadCopyIndex=${i};renderThreads()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'){threadCopyIndex=${i};renderThreads()}"><span class="hookKind">${hookKinds[i]}</span><b>${hs[i]}</b></div>`).join('');
+ $('#threadTabs').innerHTML=b.map((x,i)=>`<div class="copyTab ${threadCopyIndex===i?'active':''}" onclick="chooseThreadCopy(${i})" role="button" tabindex="0" onkeydown="if(event.key==='Enter'){chooseThreadCopy(${i})}"><span class="hookKind">${hookKinds[i]}</span><b>${hs[i]}</b></div>`).join('');
  $('#hookHeadline').value=getHookHeadline();
  $('#hookPhotoStyle').value=hookPhotoStyle;
  $('#threadFinalText').value=getCurrentThreadText();
@@ -3220,6 +3227,7 @@ function renderThreads(){
    $('#threadFinalImage').innerHTML=`<div style="max-width:360px"><div class="visual ${cls[i]}"><div class="ghost">${p.visual}</div><div class="copy">${hs[threadCopyIndex]}<span class="sub">${p.name}</span></div></div></div>`;
  }
  renderThreadDupStatus();
+ updateThreadDraftNotice();
 }
 
 function refreshHookPreviews(){
@@ -3232,7 +3240,7 @@ function refreshHookPreviews(){
   preview.innerHTML='<img src="'+png+'" alt="선택한 1080×1350 후킹 이미지 최종 미리보기" style="width:min(100%,450px);display:block;aspect-ratio:4/5;object-fit:contain;border-radius:15px;border:1px solid #e7e9ed">';
  }catch(e){toast('후킹 이미지 미리보기 오류: '+e.message)}
 }
-function cycleThread(){threadSeed++;threadCopyIndex=0;threadImageIndex=0;renderThreads();toast('상품별 후킹 6안을 새로 구성했습니다')}
+function cycleThread(){threadSeed++;threadCopyIndex=0;threadImageIndex=0;rememberThreadSelection();renderThreads();toast('상품별 후킹 6안을 새로 구성했습니다')}
 async function copyThread(){try{await navigator.clipboard.writeText(getCurrentThreadText()+'\n\n──────── 2/2 ────────\n\n'+getThreadReplyText());toast('Threads 1단·2단 전체 복사 완료')}catch(e){toast('브라우저 복사 권한을 확인해주세요')}}
 
 function coverHooks(p){
@@ -4317,7 +4325,7 @@ function restoreCurrentWorkspace(){
   }
  }catch(e){}
 }
-loadPostingSettings();restoreCoupangDrafts();restoreManualProducts();restoreCurrentWorkspace();loadMultiStudio();loadInstagramCoverHeadlineEdits();setDefaultScheduleFields();try{$('#apiBase').value=localStorage.getItem('viralpickBackendUrl')||(location.hostname.endsWith('.vercel.app')?location.origin:'https://viralpick-review.vercel.app')}catch(e){$('#apiBase').value='https://viralpick-review.vercel.app'}renderProductLists();renderLab();renderThreads();renderInstagram();renderAnalytics();renderBlogRecommendations();renderPostingSettings();syncProductInputs();renderPhotoHistories();renderMultiStudios();refreshMultiOutputs();void restorePhotoHistory(selected.id);if(isMultiMode('Threads')||isMultiMode('Instagram'))void restoreMultiEditableAssets();
+loadPostingSettings();restoreCoupangDrafts();restoreManualProducts();restoreCurrentWorkspace();restoreThreadDraftState();loadMultiStudio();loadInstagramCoverHeadlineEdits();setDefaultScheduleFields();try{$('#apiBase').value=localStorage.getItem('viralpickBackendUrl')||(location.hostname.endsWith('.vercel.app')?location.origin:'https://viralpick-review.vercel.app')}catch(e){$('#apiBase').value='https://viralpick-review.vercel.app'}renderProductLists();renderLab();renderThreads();renderInstagram();renderAnalytics();renderBlogRecommendations();renderPostingSettings();syncProductInputs();renderPhotoHistories();renderMultiStudios();refreshMultiOutputs();void restorePhotoHistory(selected.id);if(isMultiMode('Threads')||isMultiMode('Instagram'))void restoreMultiEditableAssets();
 for(const id of ['vpAiDescription','vpAiReviews','vpReviewMarkdown','tossSearch'])$('#'+id)?.addEventListener('input',saveCurrentWorkspace);
 connectionRestoreTask=loadRememberedAccess();
 const q=new URLSearchParams(location.search).get('view');if(['dashboard','discover','integrations','lab','threads','instagram','analytics','blog','scheduler'].includes(q))show(q);
