@@ -79,5 +79,5 @@ test('server blog generation is protected and never claims measured Naver search
  assert.match(api,/validateBlogDraft/);
  assert.match(api,/measuredSearchVolume:false/);
  assert.match(api,/직접 제품을 사용|직접 제품을 사용하거나 구매/);
- assert.match(api,/실제 네이버 월간 검색량/);
+ assert.match(api,/실제 키워드 검색량/);
 });
