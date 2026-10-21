@@ -2,7 +2,7 @@
    Never record prompts, generated content, passwords, tokens, API bodies or URLs. */
 (function(){
 'use strict';
-const LOG_KEY='vp-activity-log-v1',LIMIT=55;
+const LOG_KEY='vp-activity-log-v2',LIMIT=75;
 const running=new Map();
 let serial=0,history=[];
 const $=s=>document.querySelector(s);
@@ -25,7 +25,7 @@ function begin(label,detail){
  const id=++serial;
  const entry={id,label:safe(label,90),detail:safe(detail,210),started:Date.now()};
  running.set(id,entry);
- record('busy',entry.label,entry.detail||'시작');
+ note(entry.label,entry.detail||'작업 시작');
  return id;
 }
 function update(id,detail){
@@ -88,6 +88,58 @@ function row(entry){
  const detail=document.createElement('p');detail.textContent=entry.detail||'';
  content.append(head,detail);li.append(dot,content);return li;
 }
+
+// Capture commands even when a tool changes only local state and does not call an API.
+// These are INTENT events, not fabricated completion/success events.
+const AREA_NAMES={dashboard:'대시보드',discover:'상품 발굴',threads:'Threads',instagram:'Instagram',blog:'블로그',scheduler:'예약·게시',integrations:'상품 연결',lab:'상품 분석'};
+const ACTION_IDS={
+ vpBlogAnalyze:'SEO 유형 분석',vpBlogRefresh:'SEO 다시 분석',vpBlogWrite:'블로그 AI 본문 작성',vpBlogCopy:'본문 복사',vpBlogDownload:'TXT 저장',
+ vpPerfRefresh:'실적 새로고침',vpPerfApply:'실적 조회 조건 적용',vpPerfMore:'실적 기록 더 보기',vpPerfCsv:'성과 CSV 저장',
+ vpAutoScrape:'상품 상세정보 읽기',vpAiThreads:'Threads AI 문구 생성',vpAiInstagram:'Instagram AI 문구 생성',
+ carouselBatchBtn:'캐러셀 5장 이미지 일괄 생성',carouselSingleBtn:'캐러셀 선택 카드 재생성',
+ vpLookup:'상품 URL 확인',coupangBrowseButton:'상품 발굴 조건 검색',
+ vpInstagramSingleGenerate:'Instagram 카드 문구 생성',vpPairsGenerate:'Threads 후킹 5세트 생성',
+ vpPainCreate:'Threads 문제 상황 이미지 생성',vpSolveCreate:'Threads 해결 상황 이미지 생성',
+ vpWebResearchRun:'상품 웹조사'
+};
+const ONCLICK_NAMES=[
+ [/generateProductCopy\(/,'AI SNS 문구 생성'],[/runCarouselArtworkGeneration|generateCarouselImages/,'Instagram 이미지 생성'],
+ [/requestAiScene\(/,'AI 상황 이미지 생성'],[/fetchCoupangProducts|fetchCoupangDiscovery|refreshCoupangCatalog/,'상품 검색·발굴'],
+ [/issueCoupangLink/,'쿠팡 제휴 링크 발급'],[/importReviewMarkdown/,'리뷰 자료 분석'],[/generateSNS\(/,'SNS 콘텐츠 생성'],
+ [/download.*(?:ZIP|PNG|CSV)/,'콘텐츠 파일 저장'],[/copy(?:Thread|Caption|Coupang)/,'콘텐츠 복사'],
+ [/openReservation|addSchedule|confirmReserve/,'게시 예약 작업'],[/show\(/,'화면 이동']
+];
+function commandLabel(button){
+ const fixed=ACTION_IDS[button.id];if(fixed)return fixed;
+ const action=button.getAttribute?.('onclick')||'';
+ for(const [pattern,name] of ONCLICK_NAMES)if(pattern.test(action))return name;
+ // Limit text from rendered product cards, so names/descriptions and tokens are never stored.
+ const raw=(button.getAttribute?.('aria-label')||button.textContent||'버튼').replace(/\s+/g,' ').trim();
+ const text=raw.replace(/[^\p{Script=Hangul}\p{Script=Latin}\p{Number}\s·+\-_.]/gu,'').trim();
+ if(!text||text.length>65)return '화면 선택·기능 실행';
+ return safe(text,55);
+}
+function commandArea(button){
+ const section=button.closest?.('.view');
+ if(section)return AREA_NAMES[section.id]||'ViralPick';
+ if(button.closest?.('.mobileBottom,.nav,.side,.mobileTop,.vpStudioStageBar'))return '화면 이동';
+ return 'ViralPick';
+}
+function commandClick(event){
+ const element=event.target;
+ const button=element?.closest?.('button,[role="button"],input[type="submit"],input[type="button"]');
+ if(!button||button.disabled||button.closest?.('#vpActivityDock'))return;
+ const area=commandArea(button),label=commandLabel(button);
+ // Covers dynamically added dashboard, discovery, Threads, Instagram, blog and modal buttons.
+ note(area+' · '+label,'버튼 선택 · 실행 요청');
+}
+function commandChange(event){
+ const control=event.target;
+ if(!control||control.closest?.('#vpActivityDock'))return;
+ if(!control.matches?.('select,input[type="checkbox"],input[type="radio"],input[type="file"]'))return;
+ const area=commandArea(control),name=control.getAttribute('aria-label')||control.labels?.[0]?.textContent||control.id||'설정';
+ note(area+' · 옵션 변경',safe(name,65)+' · 설정이 변경되었습니다. 결과는 화면에서 확인하세요.');
+}
 function render(){
  const dock=$('#vpActivityDock');if(!dock)return;
  const active=[...running.values()].sort((a,b)=>b.started-a.started);
@@ -102,7 +154,7 @@ function render(){
   list.replaceChildren();
   if(!active.length&&!history.length){const empty=document.createElement('li');empty.className='vpActivityEmpty';empty.textContent='아직 실행한 작업이 없습니다.';list.append(empty)}
   for(const entry of active)list.append(row({...entry,level:'busy'}));
-  for(const entry of history.filter(item=>item.level!=='busy').slice(0,38))list.append(row(entry));
+  for(const entry of history.filter(item=>item.level!=='busy').slice(0,50))list.append(row(entry));
  }
 }
 function init(){
@@ -133,8 +185,11 @@ function init(){
  };
  // The mobile navigation exists in the markup; anchor directly above it.
  document.body.append(dock);
+ // Capture click on all supported app buttons, including elements added after load.
+ document.addEventListener('click',commandClick,true);
+ document.addEventListener('change',commandChange,true);
  render();
 }
-window.vpActivity={begin,update,end,info:note,warning,error:errored,trackRequest,render,classifyRequest};
+window.vpActivity={begin,update,end,info:note,warning,error:errored,trackRequest,render,classifyRequest,commandClick,commandChange};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
