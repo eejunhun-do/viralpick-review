@@ -153,8 +153,59 @@ async function renderMetrics(){
   const foot=root.querySelector('.vpSocialPosts .vpPanelHeading small');if(foot)foot.textContent='Meta 통계 조회 실패: '+e.message;
  }
 }
+
+async function realReservation(){
+ if(state.busy)return;
+ const ids=['reserveApproved','reserveProductCheck','reserveLinkCheck'];
+ if(!ids.every(id=>$('#'+id)?.checked)){const e=$('#reserveWarning');if(e)e.textContent='게시글·상품·제휴 정보를 모두 검수해야 합니다.';return}
+ const p=$('#reservePlatform')?.textContent?.toLowerCase();
+ const platform=p==='instagram'?'instagram':'threads';
+ const text=$('#reserveText')?.value||'';
+ const date=$('#reserveDate')?.value,time=$('#reserveTime')?.value;
+ const e=$('#reserveWarning'),button=$('#confirmReserveBtn');
+ const show=s=>{if(e)e.textContent=s;note(s)};
+ if(typeof selected!=='undefined'&&selected?.source==='sample'){show('시연용 예시 상품은 실제 자동 게시할 수 없습니다. 상품 발굴에서 실제 상품을 선택해 주세요.');return}
+ if(!text.trim()||!date||!time){show('본문과 게시 날짜·시간을 입력하세요.');return}
+ if(/쿠팡|파트너스|제휴|https?:/i.test(text)&&!/수수료|광고|파트너스 활동/.test(text+(typeof getThreadReplyText==='function'?getThreadReplyText():''))){show('제휴 또는 광고 콘텐츠에는 광고·수수료 고지가 필요합니다.');return}
+ let replyText='';
+ if(platform==='threads'&&typeof getThreadReplyText==='function'){
+  replyText=String(getThreadReplyText()||'');
+  if(replyText.includes('단축 링크 미발급')){show('Threads 2단 쿠팡 단축 링크가 미발급됐습니다. 링크 발급 후 예약하세요.');return}
+ }
+ state.busy=true;if(button)button.disabled=true;
+ try{
+  let imageUrls=[];
+  const images=[];
+  const count=platform==='instagram'?Math.min(10,typeof multiSlideCount==='function'&&typeof isMultiMode==='function'&&isMultiMode('Instagram')?multiSlideCount():5):
+    typeof window.vpThreadPairArtworkForSlide==='function'&&window.vpThreadPairArtworkForSlide(1)?2:1;
+  if(typeof buildContentCanvas!=='function')throw Error('현재 브라우저에서 제작 이미지를 내보낼 수 없습니다.');
+  const status=await get('op=status');
+  if(!status.platforms?.[platform]?.connected)throw Error(labels[platform]+' 계정을 먼저 연결해 주세요.');
+  if(!status.blobConfigured){
+   if(platform==='instagram')throw Error('Instagram 카드 이미지를 업로드할 Vercel Blob 연결이 필요합니다. 자동게시 설정에서 공개 이미지 URL을 직접 넣을 수도 있습니다.');
+   if(!confirm('사진 호스팅이 연결되지 않았습니다. Threads를 이미지 없이 본문만 예약할까요?'))return;
+  }else{
+   show('제작 이미지 '+count+'장 인코딩 및 서버 업로드 중…');
+   for(let i=0;i<count;i++){
+    const canvas=buildContentCanvas(platform==='instagram'?'Instagram':'Threads',i,platform==='instagram'?(typeof coverIndex!=='undefined'?coverIndex:0):(typeof threadImageIndex!=='undefined'?threadImageIndex:0));
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',0.76));
+    if(!blob)throw Error('이미지를 JPEG로 변환하지 못했습니다.');
+    images.push(new File([blob],platform+'-'+(i+1)+'.jpg',{type:'image/jpeg'}));
+   }
+   imageUrls=await uploadImages(images);
+  }
+  const when=new Date(date+'T'+time+':00+09:00').toISOString();
+  const response=await post({action:'schedule',platform,text,replyText,scheduledAt:when,approved:true,imageUrls,product:$('#reserveProduct')?.textContent||''});
+  if(typeof window.closeReservation==='function')window.closeReservation();
+  window.show?.('scheduler');await refresh();
+  show('실제 서버 예약 등록 완료 · '+new Date(response.scheduledAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}));
+ }catch(error){show('실제 게시 예약 실패: '+error.message)}
+ finally{state.busy=false;if(button)button.disabled=false}
+}
+
 function boot(){
  render();
+ window.confirmReservation=realReservation;
  const original=window.vpPerformanceOnShow;
  window.vpPerformanceOnShow=function(){if(original)original();void renderMetrics()};
  const onLogin=window.vpPerformanceOnLogin;
