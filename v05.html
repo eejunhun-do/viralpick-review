@@ -1432,12 +1432,14 @@ async function runCarouselArtworkGeneration(slides,{replace=false}={}){
  const payloads=new Map(),failed=[];
  let completed=0,saved=0,progressMessage='';
  carouselGenerationBusy=true;sceneGenerationBusy=true;
+ const activityId=window.vpActivity?.begin('Instagram 캐러셀 일괄 제작','상품 사진 사전 검사 중');
  renderCarouselArtStatus();
  try{
   // Validate and prepare ALL product-reference inputs before any paid image generation.
   // This prevents a bad thumbnail URL from failing only AFTER slides 1 and 2 were billed.
   if(pending.some(n=>n>=3)){
    if(status)status.textContent='상품 썸네일·상세 이미지 참조 가능 여부를 확인하고 있습니다…';
+   window.vpActivity?.update(activityId,'상품 썸네일·상세 이미지 3~5번 확인 중');
    for(const slide of pending.filter(n=>n>=3)){
     payloads.set(slide,await window.vpCreatorReferencePayloadForInstagramSlide(slide));
    }
@@ -1448,6 +1450,7 @@ async function runCarouselArtworkGeneration(slides,{replace=false}={}){
    if(selected.id!==targetId)throw Error('작업 상품이 변경되었습니다. 다른 상품과 사진이 섞이지 않도록 중단합니다.');
    const refPayload=slide<=2?{imageMode:'scene'}:payloads.get(slide);
    if(status)status.textContent=slide+'번 카드 AI 사진 생성 중… ('+(completed+failed.length+1)+'/'+pending.length+')';
+   window.vpActivity?.update(activityId,slide+'번 카드 이미지 생성 중 · '+(completed+failed.length+1)+'/'+pending.length);
    try{
     const data=await backendRequest('/api/image',{
      method:'POST',body:JSON.stringify({
@@ -1479,6 +1482,7 @@ async function runCarouselArtworkGeneration(slides,{replace=false}={}){
    renderInstagram();
    if(status&&progressMessage)status.textContent=progressMessage;
   }
+  window.vpActivity?.end(activityId,!failed.length&&!progressMessage.startsWith('이미지 생성 준비 중단'),progressMessage||'사용자가 이미지 생성을 취소했습니다.');
  }
 }
 function generateCarouselImages(){void runCarouselArtworkGeneration([1,2,3,4,5])}
