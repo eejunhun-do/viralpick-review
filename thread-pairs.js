@@ -118,6 +118,19 @@ async function hydratePair(){
  await Promise.allSettled([getLoaded(index,'pain'),getLoaded(index,'solve')]);
  if(id===owner())render();
 }
+async function prepareImagesForReservation(){
+ if(typeof isMultiMode==='function'&&isMultiMode('Threads'))return 0;
+ const {r,index}=current();
+ const slots=['pain','solve'];
+ for(const [i,slot] of slots.entries()){
+  if(!r.images[index+':'+slot])throw Error('Threads '+(i+1)+'번 사진이 없습니다. 2장을 생성한 뒤 예약해 주세요.');
+ }
+ for(const [i,slot] of slots.entries()){
+  const img=await getLoaded(index,slot).catch(e=>{throw Error('Threads '+(i+1)+'번 이미지 복원 실패: '+e.message)});
+  if(!img||!img.complete||!img.naturalWidth)throw Error((i+1)+'번 이미지가 준비되지 않았습니다. 잠시 후 다시 예약해 주세요.');
+ }
+ return 2;
+}
 function canvasData(slide){
  if(!ready||typeof isMultiMode==='function'&&isMultiMode('Threads'))return null;
  const {r,index,pair}=current(),slot=slide===1?'solve':'pain';
@@ -406,6 +419,7 @@ function install(){
  const originalReview=window.vpCreatorRenderReview;
  window.vpCreatorRenderReview=()=>{originalReview?.();updateFinal()};
  window.vpThreadPairArtworkForSlide=canvasData;
+ window.vpThreadPairPrepareForReservation=prepareImagesForReservation;
  window.vpThreadPairExport=exportTwo;
  refresh();
 }
