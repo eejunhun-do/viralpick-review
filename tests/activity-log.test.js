@@ -26,7 +26,9 @@ test('logo and mobile bottom nav link to real existing dashboard rather than moc
  assert.match(html,/if\(id==='analytics'\)id='dashboard'/);
  assert.match(html,/activity-log\.js\?v=4/);
  assert.match(html,/activity-log\.css\?v=1/);
- assert.equal([...html.matchAll(/data-quick-view=/g)].length,4);
+ assert.equal([...html.matchAll(/data-quick-view=/g)].length,5);
+ assert.match(html,/data-quick-view="blog" onclick="show\('blog'\)"/);
+ assert.doesNotMatch(html,/id="quickMoreButton"/);
  assert.match(css,/bottom:calc\(75px \+ env\(safe-area-inset-bottom,0px\)\)/);
  assert.match(css,/\.vpActivityPanel\[hidden\]/);
 });
