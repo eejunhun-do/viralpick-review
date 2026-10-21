@@ -4429,6 +4429,7 @@ function closeMobileMenu(){
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeReservation();closeQueueDetail();closeMobileMenu();}});
 window.addEventListener('resize',()=>{if(window.innerWidth>930)closeMobileMenu()});
 function show(id){
+ if(id==='analytics')id='dashboard'; // legacy prototype link now opens actual API dashboard
  if(!document.getElementById(id))return;
  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===id));
  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
