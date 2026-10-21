@@ -64,7 +64,7 @@ test('live blog replaces fabricated performance data and has complete generation
  assert.match(css,/vpBlogFactorTrack/);
  assert.match(html,/id="vpBlogTitles"/);
  assert.match(html,/id="vpBlogFinalEdit"/);
- assert.match(html,/blog-workspace\.js\?v=3/);
+ assert.match(html,/blog-workspace\.js\?v=4/);
  assert.match(html,/blog-workspace\.css\?v=3/);
  assert.doesNotMatch(html,/blogPerformanceSets|currentBlogPerformance\(|토스 제공 상품 원본 이미지 자리/);
  assert.match(ui,/window\.vpProductResearchContext/);
