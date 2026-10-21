@@ -24,8 +24,8 @@ test('logo and mobile bottom nav link to real existing dashboard rather than moc
  assert.doesNotMatch(html,/data-quick-view="analytics"/);
  assert.doesNotMatch(html,/<button data-view="analytics">/);
  assert.match(html,/if\(id==='analytics'\)id='dashboard'/);
- assert.match(html,/activity-log\.js\?v=1/);
- assert.match(html,/activity-log\.css\?v=1/);
+ assert.match(html,/activity-log\.js\?v=2/);
+ assert.match(html,/activity-log\.css\?v=2/);
  assert.equal([...html.matchAll(/data-quick-view=/g)].length,4);
  assert.match(css,/bottom:calc\(75px \+ env\(safe-area-inset-bottom,0px\)\)/);
  assert.match(css,/\.vpActivityPanel\[hidden\]/);
@@ -38,6 +38,8 @@ test('tracker classifies generative tasks, product research and commerce separat
  assert.match(api.classifyRequest('/api/instagram-story').label,/캐러셀 문구/);
  assert.match(api.classifyRequest('/api/hooks').label,/후킹/);
  assert.match(api.classifyRequest('/api/reports').label,/실적/);
+ assert.match(api.classifyRequest('/api/blog',{method:'POST',body:'{"action":"plan"}'}).label,/SEO 8유형/);
+ assert.match(api.classifyRequest('/api/blog',{method:'POST',body:'{"action":"draft"}'}).label,/본문 작성/);
 });
 test('simultaneous tasks persist event history but never record raw API payloads',async()=>{
  const {api,history}=makeLogger();
