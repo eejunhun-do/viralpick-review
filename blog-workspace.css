@@ -1,0 +1,92 @@
+/* ViralPick Blog SEO Studio — mobile first, clean editorial review. */
+.vpBlogStudio{--blog-border:#e3e8f0;--blog-ink:#1d2b43;--blog-muted:#758299;color:var(--blog-ink);padding-bottom:26px}
+.vpBlogHead{display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:18px}
+.vpBlogHead h1{font-size:clamp(24px,3vw,32px);margin:8px 0;font-weight:950;letter-spacing:-.04em}
+.vpBlogHead p{font-size:12px;color:#68768a;line-height:1.6;margin:0}
+.vpBlogEyebrow{color:#4664bb;background:#edf1fc;padding:6px 10px;border-radius:30px;font-weight:900;font-size:10px;letter-spacing:.1em}
+.vpBlogBeta,.vpBlogSmallBadge{background:#edf6f0;color:#16784f;white-space:nowrap;padding:7px 10px;border-radius:30px;font-size:10px;font-weight:800}
+.vpBlogBox{background:#fff;border:1px solid var(--blog-border);border-radius:18px;padding:20px;margin:14px 0;min-width:0}
+.vpBlogProductBox{display:flex;align-items:center;gap:18px}
+.vpBlogProductImage{width:108px;height:108px;flex:0 0 108px;display:grid;place-items:center;background:#f5f7fb;border-radius:13px;color:#8d98a9;text-align:center;font-size:11px}
+.vpBlogProductImage img{max-width:100%;max-height:100%;object-fit:contain;border-radius:11px}
+.vpBlogProductInfo{flex:1;min-width:0}
+.vpBlogProductInfo small{font-size:11px;color:#607ea7;font-weight:850}
+.vpBlogProductInfo h2{font-size:16px;margin:7px 0;line-height:1.4;overflow-wrap:anywhere}
+.vpBlogProductInfo p{color:var(--blog-muted);font-size:11px;line-height:1.6}
+.vpBlogProductActions{display:flex;gap:8px;flex-wrap:wrap}
+.vpBlogProductActions button{font-size:12px}
+.vpBlogMeasurement{background:#f3f6ff;border:1px solid #e0e8fb;border-radius:14px;padding:12px 16px}
+.vpBlogMeasurement strong{color:#304b93;font-size:12px}
+.vpBlogMeasurement p{font-size:11px;line-height:1.7;color:#62718a;margin:5px 0 0}
+.vpBlogStatus{padding:10px 14px;margin:10px 0;background:#f1f4f8;border-radius:11px;font-size:11px;color:#536780;line-height:1.6;overflow-wrap:anywhere}
+.vpBlogStatus[data-kind="error"]{background:#fff0f2;color:#a83449}
+.vpBlogStatus[data-kind="success"]{background:#ecf8f1;color:#157b53}
+.vpBlogSectionTitle{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.vpBlogSectionTitle h2{font-size:17px;margin:0;font-weight:950}
+.vpBlogSectionTitle p{font-size:11px;color:var(--blog-muted);line-height:1.5;margin:5px 0 0}
+.vpBlogTopThree{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.vpBlogTop{min-width:0;text-align:left;background:#fafbfe;border:1px solid #e3e8f1;border-radius:15px;padding:13px;display:grid;gap:7px;cursor:pointer}
+.vpBlogTop.selected{background:#eaf0ff;border-color:#597cce}
+.vpBlogTop small{font-size:10px;color:#6579a8;font-weight:900}
+.vpBlogTop strong{font-size:15px;color:#1f3152}
+.vpBlogTop .vpBlogScore{font-size:24px;font-weight:950;letter-spacing:-.035em;color:#3659b1}
+.vpBlogTop p{font-size:10px;line-height:1.6;color:#6e7b91;margin:0}
+.vpBlogTypeGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.vpBlogType{text-align:left;min-width:0;padding:11px 14px;border:1px solid #e1e6ee;border-radius:12px;background:#fff;cursor:pointer}
+.vpBlogType.selected{border-color:#5475c6;background:#f2f6ff}
+.vpBlogTypeTop{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;font-weight:850}
+.vpBlogTypeTop strong{font-size:17px;color:#3158bd;font-variant-numeric:tabular-nums;white-space:nowrap}
+.vpBlogType p{font-size:10px;line-height:1.5;margin:6px 0 0;color:#798596}
+.vpBlogBar{height:6px;background:#e9edf5;overflow:hidden;border-radius:30px;margin:8px 0}
+.vpBlogBar>span{display:block;height:100%;background:#5774cc;border-radius:inherit}
+.vpBlogWeights{display:flex;gap:6px;flex-wrap:wrap;padding-top:13px}
+.vpBlogWeight{display:flex;gap:8px;align-items:center;background:#f5f7fa;border-radius:20px;padding:8px 11px;color:#788598;font-size:10px}
+.vpBlogWeight strong{color:#37578c}
+.vpBlogKeywords{display:flex;gap:7px;flex-wrap:wrap}
+.vpBlogKeyword{font-size:12px;background:#edf3ff;border-radius:20px;padding:8px 12px;color:#3d60a7;font-weight:750}
+.vpBlogAngle{background:#f9fafc;border-left:3px solid #6387d5;padding:12px 14px;font-size:12px;color:#66758c;line-height:1.7}
+.vpBlogWriteTools{display:flex;gap:10px;align-items:end;flex-wrap:wrap}
+.vpBlogWriteTools label{display:grid;gap:5px;font-size:11px;color:#6c7a90;font-weight:800;flex:1;min-width:130px}
+.vpBlogWriteTools select{height:42px;padding:6px 10px;border:1px solid var(--blog-border);background:white;border-radius:11px;width:100%}
+.vpBlogWriteTools button{min-height:42px;flex:1}
+.vpBlogTitles{display:grid;gap:7px}
+.vpBlogTitleOption{display:block;width:100%;padding:13px 12px;text-align:left;background:#fff;border:1px solid #e3e8f0;border-radius:10px;cursor:pointer;font-weight:800;font-size:12px;line-height:1.5;color:#3b4e69}
+.vpBlogTitleOption.active{background:#edf3ff;border-color:#6486ce;color:#274eaa}
+.vpBlogPreviewTitle{margin-top:26px}
+.vpBlogPreview{max-width:760px;margin:10px auto;background:#fff;border:1px solid #e5e9f1;border-radius:14px;padding:clamp(15px,3vw,30px);font-size:14px;line-height:1.9;word-break:keep-all;overflow-wrap:anywhere}
+.vpBlogPreview h1{font-size:clamp(21px,3vw,29px);line-height:1.35;letter-spacing:-.04em}
+.vpBlogPreview h2{font-size:17px;margin:25px 0 9px;line-height:1.45}
+.vpBlogPreview p{white-space:pre-wrap;color:#394b61;margin:9px 0}
+.vpBlogDisclosure{background:#f5f7fb;border-radius:9px;padding:11px;font-size:11px;color:#717e8e;line-height:1.55}
+.vpBlogFigure{margin:20px 0;text-align:center;background:#f9fafc;border-radius:12px;padding:14px}
+.vpBlogFigure img{max-width:100%;max-height:340px;object-fit:contain}
+.vpBlogFigure figcaption{font-size:11px;color:#8795a5;margin-top:6px}
+.vpBlogAffiliate{display:inline-block;background:#203d7d;color:#fff;padding:11px 14px;border-radius:10px;text-decoration:none;font-weight:850}
+.vpBlogEditor{border:1px solid #e4e8ee;border-radius:13px;padding:12px;margin:16px 0}
+.vpBlogEditor summary{cursor:pointer;color:#526c9c;font-size:12px;font-weight:850}
+.vpBlogEditor textarea{display:block;width:100%;margin-top:12px;border-radius:10px;border:1px solid #d7dfec;padding:13px;line-height:1.75;resize:vertical;font-size:13px}
+.vpBlogEditor p{font-size:11px;color:#788496}
+.vpBlogVerification{background:#f8fafc;border:1px solid #e7ebf2;border-radius:12px;padding:14px}
+.vpBlogVerification strong{font-size:12px}
+.vpBlogVerification p{font-size:11px;line-height:1.6;color:#6d798d;margin:7px 0}
+.vpBlogActions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.vpBlogActions button{flex:1;min-width:140px}
+@media(max-width:730px){
+ .vpBlogTopThree{grid-template-columns:1fr}
+ .vpBlogTop{grid-template-columns:auto 1fr auto;align-items:center}
+ .vpBlogTop p{grid-column:1/-1}
+ .vpBlogProductBox{gap:12px;padding:14px}
+ .vpBlogProductImage{width:83px;height:83px;flex-basis:83px}
+ .vpBlogBox{padding:15px}
+ .vpBlogTypeGrid{grid-template-columns:1fr}
+}
+@media(max-width:510px){
+ .vpBlogHead{flex-direction:column}
+ .vpBlogProductBox{align-items:flex-start}
+ .vpBlogProductInfo h2{font-size:14px}
+ .vpBlogProductActions button{flex:1;min-height:40px}
+ .vpBlogSectionTitle h2{font-size:15px}
+ .vpBlogWriteTools{display:grid}
+ .vpBlogWriteTools button{width:100%}
+ .vpBlogPreview{font-size:13px}
+}
