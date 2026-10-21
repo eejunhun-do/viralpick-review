@@ -12,7 +12,7 @@ Instagram 로그인 scope: instagram_business_basic,instagram_business_content_p
 
 Instagram은 Professional Creator/Business 계정과 해당 API 권한이 필요합니다. 앱 권한 심사가 필요할 수 있습니다. 실제 계정 인증 이전에는 게시할 수 없습니다.
 
-사진을 업로드하려면 Vercel Blob 저장소를 연결하여 BLOB_READ_WRITE_TOKEN 환경변수를 등록해야 합니다. 외부 공개 HTTPS 사진 URL도 이용 가능합니다. 사진은 사용 권한을 확인하세요.
+서버 경유 업로드는 Vercel 요청 제한 때문에 사진당 3.8MB 이하여야 합니다. 사진을 업로드하려면 Vercel Blob 저장소를 연결하여 BLOB_READ_WRITE_TOKEN 환경변수를 등록해야 합니다. 외부 공개 HTTPS 사진 URL도 이용 가능합니다. 사진은 사용 권한을 확인하세요.
 
 서버 예약 큐는 Redis에 보존되며, /api/social-cron에서 CRON_SECRET Bearer 인증 후 예정된 게시를 처리합니다. Vercel Cron은 UTC 시각을 사용합니다. 매분 실행은 Pro 플랜 등에만 적합하며 Hobby에서는 하루 한 번만 실행할 수 있어 정확한 예약 게시를 보장하지 못하고 배포도 실패할 수 있습니다. 정확한 예약을 위해 호환되는 외부 스케줄러를 인증된 엔드포인트에 연결할 수도 있습니다.
 
