@@ -229,7 +229,7 @@ function renderImageManager(){
   actions.append(remove);
   if(source.kind==='generated'||source.kind==='upload'){
    const link=make('a','vpBlogImageDownload','파일 저장');
-   link.href=source.src;link.download='ViralPick_블로그_이미지_'+(index+1)+'.png';actions.append(link);
+   link.href=source.src;const ext=source.src.startsWith('data:image/jpeg')?'jpg':source.src.startsWith('data:image/webp')?'webp':'png';link.download='ViralPick_블로그_이미지_'+(index+1)+'.'+ext;actions.append(link);
   }else{
    const link=make('a','vpBlogImageDownload','원본 보기');
    link.href=source.src;link.target='_blank';link.rel='noopener noreferrer';actions.append(link);
@@ -244,6 +244,7 @@ function renderImageManager(){
  }
 }
 async function uploadBlogImages(files){
+ const owner=state.id;
  const allowed=['image/jpeg','image/png','image/webp'];
  const chosen=Array.from(files||[]).slice(0,4);
  const messages=[];
@@ -260,6 +261,7 @@ async function uploadBlogImages(files){
     reader.readAsDataURL(file);
    });
    if(!validInlineImage(data))throw Error('지원하지 않는 이미지 데이터입니다.');
+   if(state.id!==owner)return; // prevent async file uploads leaking into another product
    state.media.uploads.push({id:'custom:'+Date.now()+':'+state.media.uploads.length,label:'추가 사진 '+(state.media.uploads.length+1),src:data});
   }catch(e){messages.push(file.name+': '+e.message)}
  }
