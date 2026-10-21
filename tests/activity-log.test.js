@@ -25,7 +25,7 @@ test('logo and mobile bottom nav link to real existing dashboard rather than moc
  assert.doesNotMatch(html,/<button data-view="analytics">/);
  assert.match(html,/if\(id==='analytics'\)id='dashboard'/);
  assert.match(html,/activity-log\.js\?v=2/);
- assert.match(html,/activity-log\.css\?v=2/);
+ assert.match(html,/activity-log\.css\?v=1/);
  assert.equal([...html.matchAll(/data-quick-view=/g)].length,4);
  assert.match(css,/bottom:calc\(75px \+ env\(safe-area-inset-bottom,0px\)\)/);
  assert.match(css,/\.vpActivityPanel\[hidden\]/);
