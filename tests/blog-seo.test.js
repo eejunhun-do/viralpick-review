@@ -59,6 +59,9 @@ test('live blog replaces fabricated performance data and has complete generation
  assert.match(html,/id="vpBlogTopThree"/);
  assert.match(html,/id="vpBlogTypes"/);
  assert.match(html,/id="vpBlogKeywords"/);
+ assert.match(html,/id="vpBlogScoreDetail"/);
+ assert.match(ui,/row\.ratings\?\.\[key\]/);
+ assert.match(css,/vpBlogFactorTrack/);
  assert.match(html,/id="vpBlogTitles"/);
  assert.match(html,/id="vpBlogFinalEdit"/);
  assert.match(html,/blog-workspace\.js\?v=1/);
