@@ -70,3 +70,79 @@ test('authenticated reference route rejects absent consent before doing network 
  const response=await fetchImageReference(req);
  assert.ok([400,401].includes(response.status));
 });
+
+function mockedRedirectFetch(routes,dnsEntries={}){
+ const calls=[],dnsCalls=[];
+ const validImage=Buffer.alloc(145);
+ Buffer.from([137,80,78,71,13,10,26,10]).copy(validImage);
+ const request=(url,options,onResponse)=>{
+  calls.push({url:url.toString(),host:url.hostname});
+  options.lookup(url.hostname,{all:true},(err,addresses)=>{
+   assert.equal(err,null);
+   assert.deepEqual(addresses,[{address:dnsEntries[url.hostname]||'8.8.4.4',family:4}]);
+  });
+  const req=new EventEmitter();
+  req.end=()=>{
+   const route=routes[url.toString()];
+   assert.ok(route,'Unexpected HTTPS URL: '+url.toString());
+   const response=Readable.from(route.body===undefined?[]:[route.body==='image'?validImage:Buffer.from(route.body)]);
+   response.statusCode=route.status;
+   response.headers={'content-type':route.contentType||'image/png',...(route.location?{location:route.location}:{})};
+   onResponse(response);
+  };
+  return req;
+ };
+ const lookup=async host=>{
+  dnsCalls.push(host);
+  return [{address:dnsEntries[host]||'8.8.4.4',family:4}];
+ };
+ return {request,lookup,calls,dnsCalls};
+}
+test('follows same-host and cross-host HTTPS redirects and checks each DNS hop',async()=>{
+ const routes={
+  'https://images.shop-example.net/original.png':{status:302,location:'/moved.png'},
+  'https://images.shop-example.net/moved.png':{status:301,location:'https://cdn.shop-example.net/actual.png'},
+  'https://cdn.shop-example.net/actual.png':{status:200,body:'image'}
+ };
+ const deps=mockedRedirectFetch(routes);
+ const result=await downloadPublicImage('https://images.shop-example.net/original.png',deps);
+ assert.equal(result.mime,'image/png');
+ assert.equal(result.bytes.length,145);
+ assert.deepEqual(deps.dnsCalls,['images.shop-example.net','images.shop-example.net','cdn.shop-example.net']);
+ assert.equal(deps.calls.length,3);
+});
+test('rejects redirect to private resolved address, HTTP downgrade and credentials',async()=>{
+ const start='https://images.shop-example.net/image.png';
+ for(const [target,dnsEntries,expected] of [
+  ['https://internal.shop-example.net/private.png',{'internal.shop-example.net':'10.0.0.4'},/공개 인터넷 이미지 서버/],
+  ['http://cdn.shop-example.net/image.png',{},/공개 HTTPS 이미지 주소/],
+  ['https://127.0.0.1/image.png',{},/공개 HTTPS 이미지 주소/],
+  ['https://user:secret@cdn.shop-example.net/image.png',{},/공개 HTTPS 이미지 주소/]
+ ]){
+  const deps=mockedRedirectFetch({[start]:{status:302,location:target}},dnsEntries);
+  await assert.rejects(()=>downloadPublicImage(start,deps),expected);
+  assert.equal(deps.calls.length,1,'unsafe redirect must not be fetched');
+ }
+});
+test('stops redirect loops and redirect chains longer than four moves',async()=>{
+ const origin='https://images.shop-example.net';
+ const loop=mockedRedirectFetch({
+  [origin+'/a']:{status:302,location:'/b'},
+  [origin+'/b']:{status:302,location:'/a'}
+ });
+ await assert.rejects(()=>downloadPublicImage(origin+'/a',loop),/반복 이동/);
+ assert.equal(loop.calls.length,2);
+ const routes={};
+ for(let i=0;i<6;i++)routes[origin+'/slide'+i]={status:302,location:'/slide'+(i+1)};
+ const tooMany=mockedRedirectFetch(routes);
+ await assert.rejects(()=>downloadPublicImage(origin+'/slide0',tooMany),/이동 횟수/);
+ assert.equal(tooMany.calls.length,5);
+});
+test('redirected HTTP 200 must still be a real image',async()=>{
+ const a='https://images.shop-example.net/a.jpg',b='https://cdn.shop-example.net/end.jpg';
+ const bad=mockedRedirectFetch({
+  [a]:{status:302,location:b},
+  [b]:{status:200,body:'<html>not an image</html>',contentType:'text/html'}
+ });
+ await assert.rejects(()=>downloadPublicImage(a,bad),/사진 대신 다른 파일/);
+});
