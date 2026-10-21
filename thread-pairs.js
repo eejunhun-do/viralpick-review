@@ -75,13 +75,13 @@ const revisions=new Map();
 function save(){
  const id=owner(),r=record();
  const revision=(revisions.get(id)||0)+1;revisions.set(id,revision);
- // Serialize writes so a slow older write cannot replace a newer selection.
+ const snapshot={...r,pairs:r.pairs.map(p=>({...p})),images:{...r.images}};
  const previous=edits.get(id)||Promise.resolve();
- const next=previous.catch(()=>{}).then(()=>writeStore(id,r)).catch(e=>{
-  loadError='브라우저 사진 저장 실패: '+e.message+' · 현재 화면에서는 계속 사용할 수 있습니다.';
-  status(loadError);
+ const next=previous.catch(()=>{}).then(()=>writeStore(id,snapshot)).then(()=>true).catch(e=>{
+  loadError='사진 기록 저장 실패: '+e.message+' · 현재 화면의 이미지는 유지됩니다.';
+  status(loadError);return false;
  });
- edits.set(id,next);
+ edits.set(id,next);return next;
 }
 async function load(id){
  if(loading.has(id))return;
@@ -140,7 +140,9 @@ function updatePair(slot,value){
 function selectPair(index){
  if(busy)return;
  const r=record();if(!Number.isInteger(index)||index<0||index>=r.pairs.length)return;
- r.selectedIndex=index;save();render();void hydratePair();
+ r.selectedIndex=index;
+ for(const slot of ['pain','solve']){imageStage[slot].phase='idle';imageStage[slot].detail='선택한 후킹의 이미지 준비 대기';imageStage[slot].started=0}
+ save();render();void hydratePair();
 }
 function description(){
  return String($('#vpAiDescription')?.value||'').trim().slice(0,3500);
@@ -160,6 +162,7 @@ async function makePairs(){
   const next=result.pairs.map(p=>({pain:sentence(p.pain),solve:sentence(p.solve)}));
   if(next.some(p=>p.pain.length<8||p.solve.length<8))throw Error('일부 후킹 문장이 비어 있습니다.');
   const r=record();r.pairs=next;r.images={};r.selectedIndex=0;
+ for(const slot of ['pain','solve']){imageStage[slot].phase='idle';imageStage[slot].detail='새 후킹의 이미지 생성 대기';imageStage[slot].started=0}
   for(const key of [...loadedImages.keys()])if(key.startsWith(owner()+':'))loadedImages.delete(key);
   save();status('연결형 후킹 5세트 완료! 원하는 세트를 골라 두 장을 생성하세요.');
  }catch(e){status('후킹 생성 실패: '+e.message)}

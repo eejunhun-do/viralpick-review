@@ -9,7 +9,7 @@ const css=readFileSync(new URL('../studio-layout.css',import.meta.url),'utf8');
 
 test('studio resources load on production HTML',()=>{
  assert.match(html,/<link rel="stylesheet" href="\/studio-layout\.css\?v=1">/);
- assert.match(html,/<script src="\/studio-layout\.js\?v=4"><\/script>/);
+ assert.match(html,/<script src="\/studio-layout\.js\?v=5"><\/script>/);
  assert.match(html,/id="vpAiCopyPanel"/);
  assert.match(html,/id="multiStudioThreads"/);
  assert.match(html,/id="multiStudioInstagram"/);
@@ -34,4 +34,10 @@ test('existing copy, image and reservation editors remain wired',()=>{
 test('inactive stages are hidden and responsive breakpoint exists',()=>{
  assert.match(css,/\.vpStudioStage\[hidden\]\{display:none!important\}/);
  assert.match(css,/@media\(max-width:580px\)/);
+});
+
+test('Threads copy/ZIP controls are not duplicated in generic studio actions',()=>{
+ assert.doesNotMatch(js,/stages\.copy\.insertBefore\(copy/);
+ assert.doesNotMatch(js,/quick\.appendChild\(save\)/);
+ assert.match(js,/if\(actions&&key!=='threads'\)/);
 });

@@ -21,10 +21,10 @@ test('five distinct linked hook pairs required',()=>{
 });
 test('client script parses and is loaded only after the existing creator gallery',()=>{
  assert.doesNotThrow(()=>new Script(frontend));
- assert.match(html,/creator-assets\.js\?v=7"><\/script>\s*<script src="\/thread-pairs\.js\?v=5"/);
- assert.match(frontend,/window\.vpCreatorReferencePayload\('threads'\)/);
+ assert.match(html,/creator-assets\.js\?v=8"><\/script>\s*<script src="\/thread-pairs\.js\?v=6"/);
+ assert.match(frontend,/vpCreatorThreadsPreparedReference/);
  assert.match(frontend,/purpose:slot==='pain'\?'threads-pain':'threads-solve'/);
- assert.match(frontend,/slot==='solve'\?await window\.vpCreatorReferencePayload\('threads'\):\{imageMode:'scene'\}/);
+ assert.match(frontend,/async function generateMissingPair/);
 });
 test('image API generates one scene-only pain photo and one reference-based solve photo',()=>{
  assert.match(api,/threads-pain/);
@@ -45,7 +45,7 @@ test('independent photos feed first and second Threads canvas and social review'
  assert.match(frontend,/\.vpSecondPost/);
  assert.match(frontend,/vpThreadPairExport=exportTwo/);
  assert.match(css,/\.vpPairFinalMedia/);
- assert.match(studio,/불편·해결 이미지 2장 ZIP 저장/);
+ assert.match(frontend,/불편 \+ 해결 이미지 2장 ZIP 저장/);
 });
 test('image storage is browser local IndexedDB rather than localStorage large base64',()=>{
  assert.match(frontend,/indexedDB\.open\(PAIR_DB,1\)/);
@@ -91,4 +91,13 @@ test('paired images are suppressed in multiple-products mode',()=>{
  assert.match(frontend,/gallery\.hidden=multi/);
  assert.match(frontend,/if\(multi\)continue/);
  assert.match(css,/\.vpPairGallery\[hidden\]\{display:none!important\}/);
+});
+
+test('Two-image generation gives separate progress and preserves existing photo after failures',()=>{
+ assert.match(frontend,/function markStage/);
+ assert.match(frontend,/vpPairProgressSolve/);
+ assert.match(frontend,/generateMissingPair/);
+ assert.match(frontend,/persisted===false/);
+ assert.match(frontend,/이미지 제작 진행 · 오류 로그/);
+ assert.match(css,/vpPairProgress\[data-phase="failed"\]/);
 });

@@ -151,10 +151,7 @@ function build(platform){
  }
  const quick=el('div','vpStudioStageQuick');
  if(key==='threads'){
-  const copy=el('button','btn','본문 복사');copy.type='button';copy.onclick=()=>window.copyThread();
-  const save=el('button','btn primary','불편·해결 이미지 2장 ZIP 저장');save.type='button';save.onclick=()=>window.downloadThreadPNG();
-  stages.copy.insertBefore(copy,stages.copy.children[2]||null);
-  quick.appendChild(save);
+  // Threads already provides copy and ZIP controls in its own review sections.
  }else{
   const coverNew=el('button','btn','표지 시안 새로 만들기');coverNew.type='button';coverNew.onclick=()=>window.cycleCover();
   const zip=el('button','btn primary','캐러셀 ZIP 저장');zip.type='button';zip.onclick=()=>window.downloadInstagramZIP();
@@ -170,7 +167,7 @@ function build(platform){
  append(stages.final,end);
  if(top){
   const actions=top.querySelector('.btnrow');
-  if(actions)append(stages.final,advanced('기존 바로가기 · 다운로드 · 예약 기능',[actions]));
+  if(actions&&key!=='threads')append(stages.final,advanced('기존 바로가기 · 다운로드 · 예약 기능',[actions]));
   top.remove();
  }
  for(const [i,step] of order.entries()){

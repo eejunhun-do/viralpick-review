@@ -173,3 +173,15 @@
 .vpWebResearchSources strong{font-size:13px}
 .vpWebResearchWarning{font-size:11px;line-height:1.5;color:#6c798d}
 @media(max-width:660px){.vpProductWebResearch{padding:12px}.vpWebResearchClaims{grid-template-columns:minmax(0,1fr)}}
+
+/* Threads paired image creation: individual status, duration and readable errors */
+#threads .vpPairProgress{font-size:12px;line-height:1.6;color:#52647b;border:1px solid #dfe5ef;border-radius:11px;background:#f6f8fc;max-width:520px;padding:11px 13px;margin:10px 0 13px;overflow-wrap:anywhere}
+#threads .vpPairProgress[data-phase="requesting"],#threads .vpPairProgress[data-phase="generating"]{background:#ebf2ff;color:#3155a3;border-color:#bcd2fa}
+#threads .vpPairProgress[data-phase="failed"]{background:#fff0ed;color:#a63825;border-color:#f0c1b8}
+#threads .vpPairProgress[data-phase="complete"]{background:#e7f6ed;color:#1d7050;border-color:#b6e1c8}
+#threads .vpPairAdvancedHooks,#threads .vpPairDetailedLog{border:1px solid #e2e8f0;padding:13px;border-radius:12px;margin:13px 0}
+#threads .vpPairAdvancedHooks summary,#threads .vpPairDetailedLog summary{font-size:12px;font-weight:800;color:#4b5e7b;cursor:pointer}
+#threads .vpPairDetailedLog ol{max-height:260px;overflow-y:auto;font-size:11px;line-height:1.75;overflow-wrap:anywhere;padding-left:19px}
+#threads .vpPairDetailedLog li{border-bottom:1px solid #f0f2f6;padding:3px 0}
+#threads .vpPairsGenerate[hidden]{display:none!important}
+#threads .vpStudioStageQuick:empty{display:none!important}

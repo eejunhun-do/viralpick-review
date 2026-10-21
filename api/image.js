@@ -111,7 +111,10 @@ export async function POST(req){
    });
   }
   const result=await upstream.json().catch(()=>({}));
-  if(!upstream.ok)return json(req,{ok:false,message:'이미지 제공자 호출 오류 ('+upstream.status+'). 계정 한도/모델 권한을 확인해 주세요.'},502);
+  if(!upstream.ok){
+   const reason=String(result.error?.message||result.error?.code||'').replace(/sk-[A-Za-z0-9_-]+/g,'[REDACTED]').slice(0,190);
+   return json(req,{ok:false,message:'이미지 API HTTP '+upstream.status+' · '+(reason||'모델 권한 또는 사용량을 확인해 주세요.')},502);
+  }
   const images=Array.isArray(result.data)
    ?result.data.map(item=>item?.b64_json).filter(x=>typeof x==='string'&&x.length>0).slice(0,2).map(b64=>'data:image/webp;base64,'+b64)
    :[];
@@ -120,6 +123,7 @@ export async function POST(req){
   return json(req,{ok:true,mime:'image/webp',images,image:expected===1?images[0]:undefined,model:'gpt-image-2',imageMode:referenceMode,purpose,slide,count:images.length});
 
  }catch(e){
-  return json(req,{ok:false,message:e.name==='AbortError'?'이미지 생성 시간 초과':'이미지 요청 실패. 서버 연결 상태를 확인하세요.'},502);
+  const message=String(e?.message||'').replace(/sk-[A-Za-z0-9_-]+/g,'[REDACTED]').slice(0,190);
+  return json(req,{ok:false,message:e.name==='AbortError'?'이미지 생성 시간 초과 (135초). 다시 요청하기 전에 API 사용량을 확인해 주세요.':'이미지 준비·호출 실패: '+(message||'서버 연결 상태를 확인하세요.')},502);
  }finally{clearTimeout(timeout)}
 }
