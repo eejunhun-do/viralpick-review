@@ -71,48 +71,44 @@ function isSupportedReferenceUrl(value){
   return u.protocol==='https:'&&!u.port&&!u.username&&!u.password&&(u.hostname==='coupangcdn.com'||u.hostname.endsWith('.coupangcdn.com'));
  }catch{return false}
 }
+const referenceTransferCache=new Map();
 async function convertRemoteReference(url){
- // When the browser has CORS permission to read a product image, send real pixels,
- // not a URL the server would otherwise reject. Never use opaque/no-cors responses.
- const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
- try{
-  const response=await fetch(url,{mode:'cors',credentials:'omit',redirect:'error',signal:controller.signal});
-  if(!response.ok)throw Error('이미지 가져오기 HTTP '+response.status);
-  const type=(response.headers.get('content-type')||'').split(';')[0].toLowerCase();
-  if(!['image/jpeg','image/png','image/webp'].includes(type))throw Error('이미지 형식을 확인하지 못했습니다.');
-  const blob=await response.blob();
-  if(blob.size>3200000||blob.size<100)throw Error('이미지 크기는 3MB 이하이어야 합니다.');
-  const base64=await new Promise((resolve,reject)=>{
-   const reader=new FileReader();
-   reader.onload=()=>resolve(reader.result);
-   reader.onerror=()=>reject(Error('이미지 파일을 읽지 못했습니다.'));
-   reader.readAsDataURL(blob);
-  });
-  return await vpResizeReferenceImage(base64);
- }finally{clearTimeout(timer)}
+ // The server fetches and verifies public photos; image tags can display photos
+ // that a cross-origin browser fetch cannot read. Never try browser CORS here.
+ if(referenceTransferCache.has(url))return referenceTransferCache.get(url);
+ const response=await backendRequest('/api/reference-image',{
+  method:'POST',body:JSON.stringify({url,rightsConfirmed:true})
+ });
+ if(!response?.ok||!/^data:image\/(?:png|jpeg|webp);base64,/.test(String(response.imageData||'')))
+  throw Error('서버에서 실제 상품 이미지 데이터를 받지 못했습니다.');
+ const resized=await vpResizeReferenceImage(response.imageData);
+ referenceTransferCache.set(url,resized);
+ // Keep only a few compressed references in memory, never persistent storage.
+ if(referenceTransferCache.size>8)referenceTransferCache.delete(referenceTransferCache.keys().next().value);
+ return resized;
 }
 async function referenceFromAsset(ref){
  if(ref.type==='upload')return {imageMode:'product',referenceImage:await vpResizeReferenceImage(ref.src),referenceRightsConfirmed:true,referenceLabel:ref.label};
- if(isSupportedReferenceUrl(ref.src))return {imageMode:'product',referenceUrl:ref.src,referenceRightsConfirmed:true,referenceLabel:ref.label};
  return {imageMode:'product',referenceImage:await convertRemoteReference(ref.src),referenceRightsConfirmed:true,referenceLabel:ref.label};
 }
 async function payloadForInstagramSlide(slide){
  if(![3,4,5].includes(slide))throw Error('3~5번 카드만 상품 참조 사진을 사용합니다.');
  const first=getReference('instagram'),items=assets();
- // Before spending on the first two images, try the actual selected photo.
- // If it cannot be transferred, use a different image from the SAME selected product.
- const alternatives=items.filter(item=>item.id!==first.id&&(item.type==='upload'||(state.instagram.rights&&isSupportedReferenceUrl(item.src))));
+ const alternatives=items.filter(item=>item.id!==first.id&&(item.type==='upload'||state.instagram.rights&&validImageURL(item.src)));
  const preferred=slide===3?first:(alternatives[(slide-4)%Math.max(1,alternatives.length)]||first);
  try{
-  const result=await referenceFromAsset(preferred);
-  return result;
+  return await referenceFromAsset(preferred);
  }catch(primaryError){
-  const fallback=[first,...alternatives].filter(item=>item.id!==preferred.id).find(item=>item.type==='upload'||isSupportedReferenceUrl(item.src));
-  if(fallback){
-   const result=await referenceFromAsset(fallback);
-   return {...result,referenceLabel:fallback.label+' (선택 이미지 대신 같은 상품 사진 사용)'};
+  // A broken detail-image URL must not make the batch fail if another photo
+  // of the SAME product is accessible.
+  let lastError=primaryError;
+  for(const candidate of [first,...alternatives].filter(item=>item.id!==preferred.id)){
+   try{
+    const data=await referenceFromAsset(candidate);
+    return {...data,referenceLabel:candidate.label+' (같은 상품의 대체 이미지)'};
+   }catch(e){lastError=e}
   }
-  throw Error('사진은 화면에 표시되지만 생성 서버에서 읽을 수 없습니다. 이미지 주소의 외부 접근·CORS가 제한된 것으로 보입니다. 같은 상품의 쿠팡 CDN 썸네일·상세 이미지를 선택하거나 「내 제품 사진 추가」로 사진을 업로드해 주세요. '+String(primaryError.message||'').slice(0,100));
+  throw Error('선택된 상품 사진을 서버에서 가져오지 못했습니다. 원본 서버 접근 제한일 수 있습니다. 다른 상품 상세 이미지 또는 「내 제품 사진 추가」를 사용해 주세요. '+String(lastError.message||primaryError.message||'').slice(0,150));
  }
 }
 function hookKey(platform){return ownerKey()+':'+platform}
@@ -144,7 +140,7 @@ function renderGallery(platform){
  }
  if(selectedText){
   const hint=platform==='instagram'
-   ?(chosen?.type==='upload'?' · 업로드 사진으로 AI에 바로 전달':isSupportedReferenceUrl(chosen?.src)?' · 쿠팡 CDN 이미지로 AI 서버에 전달':' · 외부 이미지 주소이므로 전송 가능 여부를 먼저 확인하고, 실패하면 같은 상품의 지원 이미지로 대체')
+   ?(chosen?.type==='upload'?' · 업로드 사진으로 AI에 바로 전달':' · 보안 검사 후 서버가 원본 사진을 가져와 AI 참조 이미지로 전달')
    :' · 선택한 제품을 사용하는 자연스러운 실사 장면으로 제작';
   selectedText.textContent=chosen?'선택된 이미지: '+chosen.label+hint:'아직 선택된 이미지가 없습니다.';
  }
