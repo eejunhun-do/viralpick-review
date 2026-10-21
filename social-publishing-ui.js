@@ -63,7 +63,7 @@ function importCurrent(){
 }
 async function uploadImages(files){
  const urls=[];for(const file of files){
-  if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>8*1024*1024)throw Error('사진은 JPG/PNG/WebP, 8MB 이하여야 합니다.');
+  if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>3.8*1024*1024)throw Error('사진은 JPG/PNG/WebP, 3.8MB 이하여야 합니다.');
   const form=new FormData();form.append('file',file);
   const base=location.hostname.endsWith('.vercel.app')?location.origin:(typeof persistBackendUrl==='function'?persistBackendUrl():location.origin);
   const token=sessionStorage.getItem('vp_session')||'';
