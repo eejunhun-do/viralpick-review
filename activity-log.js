@@ -111,6 +111,16 @@ const ONCLICK_NAMES=[
 ];
 function commandLabel(button){
  const fixed=ACTION_IDS[button.id];if(fixed)return fixed;
+ // Dynamic controls may contain AI-generated article titles, product details or prompts.
+ // Report the kind of action, never persist their user-generated text.
+ for(const [selector,label] of [
+  ['.vpBlogTop','추천 콘텐츠 유형 선택'],['.vpBlogType','블로그 콘텐츠 유형 선택'],
+  ['.vpBlogTitleOption','검색형 제목 선택'],['.vpBlogKeyword','검색 키워드 선택'],
+  ['.vpPairsChoice,.vpPairChoice','Threads 후킹 선택'],
+  ['.vpAssetItem,.vpAssetTile,.vpAssetCard','상품 이미지 선택'],
+  ['.cardThumb,.instaThumb,.instaSlideThumb','콘텐츠 카드 선택'],
+  ['.product,.productCard,.coupangSearchItem','상품 선택']
+ ])if(button.matches?.(selector))return label;
  const action=button.getAttribute?.('onclick')||'';
  for(const [pattern,name] of ONCLICK_NAMES)if(pattern.test(action))return name;
  // Limit text from rendered product cards, so names/descriptions and tokens are never stored.
