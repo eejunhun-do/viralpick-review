@@ -1151,7 +1151,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
   <button type="button" data-quick-view="threads" onclick="show('threads')"><span class="quickIcon">💬</span><span>Threads</span></button>
   <button type="button" data-quick-view="instagram" onclick="show('instagram')"><span class="quickIcon">▦</span><span>Instagram</span></button>
   
-  <button type="button" id="quickMoreButton" onclick="openMobileMenu()" aria-label="전체 메뉴 열기"><span class="quickIcon">☰</span><span>전체 메뉴</span></button>
+  <button type="button" data-quick-view="blog" onclick="show('blog')"><span class="quickIcon">📝</span><span>블로그 제작</span></button>
 </nav>
 <div class="reservationOverlay" id="reservationOverlay" hidden role="presentation" onclick="if(event.target===this)closeReservation()">
  <section class="reservationDialog" role="dialog" aria-modal="true" aria-labelledby="reservationHeading">
