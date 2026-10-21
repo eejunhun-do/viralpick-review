@@ -133,16 +133,25 @@ function importCurrent(){
  $('#vpMetaText').value=String(source||alternate||'').slice(0,2000);
  note($('#vpMetaText').value?'현재 제작 문구를 불러왔습니다. 광고 고지 및 이미지를 다시 확인하세요.':'작성된 문구를 찾지 못했습니다. 먼저 제작 메뉴에서 본문을 작성하세요.');
 }
-async function uploadImages(files){
- const urls=[];for(const file of files){
-  if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>3.8*1024*1024)throw Error('사진은 JPG/PNG/WebP, 3.8MB 이하여야 합니다.');
-  const form=new FormData();form.append('file',file);
-  const base=location.hostname.endsWith('.vercel.app')?location.origin:(typeof persistBackendUrl==='function'?persistBackendUrl():location.origin);
-  const token=sessionStorage.getItem('vp_session')||'';
-  const res=await fetch(base+'/api/social-media',{method:'POST',headers:{Authorization:'Bearer '+token},body:form});
-  const d=await res.json().catch(()=>({}));if(!res.ok||!d.ok)throw Error(d.message||'사진 업로드 실패');
-  urls.push(d.url);
- }return urls;
+async function uploadImages(files,onProgress=()=>{}){
+ const urls=[];
+ for(const [index,file] of files.entries()){
+  onProgress(index+1,files.length,'uploading');
+  try{
+   if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>3.8*1024*1024)
+    throw Error('JPG/PNG/WebP, 3.8MB 이하만 업로드할 수 있습니다.');
+   const form=new FormData();form.append('file',file);
+   const base=location.hostname.endsWith('.vercel.app')?location.origin:(typeof persistBackendUrl==='function'?persistBackendUrl():location.origin);
+   const token=sessionStorage.getItem('vp_session')||'';
+   const res=await fetch(base+'/api/social-media',{method:'POST',headers:{Authorization:'Bearer '+token},body:form});
+   const d=await res.json().catch(()=>({}));
+   if(!res.ok||!d.ok)throw Error(d.message||'사진 업로드 실패 · HTTP '+res.status);
+   if(!d.url||!/^https:\/\//i.test(d.url))throw Error('공개 HTTPS 사진 주소를 받지 못했습니다.');
+   urls.push(d.url);
+   onProgress(index+1,files.length,'uploaded');
+  }catch(e){throw Error('이미지 '+(index+1)+'/'+files.length+' 업로드 실패: '+e.message)}
+ }
+ return urls;
 }
 async function schedule(){
  if(state.busy)return;
@@ -223,6 +232,18 @@ function showJobs(posts){
    const b=document.createElement('button');b.type='button';b.className='btn';b.textContent='예약 취소';
    b.onclick=async()=>{if(!confirm('아직 발행되지 않은 예약을 취소할까요?'))return;try{await post({action:'cancel',id:j.id});await refresh()}catch(e){note(e.message)}};actions.append(b);
   }
+  if(Array.isArray(j.imageUrls)&&j.imageUrls.length){
+   const media=document.createElement('small');media.textContent=' · 이미지 '+j.imageUrls.length+'장 예약됨';when.append(media);
+   if(typeof j.imageUrls[0]==='string'&&j.imageUrls[0].startsWith('https://')){
+    const preview=document.createElement('img');preview.src=j.imageUrls[0];preview.alt='예약된 첫 이미지';preview.loading='lazy';preview.referrerPolicy='no-referrer';
+    preview.style.cssText='width:72px;height:90px;display:block;object-fit:cover;border:1px solid #e0e5ef;border-radius:8px;margin-top:8px';
+    main.append(preview);
+   }
+  }
+  if(j.status==='processing'&&j.mediaStage){
+   const step=document.createElement('small');step.textContent='현재 진행 · '+j.mediaStage;
+   step.style.cssText='display:block;margin-top:6px;color:#315aaa';main.append(step);
+  }
   row.append(main,actions);root.append(row);
  }
 }
@@ -280,31 +301,47 @@ async function realReservation(){
  }
  state.busy=true;if(button)button.disabled=true;
  try{
-  let imageUrls=[];
-  const images=[];
-  const count=platform==='instagram'?Math.min(10,typeof multiSlideCount==='function'&&typeof isMultiMode==='function'&&isMultiMode('Instagram')?multiSlideCount():5):
-    typeof window.vpThreadPairArtworkForSlide==='function'&&window.vpThreadPairArtworkForSlide(1)?2:1;
-  if(typeof buildContentCanvas!=='function')throw Error('현재 브라우저에서 제작 이미지를 내보낼 수 없습니다.');
-  const status=await get('op=status');
-  if(!status.platforms?.[platform]?.connected)throw Error(labels[platform]+' 계정을 먼저 연결해 주세요.');
-  if(!status.blobConfigured){
-   if(platform==='instagram')throw Error('Instagram 카드 이미지를 업로드할 Vercel Blob 연결이 필요합니다. 자동게시 설정에서 공개 이미지 URL을 직접 넣을 수도 있습니다.');
-   if(!confirm('사진 호스팅이 연결되지 않았습니다. Threads를 이미지 없이 본문만 예약할까요?'))return;
-  }else{
-   show('제작 이미지 '+count+'장 인코딩 및 서버 업로드 중…');
-   for(let i=0;i<count;i++){
-    const canvas=buildContentCanvas(platform==='instagram'?'Instagram':'Threads',i,platform==='instagram'?(typeof coverIndex!=='undefined'?coverIndex:0):(typeof threadImageIndex!=='undefined'?threadImageIndex:0));
-    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',0.76));
-    if(!blob)throw Error('이미지를 JPEG로 변환하지 못했습니다.');
-    images.push(new File([blob],platform+'-'+(i+1)+'.jpg',{type:'image/jpeg'}));
-   }
-   imageUrls=await uploadImages(images);
-  }
   const when=new Date(date+'T'+time+':00+09:00').toISOString();
+  const delay=Date.parse(when)-Date.now();
+  if(delay<90000||delay>90*86400000)throw Error('현재보다 최소 2분 이후, 90일 이내로 예약해 주세요.');
+  const len=value=>Array.from(String(value||'')).length;
+  if(platform==='threads'&&(len(text)>500||len(replyText)>500))
+   throw Error('Threads는 1단·2단 각각 500자 이내여야 합니다. 현재 1단 '+len(text)+'자, 2단 '+len(replyText)+'자입니다.');
+  if(platform==='instagram'&&len(text)>2200)throw Error('Instagram 캡션은 2,200자 이내여야 합니다.');
+  if(typeof buildContentCanvas!=='function')throw Error('이미지 내보내기 기능이 준비되지 않았습니다. 페이지를 새로고침해 주세요.');
+  show('Meta 계정과 이미지 저장소 확인 중…');
+  const status=await get('op=status');
+  if(!status.platforms?.[platform]?.connected)throw Error(labels[platform]+' 계정 연결이 필요합니다.');
+  if(!status.blobConfigured)throw Error('Vercel Blob 이미지 저장소가 연결되지 않았습니다. 이미지 없이 예약하지 않습니다.');
+  const multi=typeof isMultiMode==='function'&&isMultiMode(platform==='threads'?'Threads':'Instagram');
+  const count=platform==='instagram'?(multi?Math.min(10,multiSlideCount()):5):
+   multi?Math.min(10,multiSlideCount()):
+   typeof window.vpThreadPairPrepareForReservation==='function'?
+   await window.vpThreadPairPrepareForReservation():1;
+  if(!Number.isInteger(count)||count<1)throw Error('예약할 이미지가 없습니다. 제작 이미지 완성 여부를 확인해 주세요.');
+  const images=[];
+  for(let i=0;i<count;i++){
+   show('예약 이미지 '+(i+1)+'/'+count+' JPEG로 변환 중…');
+   const canvas=buildContentCanvas(platform==='instagram'?'Instagram':'Threads',i,platform==='instagram'?(typeof coverIndex!=='undefined'?coverIndex:0):(typeof threadImageIndex!=='undefined'?threadImageIndex:0));
+   let blob=null;
+   for(const quality of [0.78,0.64,0.5,0.36]){
+    blob=await new Promise((resolve,reject)=>{try{
+     canvas.toBlob(b=>b?resolve(b):reject(Error('이미지 JPEG 생성 실패')),'image/jpeg',quality)
+    }catch(e){reject(e)}});
+    if(blob.size<=3.8*1024*1024)break;
+   }
+   if(!blob||blob.size>3.8*1024*1024)throw Error((i+1)+'번 이미지 용량이 3.8MB를 넘습니다.');
+   images.push(new File([blob],platform+'-'+(i+1)+'.jpg',{type:'image/jpeg'}));
+  }
+  const imageUrls=await uploadImages(images,(i,total,phase)=>
+   show('예약 이미지 '+i+'/'+total+'장 '+(phase==='uploaded'?'공개 저장소 업로드 완료':'Blob 업로드 중…')));
+  if(imageUrls.length!==count)throw Error('이미지 업로드 장수 불일치: 중복 예약을 막기 위해 취소했습니다.');
+  show('이미지 '+count+'장 준비 완료 · 서버 예약 등록 중…');
   const response=await post({action:'schedule',platform,text,replyText,scheduledAt:when,approved:true,imageUrls,product:$('#reserveProduct')?.textContent||''});
+  if(!response.id||response.status!=='scheduled')throw Error('서버가 예약 ID를 반환하지 않았습니다. 예약 목록부터 확인해 주세요.');
   if(typeof window.closeReservation==='function')window.closeReservation();
   window.show?.('scheduler');await refresh();
-  show('실제 서버 예약 등록 완료 · '+new Date(response.scheduledAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}));
+  show('사진 '+imageUrls.length+'장 포함 예약 완료 · '+new Date(response.scheduledAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}));
  }catch(error){show('실제 게시 예약 실패: '+error.message)}
  finally{state.busy=false;if(button)button.disabled=false}
 }
