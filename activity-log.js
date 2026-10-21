@@ -52,6 +52,7 @@ function classifyRequest(path,options={}){
   return {label:use+' 제작',detail:'GPT 이미지 생성 요청 중',done:'이미지 생성 응답 완료'};
  }
  if(url.pathname==='/api/reference-image')return {label:'상품 참조 사진 준비',detail:'서버에서 원본 사진 확인 중',done:'이미지 데이터 준비 완료'};
+ if(url.pathname==='/api/blog')return body.action==='draft'?{label:'블로그 AI 본문 작성',detail:'검색형 제목 5안·정보형 본문 작성 중',done:'블로그 본문 작성 완료'}:{label:'블로그 SEO 8유형 분석',detail:'검색 의도·키워드 적합성 점수 평가 중',done:'8가지 유형 분석 완료'};
  if(url.pathname==='/api/copy'&&body.action==='product-research')return {label:'상품 웹조사',detail:'AI 웹검색 및 제품 정보 분석 중',done:'웹조사 응답 완료'};
  if(url.pathname==='/api/copy')return {label:(body.platform||'SNS')+' AI 문구 생성',detail:'제품 정보에 맞춘 문구 작성 중',done:'AI 문구 응답 완료'};
  if(url.pathname==='/api/instagram-story')return {label:'Instagram 캐러셀 문구 기획',detail:'1~5번 카드 내용 작성 중',done:'5장 카드 기획 응답 완료'};
