@@ -73,3 +73,34 @@ test('carousel lifecycle includes preparation, per-card update and final event',
  assert.match(html,/vpActivity\.trackRequest\(path,options,execute\)/);
  assert.match(html,/window\.vpActivity\?\.info\('작업 알림'/);
 });
+
+test('local buttons on dashboard, product discovery, Threads, Instagram and blog create visible intent records',()=>{
+ const {api,history}=makeLogger();
+ for(const [area,id,label] of [
+  ['dashboard','vpPerfRefresh','실적 새로고침'],
+  ['discover','coupangBrowseButton','상품 발굴 조건 검색'],
+  ['threads','vpAiThreads','Threads AI 문구 생성'],
+  ['instagram','carouselBatchBtn','캐러셀 5장 이미지 일괄 생성'],
+  ['blog','vpBlogWrite','블로그 AI 본문 작성']
+ ]){
+  const button={id,disabled:false,textContent:label,
+   getAttribute:()=>null,
+   closest(selector){return selector==='.view'?{id:area}:null}};
+  api.commandClick({target:{closest:()=>button}});
+ }
+ assert.equal(history().length,5);
+ for(const area of ['대시보드','상품 발굴','Threads','Instagram','블로그'])
+  assert.ok(history().some(row=>row.label.startsWith(area+' · ')&&row.detail.includes('실행 요청')),area);
+});
+test('changing filters records local updates and clicking the activity dock does not recursively log itself',()=>{
+ const {api,history}=makeLogger();
+ const menu={id:'vpBlogLength',getAttribute:()=>'',labels:[{textContent:'본문 길이'}],
+  matches:s=>s.includes('select'),
+  closest:s=>s==='.view'?{id:'blog'}:null};
+ api.commandChange({target:menu});
+ assert.ok(history().some(row=>row.label.includes('블로그 · 옵션 변경')));
+ const before=history().length;
+ const dockButton={disabled:false,closest:s=>s==='#vpActivityDock'?{}:null};
+ api.commandClick({target:{closest:()=>dockButton}});
+ assert.equal(history().length,before);
+});
