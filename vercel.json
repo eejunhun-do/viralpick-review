@@ -16,5 +16,11 @@
       "source": "/api/instagram-story",
       "destination": "/api/hooks?route=instagram-story"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/social-cron",
+      "schedule": "* * * * *"
+    }
   ]
 }
