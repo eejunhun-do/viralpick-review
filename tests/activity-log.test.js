@@ -15,7 +15,7 @@ function makeLogger(){
  const document={readyState:'loading',addEventListener(){},querySelector(){return null}};
  const sandbox={document,window,sessionStorage,Date,Map,URL,JSON,String,Number,Array};
  runInNewContext(source,sandbox);
- return {api:window.vpActivity,history:()=>JSON.parse(storage.get('vp-activity-log-v1')||'[]')};
+ return {api:window.vpActivity,history:()=>JSON.parse(storage.get('vp-activity-log-v2')||'[]')};
 }
 test('logo and mobile bottom nav link to real existing dashboard rather than mock analytics',()=>{
  assert.match(html,/mobileTopBrandButton" onclick="show\('dashboard'\)"/);
@@ -24,7 +24,7 @@ test('logo and mobile bottom nav link to real existing dashboard rather than moc
  assert.doesNotMatch(html,/data-quick-view="analytics"/);
  assert.doesNotMatch(html,/<button data-view="analytics">/);
  assert.match(html,/if\(id==='analytics'\)id='dashboard'/);
- assert.match(html,/activity-log\.js\?v=2/);
+ assert.match(html,/activity-log\.js\?v=3/);
  assert.match(html,/activity-log\.css\?v=1/);
  assert.equal([...html.matchAll(/data-quick-view=/g)].length,4);
  assert.match(css,/bottom:calc\(75px \+ env\(safe-area-inset-bottom,0px\)\)/);
@@ -62,7 +62,7 @@ test('request failures are recorded and thrown back to callers',async()=>{
 test('activity history is bounded and redacts URLs and token-like secrets',()=>{
  const {api,history}=makeLogger();
  for(let i=0;i<90;i++)api.info('작업 '+i,'링크 https://example.org/secret '+i);
- assert.equal(history().length,55);
+ assert.equal(history().length,75);
  assert.ok(history().every(row=>!row.detail.includes('example.org')));
  assert.doesNotThrow(()=>new Script(source));
 });
