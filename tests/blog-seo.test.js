@@ -67,9 +67,9 @@ test('live blog replaces fabricated performance data and has complete generation
  assert.match(ui,/window\.vpProductResearchContext/);
  assert.match(ui,/action:'plan'/);
  assert.match(ui,/action:'draft'/);
- assert.match(ui,/plainText/);
+ assert.match(ui,/fullText/);
  assert.match(ui,/vpBlogPreview/);
- assert.match(ui,/measuredSearchVolume/); // explanation provided to user
+ assert.match(html,/실제 네이버 검색량/); // clearly distinguished from AI estimates
  assert.match(css,/@media\(max-width:510px\)/);
 });
 test('server blog generation is protected and never claims measured Naver search volumes',()=>{
