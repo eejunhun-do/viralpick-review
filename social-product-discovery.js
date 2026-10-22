@@ -31,7 +31,7 @@
   renderHistory();
  }
  function capture(id){
-  if(id===null||id===undefined||!window.selected||window.selected.source==='sample')return;
+  if(id===null||id===undefined||!selected||selected.source==='sample')return;
   const data={
    description:cleanText($('#vpAiDescription')?.value,32000),
    reviews:cleanText($('#vpAiReviews')?.value,24000),
@@ -72,7 +72,7 @@
   list.replaceChildren();
   const all=history.filter(x=>x.product?.source!=='sample');
   // Earlier versions saved products but did not track their last work time.
-  const saved=(Array.isArray(window.products)?products:[])
+  const saved=(Array.isArray(products)?products:[])
    .filter(p=>p.source!=='sample'&&!all.some(x=>String(x.id)===String(p.id)))
    .map(p=>({id:String(p.id),at:Number(p.checkedAt)||0,product:safeProduct(p),legacy:true}));
   const combined=[...all,...saved].filter(x=>String(x.product.name||'').toLowerCase().includes(query.toLowerCase())).slice(0,24);
@@ -137,8 +137,8 @@
    visual:scenario.demo,audience:scenario.audience,reason:'SNS 문제해결형 후보 · 상품명·가격 기준 추정. 효과와 실제 후기는 미검증입니다.'
   };
   // The existing import path preserves Coupang IDs, product links, drafts and artwork.
-  window.remoteProducts.push(remote);
-  window.useRemoteProduct(window.remoteProducts.length-1,false);
+  remoteProducts.push(remote);
+  window.useRemoteProduct(remoteProducts.length-1,false);
   notice='SNS 콘텐츠 제작 후보를 불러왔습니다. 후킹 시나리오는 일반 생활 상황이며 제품의 실제 기능·사용권은 확인 후 적용하세요.';
  }
  async function findRecommendations(){
@@ -234,28 +234,28 @@
   const select=$('#vpSocialRecoCategory');if(select)select.value=category;
   const original=window.selectProduct;
   if(typeof original==='function')window.selectProduct=function(id){
-   const oldId=window.selected?.id;
-   if(window.selected?.source!=='sample')capture(oldId);
+   const oldId=selected?.id;
+   if(selected?.source!=='sample')capture(oldId);
    const output=original.apply(this,arguments);
-   if(window.selected?.source!=='sample'){
-    restoreNotes(window.selected.id);remember(window.selected);
+   if(selected?.source!=='sample'){
+    restoreNotes(selected.id);remember(selected);
    }else renderHistory();
    return output;
   };
   const manual=window.saveManualProduct;
   if(typeof manual==='function')window.saveManualProduct=function(){
    const result=manual.apply(this,arguments);
-   if(window.selected?.source==='manual'){capture(window.selected.id);remember(window.selected)}
+   if(selected?.source==='manual'){capture(selected.id);remember(selected)}
    return result;
   };
   const fields=['#vpAiDescription','#vpAiReviews','#vpReviewMarkdown'];
   for(const selector of fields){$(selector)?.addEventListener('input',()=>{
    if(saveTimer)clearTimeout(saveTimer);
-   saveTimer=setTimeout(()=>{if(window.selected?.source!=='sample'){capture(window.selected.id);remember(window.selected)}},700);
+   saveTimer=setTimeout(()=>{if(selected?.source!=='sample'){capture(selected.id);remember(selected)}},700);
   })}
-  if(window.selected?.source!=='sample'){
-   if(!notes[String(window.selected.id)])capture(window.selected.id);
-   remember(window.selected);
+  if(selected?.source!=='sample'){
+   if(!notes[String(selected.id)])capture(selected.id);
+   remember(selected);
   }else renderHistory();
   renderRecommendations();
   window.vpProductDiscoveryRemember=remember;
