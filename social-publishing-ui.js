@@ -108,7 +108,8 @@ function organizeScheduler(){
  '#vpMetaPanel .vpMetaJobActions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}'+
  '#vpMetaPanel .vpMetaStatus{display:inline-block;font-size:11px;font-weight:750;padding:5px 9px;border-radius:9px;background:#eef1f6;color:#506070}'+
  '#vpMetaPanel .vpMetaStatus.published{background:#e7f5ec;color:#217651}#vpMetaPanel .vpMetaStatus.needs_review{background:#fff0e6;color:#a85721}'+
- '#vpMetaPanel .vpMetaManual{margin:22px 0 6px;border:1px solid #e0e5ed;border-radius:11px;padding:0 15px 16px}'+
+ '#vpMetaPanel .vpMetaDelete{color:#a53838;border-color:#eed5d5;background:#fff}'+
+   '#vpMetaPanel .vpMetaManual{margin:22px 0 6px;border:1px solid #e0e5ed;border-radius:11px;padding:0 15px 16px}'+
  '#vpMetaPanel .vpMetaManual>summary{cursor:pointer;font-size:13px;font-weight:750;padding:15px 0}'+
  '#vpMetaPanel .vpMetaAdvanced{border:1px solid #e3e9ef;border-radius:9px;padding:12px;margin:15px 0}'+
  '#vpMetaPanel .vpMetaAdvanced summary{cursor:pointer;font-size:12px;font-weight:700}'+
@@ -228,9 +229,36 @@ function showJobs(posts){
    const b=document.createElement('button');b.type='button';b.className='btn';b.textContent='발행 여부 확인';
    b.onclick=async()=>{b.disabled=true;await confirmPublished(j.id)};actions.append(b);
   }
-  if(j.status==='scheduled'&&!overdue){
+  if(j.status==='scheduled'){
    const b=document.createElement('button');b.type='button';b.className='btn';b.textContent='예약 취소';
-   b.onclick=async()=>{if(!confirm('아직 발행되지 않은 예약을 취소할까요?'))return;try{await post({action:'cancel',id:j.id});await refresh()}catch(e){note(e.message)}};actions.append(b);
+   b.onclick=async()=>{
+    const msg=overdue?'예약 시간이 이미 지났습니다. Meta에서 발행 여부를 먼저 확인하셨나요? 미발행 예약을 취소하지만 이미 발행된 글은 취소되지 않습니다.':'대기 중인 예약 발행을 취소할까요? 취소하면 예약 목록에 취소 상태로 남습니다.';
+    if(!confirm(msg))return;
+    b.disabled=true;
+    try{await post({action:'cancel',id:j.id});note('예약 실행을 취소했습니다.');await refresh()}
+    catch(e){note('예약 취소 실패: '+e.message);b.disabled=false}
+   };
+   actions.append(b);
+  }
+  if(j.status!=='processing'){
+   const remove=document.createElement('button');remove.type='button';remove.className='btn vpMetaDelete';
+   remove.textContent=j.status==='scheduled'?'예약 삭제':'내역 삭제';
+   remove.setAttribute('aria-label',(labels[j.platform]||j.platform)+' '+remove.textContent);
+   remove.onclick=async()=>{
+    const question=j.status==='scheduled'
+     ?'이 예약을 취소하고 ViralPick 목록에서 완전히 삭제할까요? 이미 Meta에 올라간 게시물은 삭제되지 않습니다.'
+     :j.status==='needs_review'
+      ?'실제 발행 여부가 불확실한 내역입니다. Meta 계정에서 확인하셨나요? ViralPick 목록에서만 삭제하며 Meta 게시물은 삭제하지 않습니다.'
+      :'ViralPick 예약·발행 내역에서 삭제할까요? Meta에 실제 발행한 게시물은 그대로 유지됩니다.';
+    if(!confirm(question))return;
+    remove.disabled=true;
+    try{
+     await post({action:'delete',id:j.id});
+     note('ViralPick 목록에서 삭제했습니다. Meta에 게시된 콘텐츠는 변경되지 않습니다.');
+     await refresh();
+    }catch(e){note('내역 삭제 실패: '+e.message);remove.disabled=false}
+   };
+   actions.append(remove);
   }
   if(Array.isArray(j.imageUrls)&&j.imageUrls.length){
    const media=document.createElement('small');media.textContent=' · 이미지 '+j.imageUrls.length+'장 예약됨';when.append(media);
