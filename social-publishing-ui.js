@@ -219,7 +219,7 @@ function showJobs(posts){
   const overdue=j.status==='scheduled'&&Number(j.scheduledAt)+120000<Date.now();
   badge.textContent=overdue?'예약 시간 경과 · 확인 중':statuses[j.status]||j.status;
   title.append(platform,' · ',badge);main.append(title);
-  const content=document.createElement('p');content.textContent=j.text||j.product||'';main.append(content);
+  const content=document.createElement('p');content.textContent=String(j.text||j.product||'').slice(0,240);main.append(content);
   const when=document.createElement('small');when.textContent=new Date(j.scheduledAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'});main.append(when);
   if(j.error||j.syncError){const err=document.createElement('small');err.className='vpMetaJobError';err.textContent=j.error||j.syncError;main.append(err)}
   const actions=document.createElement('div');actions.className='vpMetaJobActions';
@@ -228,6 +228,11 @@ function showJobs(posts){
   if(overdue||j.status==='needs_review'){
    const b=document.createElement('button');b.type='button';b.className='btn';b.textContent='발행 여부 확인';
    b.onclick=async()=>{b.disabled=true;await confirmPublished(j.id)};actions.append(b);
+  }
+  if(j.status==='scheduled'&&!overdue&&Number(j.scheduledAt)>Date.now()+120000){
+   const edit=document.createElement('button');edit.type='button';edit.className='btn primary';
+   edit.textContent='예약 수정';edit.onclick=()=>window.vpMetaEditReservation?.(j);
+   actions.append(edit);
   }
   if(j.status==='scheduled'){
    const b=document.createElement('button');b.type='button';b.className='btn';b.textContent='예약 취소';
@@ -376,6 +381,8 @@ async function realReservation(){
 
 function boot(){
  render();organizeScheduler();
+ window.vpMetaUploadImages=uploadImages;
+ window.vpMetaRefresh=refresh;
  window.confirmReservation=realReservation;
  const original=window.vpPerformanceOnShow;
  window.vpPerformanceOnShow=function(){if(original)original();void renderMetrics()};
