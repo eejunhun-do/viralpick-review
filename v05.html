@@ -698,7 +698,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
 </section>
 
 <section id="discover" class="view">
-  <div class="top"><div><span class="badge blue">상품 발굴</span><h1>콘텐츠로 만들 만한 상품 찾기</h1><p>가격만 보는 것이 아니라 문제해결력·신기함·시각성·SNS 적합도를 함께 평가합니다.</p></div><div class="btnrow"><button class="btn">필터</button><button class="btn primary" onclick="refreshCoupangCatalog(true)">쿠팡 상품 새로고침</button></div></div>
+  <div class="top"><div><span class="badge blue">상품 발굴</span><h1>일상의 불편을 해결하는 SNS 상품 찾기</h1><p>지난 작업 상품을 다시 열고, Threads 공감형 이야기와 Instagram 전후 이미지로 소개하기 좋은 제품을 발굴합니다.</p></div><div class="btnrow"><button class="btn primary" onclick="refreshCoupangCatalog(true)">쿠팡 후보 새로고침</button></div></div>
   <div class="panel"><div class="panelHead"><h2>추천 상품</h2><div class="statusline"><span class="status">추정 점수 · 실측 아님</span><span class="status">생활/DIY</span><span class="status">반려동물</span></div></div><div class="pad"><p class="queueHint" id="vpCatalogStatus">쿠팡 상품 자동 조회 준비 중 · 점수는 추정치입니다.</p></div><div class="pad products" id="discoverProducts"></div></div>
 </section>
 
@@ -2015,11 +2015,12 @@ function useRemoteProduct(index,addToMulti=false){
  const p=existing||{
   id,name:trimText(remote.name,120),price:remote.price,old:remote.price,discount:0,
   viral:0,thread:0,insta:0,blog:0,ad:0,source:'coupang',coupangProductId:String(remote.id),
-  type:'쿠팡 상품 · 검수 필요',reason:'쿠팡 파트너스 검색 상품 · 기능·효과·재고 미검수',
-  problem:'제품이 필요한 불편 상황을 직접 입력하세요',
-  novel:'확인된 상품 기능만 직접 입력하세요',
-  audience:'대상 사용자를 입력하세요',
-  visual:'실제 사용 장면을 설명해 주세요'
+  type:remote.problem?'문제해결형 SNS 후보':'쿠팡 상품 · 검수 필요',
+  reason:trimText(remote.reason||'쿠팡 파트너스 검색 상품 · 기능·효과·재고 미검수',240),
+  problem:trimText(remote.problem||'제품이 필요한 불편 상황을 직접 입력하세요',220),
+  novel:trimText(remote.novel||'확인된 상품 기능만 직접 입력하세요',220),
+  audience:trimText(remote.audience||'대상 사용자를 입력하세요',150),
+  visual:trimText(remote.visual||'실제 사용 장면을 설명해 주세요',220)
  };
  p.name=trimText(remote.name,120);p.price=Number(remote.price)||p.price;
  p.originalUrl=isCoupangProductLink(remote.productUrl)?remote.productUrl:(p.originalUrl||null);
@@ -4343,6 +4344,8 @@ const q=new URLSearchParams(location.search).get('view');if(['dashboard','discov
 <link rel="stylesheet" href="/blog-workspace.css?v=3">
 <script src="/blog-workspace.js?v=4"></script>
 <script src="/social-publishing-ui.js?v=2"></script>
+<script src="/social-discovery-core.js?v=1"></script>
+<script src="/social-product-discovery.js?v=1"></script>
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
  if(typeof renderInstagram==='function')renderInstagram();
