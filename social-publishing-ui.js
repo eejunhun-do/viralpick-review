@@ -183,7 +183,9 @@ async function refresh(announce=false){
    state.connected=status.platforms||{};
    for(const p of Object.keys(labels)){
     const c=state.connected[p]||{},el=$('#vpMetaState-'+p);
-    if(el)el.textContent=c.connected?'연결됨 · @'+(c.username||'계정'):(status.configured?.[p]?'계정 연결 필요':'Meta 앱 설정 필요');
+    if(el)el.textContent=c.connected?
+     '연결됨 · @'+(c.username||'계정')+(p==='threads'?(c.replyReady?' · 2단 답글 권한 확인됨':' · 2단 답글 권한 필요 · 다시 연결'):''):
+     (status.configured?.[p]?'계정 연결 필요':'Meta 앱 설정 필요');
     const disconnect=document.querySelector('[data-meta-disconnect="'+p+'"]');
     if(disconnect)disconnect.hidden=!c.connected;
     const connect=document.querySelector('[data-meta-connect="'+p+'"]');
@@ -209,7 +211,7 @@ async function confirmPublished(id){
 function showJobs(posts){
  const root=$('#vpMetaJobs');root.replaceChildren();
  if(!posts.length){root.textContent='아직 실제 서버 예약 내역이 없습니다.';return}
- const statuses={scheduled:'예약 대기',processing:'발행 처리 중',published:'발행 완료',published_reply_failed:'1단 완료 · 2단 실패',cancelled:'취소됨',needs_review:'수동 확인 필요'};
+ const statuses={scheduled:'예약 대기',processing:'발행 처리 중',reply_processing:'2단 답글 처리 중',published:'발행 완료',published_reply_failed:'1단 완료 · 2단 실패',cancelled:'취소됨',needs_review:'수동 확인 필요'};
  for(const j of posts){
   const row=document.createElement('div');row.className='vpMetaQueueRow';
   const main=document.createElement('div');main.className='vpMetaJobMain';
@@ -229,6 +231,23 @@ function showJobs(posts){
    const b=document.createElement('button');b.type='button';b.className='btn';b.textContent='발행 여부 확인';
    b.onclick=async()=>{b.disabled=true;await confirmPublished(j.id)};actions.append(b);
   }
+  if(j.status==='published_reply_failed'&&j.platform==='threads'&&j.postId&&!j.replyId){
+   const ready=Boolean(state.connected.threads?.replyReady);
+   const fix=document.createElement('button');fix.type='button';fix.className='btn primary';
+   fix.textContent=ready?'2단 답글만 복구':'Threads 재연결 · 답글 권한 허용';
+   fix.onclick=async()=>{
+    if(!ready){await connect('threads');return}
+    if(!confirm('이미 발행된 1단 게시물은 그대로 둡니다. 기존 답글을 확인하고 없는 경우에만 2단 답글을 발행할까요?'))return;
+    fix.disabled=true;
+    try{
+     note('기존 2단 답글 발행 여부를 먼저 확인하는 중…');
+     const result=await post({action:'retry_reply',id:j.id});
+     note(result.alreadyPublished?'기존 2단 답글이 확인되어 상태를 정상화했습니다.':'첫 게시글은 유지하고 2단 답글만 발행했습니다.');
+     await refresh();
+    }catch(e){note('2단 복구 실패: '+e.message);fix.disabled=false;await refresh()}
+   };
+   actions.append(fix);
+  }
   if(j.status==='scheduled'&&!overdue&&Number(j.scheduledAt)>Date.now()+120000){
    const edit=document.createElement('button');edit.type='button';edit.className='btn primary';
    edit.textContent='예약 수정';edit.onclick=()=>window.vpMetaEditReservation?.(j);
@@ -245,7 +264,7 @@ function showJobs(posts){
    };
    actions.append(b);
   }
-  if(j.status!=='processing'){
+  if(j.status!=='processing'&&j.status!=='reply_processing'){
    const remove=document.createElement('button');remove.type='button';remove.className='btn vpMetaDelete';
    remove.textContent=j.status==='scheduled'?'예약 삭제':'내역 삭제';
    remove.setAttribute('aria-label',(labels[j.platform]||j.platform)+' '+remove.textContent);
@@ -273,7 +292,7 @@ function showJobs(posts){
     main.append(preview);
    }
   }
-  if(j.status==='processing'&&j.mediaStage){
+  if((j.status==='processing'||j.status==='reply_processing')&&j.mediaStage){
    const step=document.createElement('small');step.textContent='현재 진행 · '+j.mediaStage;
    step.style.cssText='display:block;margin-top:6px;color:#315aaa';main.append(step);
   }
