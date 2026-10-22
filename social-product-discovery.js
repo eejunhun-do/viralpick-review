@@ -7,7 +7,8 @@
  const HISTORY_KEY='viralpick-product-work-history-v1';
  const NOTES_KEY='viralpick-product-work-notes-v1';
  const RECO_KEY='viralpick-social-recommendations-v1';
- const MAX_HISTORY=35,MAX_NOTES=24;
+ const MAX_HISTORY=35,MAX_NOTES=24,PAGE_SIZE=50;
+ let requested=20,currentPage=1,searchCancelled=false;
  let history=[],notes={},recommendations=[],category='all',busy=false,query='',notice='',lastSaved=0,saveTimer=null;
  const cleanText=(s,max=250)=>String(s??'').slice(0,max);
  function read(key,fallback){try{const v=JSON.parse(localStorage.getItem(key)||'null');return v??fallback}catch{return fallback}}
@@ -103,11 +104,13 @@
   const root=$('#vpSocialRecoList');if(!root)return;
   root.replaceChildren();
   if(!recommendations.length){
+   renderRecommendationPages();
    const p=document.createElement('p');p.className='vpDiscoveryEmpty';
    p.textContent='「SNS 맞춤 상품 찾기」를 누르면 쿠팡 파트너스 API에서 실제 상품을 검색합니다. 결과의 적합도는 판매량이나 성과가 아닌 콘텐츠 제작용 추정치입니다.';
    root.append(p);return;
   }
-  for(const row of recommendations){
+  const start=(currentPage-1)*PAGE_SIZE;
+  for(const row of recommendations.slice(start,start+PAGE_SIZE)){
    const p=row.product,scenario=core.scenarios.find(x=>x.id===row.scenarioId);
    if(!scenario)continue;
    const score=core.score(p,scenario);if(!score)continue;
@@ -126,6 +129,31 @@
    start.onclick=()=>startRecommendation(row);
    body.append(top,name,pain,visual,price,start);card.append(body);root.append(card);
   }
+  renderRecommendationPages();
+ }
+ function renderRecommendationPages(){
+  const root=$('#vpSocialRecoPages');if(!root)return;
+  root.replaceChildren();
+  const count=recommendations.length,pages=Math.max(1,Math.ceil(count/PAGE_SIZE));
+  currentPage=Math.max(1,Math.min(currentPage,pages));
+  const info=document.createElement('span');info.className='vpRecoPageInfo';
+  if(count)info.textContent='현재 '+count+'개 확보 / 요청 '+requested+'개 · '+currentPage+'/'+pages+'페이지 · 페이지당 최대 50개';
+  else info.textContent='검색된 상품 없음 · 요청 '+requested+'개';
+  root.append(info);
+  if(pages===1)return;
+  const button=(caption,target,disabled=false,active=false)=>{
+   const el=document.createElement('button');el.className='btn'+(active?' primary':'');el.type='button';
+   el.textContent=caption;el.disabled=disabled;el.setAttribute('aria-label',caption+' 페이지');
+   if(active)el.setAttribute('aria-current','page');
+   el.onclick=()=>{
+    currentPage=target;renderRecommendations();
+    $('#vpSocialRecoList')?.scrollIntoView?.({behavior:'smooth',block:'start'});
+   };
+   return el;
+  };
+  root.append(button('← 이전',Math.max(1,currentPage-1),currentPage===1));
+  for(let i=1;i<=pages;i++)root.append(button(String(i),i,false,currentPage===i));
+  root.append(button('다음 →',Math.min(pages,currentPage+1),currentPage===pages));
  }
  function startRecommendation(row){
   const scenario=core.scenarios.find(s=>s.id===row.scenarioId);if(!scenario)return;
@@ -142,46 +170,56 @@
   notice='SNS 콘텐츠 제작 후보를 불러왔습니다. 후킹 시나리오는 일반 생활 상황이며 제품의 실제 기능·사용권은 확인 후 적용하세요.';
  }
  async function findRecommendations(){
-  if(busy)return;
   const button=$('#vpSocialRecoRun'),msg=$('#vpSocialRecoStatus');
-  const candidates=core.pickScenarios(category);
-  if(!candidates.length)return;
-  busy=true;if(button){button.disabled=true;button.textContent='쿠팡 상품 검색 중…'}
-  if(msg)msg.textContent='문제해결 상황 '+candidates.length+'개를 실제 쿠팡 API에서 순서대로 검색합니다.';
-  const found=[];let errors=0;
+  if(busy){
+   searchCancelled=true;
+   if(msg)msg.textContent='현재 검색을 중단합니다. 완료된 검색 결과는 그대로 표시됩니다.';
+   return;
+  }
+  const planned=core.searchPlans(category,requested);
+  if(!planned.length){if(msg)msg.textContent='선택한 카테고리에 해당하는 검색어가 없습니다.';return}
+  busy=true;searchCancelled=false;currentPage=1;
+  if(button)button.textContent='검색 중단';
+  if(msg)msg.textContent='SNS 적합 상품을 최대 '+requested+'개까지 찾습니다. '+planned.length+'개 검색어 중 실제 매칭된 상품만 표시합니다.';
+  const unique=new Map();let errors=0,scanned=0;
+  const add=(scenarioId,p)=>{
+   if(!p?.id||!p.name||!Number.isFinite(Number(p.price))||Number(p.price)<=0)return;
+   const scenario=core.scenarios.find(s=>s.id===scenarioId);
+   const fit=core.score(p,scenario);
+   if(!fit)return;
+   const key=String(p.id),existing=unique.get(key);
+   if(!existing||existing.fit<fit.score)unique.set(key,{product:p,scenarioId,fit:fit.score});
+  };
   try{
-   // Two concurrent searches keep partner API usage controlled.
-   for(let i=0;i<candidates.length;i+=2){
-    const segment=candidates.slice(i,i+2);
-    const result=await Promise.allSettled(segment.map(async sc=>{
-     const data=await window.backendRequest('/api/products?q='+encodeURIComponent(sc.query)+'&limit=7');
-     return {sc,rows:Array.isArray(data.products)?data.products:[]};
+   // Search is explicitly user-triggered and bounded; max 4 partner queries
+   // concurrently. Never fabricate products to meet a chosen count.
+   for(let i=0;i<planned.length&&!searchCancelled&&unique.size<requested;i+=4){
+    const batch=planned.slice(i,i+4);
+    const responses=await Promise.allSettled(batch.map(async item=>{
+     const result=await window.backendRequest('/api/products?q='+encodeURIComponent(item.query)+'&limit=10');
+     return {scenarioId:item.scenarioId,products:Array.isArray(result.products)?result.products:[]};
     }));
-    result.forEach((out,k)=>{
-     if(out.status==='rejected'){errors++;return}
-     const {sc,rows}=out.value;
-     for(const p of rows){
-      if(!core.matches(p,sc))continue;
-      const fit=core.score(p,sc);if(fit)found.push({product:p,scenarioId:sc.id,fit:fit.score});
-     }
-    });
-    if(msg)msg.textContent='상품 후보 확인 중 · '+Math.min(i+2,candidates.length)+'/'+candidates.length+'가지 불편 상황 검색';
+    for(const result of responses){
+     scanned++;
+     if(result.status!=='fulfilled'){errors++;continue}
+     const {scenarioId,products:rows}=result.value;
+     for(const p of rows)add(scenarioId,p);
+    }
+    if(msg)msg.textContent='실제 상품 '+Math.min(unique.size,requested)+' / '+requested+
+      '개 발견 · 검색 '+scanned+'/'+planned.length+' · 실패한 검색 '+errors+'건';
    }
-   const dedup=new Map();
-   for(const item of found){
-    const key=String(item.product.id);
-    const existing=dedup.get(key);
-    if(!existing||existing.fit<item.fit)dedup.set(key,item);
+   recommendations=[...unique.values()].sort((a,b)=>b.fit-a.fit).slice(0,requested);
+   currentPage=1;
+   if(!searchCancelled)write(RECO_KEY,{at:Date.now(),category,requested,rows:recommendations});
+   if(msg){
+    const availability=recommendations.length<requested?' · 적합 상품 부족으로 요청 수량 미달':' · 요청한 수량 확보';
+    msg.textContent=(searchCancelled?'검색 중단 · ':'검색 완료 · ')+
+     '실제 상품 '+recommendations.length+'/'+requested+'개'+availability+
+     (errors?' · API 검색 오류 '+errors+'건':'')+' · 콘텐츠 적합도 추정, 판매 실적 아님';
    }
-   recommendations=[...dedup.values()].sort((a,b)=>b.fit-a.fit).slice(0,24);
-   const cache={at:Date.now(),category,rows:recommendations};
-   write(RECO_KEY,cache);
-   if(msg)msg.textContent=recommendations.length?
-    '실제 쿠팡 후보 '+recommendations.length+'개 · '+errors+'개 검색 실패 · SNS 제작 적합도 추정순':
-    '조건에 맞는 실제 상품을 찾지 못했습니다.'+(errors?' 일부 API 조회가 실패했습니다. 쿠팡 API 연결을 확인해 주세요.':' 검색 조건을 바꿔보세요.');
    renderRecommendations();
-  }catch(e){if(msg)msg.textContent='SNS 추천 검색 실패: '+String(e.message||e)}
-  finally{busy=false;if(button){button.disabled=false;button.textContent='SNS 맞춤 상품 찾기'}}
+  }catch(e){if(msg)msg.textContent='SNS 상품 검색 오류: '+String(e.message||e)}
+  finally{busy=false;searchCancelled=false;if(button)button.textContent='SNS 맞춤 상품 찾기'}
  }
  function mount(){
   const discover=$('#discover');if(!discover||$('#vpProductHistoryPanel'))return;
@@ -194,16 +232,20 @@
   const recoPanel=document.createElement('section');recoPanel.id='vpSocialRecoPanel';recoPanel.className='panel vpDiscoveryPanel';
   recoPanel.innerHTML='<div class="panelHead"><h2>Threads · Instagram 문제해결형 추천</h2><span class="badge orange">콘텐츠 적합도 추정</span></div>'+
    '<div class="pad"><p class="vpDiscoveryHelp">일상의 불편을 1단 공감형 문구로, 해결 상황을 2단 및 이미지로 만들기 좋은 상품을 찾습니다. 추천 점수는 판매·조회수 실적이 아닙니다.</p>'+
-   '<div class="vpRecoControls"><label>불편 상황<select id="vpSocialRecoCategory"></select></label><button class="btn primary" id="vpSocialRecoRun" type="button">SNS 맞춤 상품 찾기</button></div>'+
+   '<div class="vpRecoControls"><label>불편 상황<select id="vpSocialRecoCategory"></select></label>'+ 
+   '<label>상품 검색 수량<select id="vpSocialRecoLimit"><option value="20">20개</option><option value="50">50개</option><option value="100">100개</option><option value="200">200개</option></select></label>'+ 
+   '<button class="btn primary" id="vpSocialRecoRun" type="button">SNS 맞춤 상품 찾기</button></div>'+
    '<p id="vpSocialRecoStatus" class="vpDiscoveryHelp" role="status">검색 버튼을 누르면 쿠팡 API에서 실제 상품을 조회합니다.</p>'+
-   '<div id="vpSocialRecoList" class="vpRecoList"></div></div>';
+   '<div id="vpSocialRecoList" class="vpRecoList"></div><nav id="vpSocialRecoPages" class="vpRecoPagination" aria-label="SNS 추천 상품 페이지"></nav></div>';
   const before=$('#discoverProducts')?.closest('.panel');
   if(before){discover.insertBefore(historyPanel,before);discover.insertBefore(recoPanel,before)}
   else discover.append(historyPanel,recoPanel);
   const search=$('#vpHistoryQuery');search.oninput=()=>{query=search.value.trim().slice(0,80);renderHistory()};
   const select=$('#vpSocialRecoCategory');
   for(const [id,label] of Object.entries(core.labels)){const option=document.createElement('option');option.value=id;option.textContent=label;select.append(option)}
-  select.onchange=()=>{category=select.value};
+  select.onchange=()=>{category=select.value;currentPage=1;recommendations=[];renderRecommendations();const msg=$('#vpSocialRecoStatus');if(msg)msg.textContent='검색 조건이 변경됐습니다. SNS 맞춤 상품 찾기를 눌러 주세요.'};
+  const limitSelect=$('#vpSocialRecoLimit');limitSelect.value=String(requested);
+  limitSelect.onchange=()=>{requested=Number(limitSelect.value)||20;currentPage=1;recommendations=[];renderRecommendations();const msg=$('#vpSocialRecoStatus');if(msg)msg.textContent=requested+'개 검색을 준비했습니다. SNS 맞춤 상품 찾기를 눌러 주세요.'};
   $('#vpSocialRecoRun').onclick=()=>void findRecommendations();
   const style=document.createElement('style');style.textContent=
    '.vpDiscoveryPanel{margin:16px 0}.vpDiscoveryPanel .pad{padding:18px}.vpDiscoveryHelp{font-size:12px;color:#637187;line-height:1.55;margin:0 0 12px}'+
@@ -219,6 +261,7 @@
    '.vpRecoBody strong{font-size:13px;line-height:1.5;overflow-wrap:anywhere}.vpRecoBody p{font-size:12px;line-height:1.48;color:#506075;margin:0}'+
    '.vpRecoBadges{display:flex;gap:4px;flex-wrap:wrap}.vpRecoBadges span{background:#eaf1fc;color:#355992;padding:4px 7px;border-radius:8px;font-size:10px;font-weight:750}'+
    '.vpRecoBody .btn{justify-self:start;font-size:11px}.vpDiscoveryEmpty{font-size:12px;color:#7a8796;padding:14px;border:1px dashed #dfe5ed;border-radius:10px}'+
+   '.vpRecoPagination{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;padding:16px 0 6px}.vpRecoPagination .btn{min-width:39px}.vpRecoPageInfo{width:100%;text-align:center;color:#697487;font-size:12px;margin-bottom:5px}'+
    '@media(max-width:640px){.vpDiscoveryPanel .pad{padding:13px}.vpHistoryList,.vpRecoList{grid-template-columns:1fr}.vpHistoryCard{align-items:flex-start}.vpHistoryActions{width:100%}.vpHistoryActions .btn{width:100%}}';
   document.head.append(style);
  }
@@ -228,7 +271,8 @@
   notes=read(NOTES_KEY,{});if(!notes||typeof notes!=='object'||Array.isArray(notes))notes={};
   const saved=read(RECO_KEY,null);
   if(saved&&saved.at>Date.now()-30*60*1000&&Array.isArray(saved.rows)){
-   recommendations=saved.rows.slice(0,24);category=core.labels[saved.category]?saved.category:'all';
+   requested=[20,50,100,200].includes(Number(saved.requested))?Number(saved.requested):20;
+   recommendations=saved.rows.slice(0,requested);category=core.labels[saved.category]?saved.category:'all';
   }
   mount();
   const select=$('#vpSocialRecoCategory');if(select)select.value=category;
