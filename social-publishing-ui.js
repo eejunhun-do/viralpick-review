@@ -20,6 +20,15 @@ function render(){
  '<div class="panelHead"><h2>Meta 공식 API · 계정 연동 / 실제 예약 게시</h2><span class="badge blue">계정별 보안 연결</span></div>'+
  '<div class="pad"><p id="vpSocialNotice" role="status">Meta 연결 상태를 확인하세요. 이 영역에서 등록한 예약만 실제 서버 큐에 저장됩니다.</p>'+
  '<div class="vpMetaAccounts">'+Object.entries(labels).map(([k,n])=>'<div class="vpMetaAccount"><b>'+n+'</b><span id="vpMetaState-'+k+'">확인 중</span> <button class="btn" type="button" data-meta-connect="'+k+'">공식 계정 연결</button> <button class="btn" type="button" data-meta-disconnect="'+k+'">연결 해제</button></div>').join('')+'</div>'+
+ '<details class="vpIgSetup"><summary>Instagram 계정 연결 준비 · 설정 안내</summary><div class="vpIgHelp">'+
+ '<p id="vpIgSetupStatus" role="status">Instagram 서버 설정 확인 중…</p>'+
+ '<p>Instagram 비즈니스 또는 크리에이터 프로페셔널 계정이 필요합니다. Instagram Login 방식은 Facebook 페이지 연동 없이 사용할 수 있습니다.</p>'+
+ '<p>Meta 앱 Instagram API with Instagram Login 사용 사례에서 instagram_business_basic, instagram_business_content_publish 권한을 활성화하세요.</p>'+
+ '<p><strong>OAuth 리디렉션 URL:</strong></p><code id="vpIgCallbackUrl">https://viralpick-review.vercel.app/api/social?oauth=callback&amp;platform=instagram</code>'+
+ '<button class="btn" type="button" id="vpIgCopyCallback">URL 복사</button>'+
+ '<p><strong>Vercel Production 환경변수:</strong> META_INSTAGRAM_APP_ID, META_INSTAGRAM_APP_SECRET을 Vercel 서버 설정에만 등록하세요. Secret은 이 채팅이나 웹 입력창에 공유하지 마세요.</p>'+
+ '<a href="https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login" target="_blank" rel="noopener noreferrer">Meta Instagram Login 공식 가이드 ↗</a>'+
+ '</div></details>'+
  '<h3>검수 완료 콘텐츠 서버 예약</h3><div class="vpMetaForm">'+
  '<label>플랫폼<select id="vpMetaPlatform"><option value="threads">Threads</option><option value="instagram">Instagram</option></select></label>'+
  '<label>게시일 (한국시간)<input id="vpMetaDate" type="date"></label>'+
@@ -40,6 +49,7 @@ function render(){
  p.querySelectorAll('[data-meta-connect]').forEach(b=>b.onclick=()=>connect(b.dataset.metaConnect));
  p.querySelectorAll('[data-meta-disconnect]').forEach(b=>b.onclick=()=>disconnect(b.dataset.metaDisconnect));
  $('#vpMetaImport').onclick=importCurrent;
+ $('#vpIgCopyCallback').onclick=async()=>{try{await navigator.clipboard.writeText($('#vpIgCallbackUrl').textContent);note('Instagram 리디렉션 URL이 복사됐습니다.')}catch{note('URL 복사 실패: 표시된 주소를 직접 복사해 주세요.')}};
  $('#vpMetaSchedule').onclick=schedule;
  $('#vpMetaReload').onclick=refresh;
  const social=new URLSearchParams(location.search).get('social');
@@ -109,6 +119,10 @@ function organizeScheduler(){
  '#vpMetaPanel .vpMetaStatus{display:inline-block;font-size:11px;font-weight:750;padding:5px 9px;border-radius:9px;background:#eef1f6;color:#506070}'+
  '#vpMetaPanel .vpMetaStatus.published{background:#e7f5ec;color:#217651}#vpMetaPanel .vpMetaStatus.needs_review{background:#fff0e6;color:#a85721}'+
  '#vpMetaPanel .vpMetaDelete{color:#a53838;border-color:#eed5d5;background:#fff}'+
+ '#vpMetaPanel .vpIgSetup{border:1px solid #dbe6f4;border-radius:12px;background:#f8faff;padding:13px;margin:9px 0 17px}'+
+ '#vpMetaPanel .vpIgSetup summary{font-size:12px;font-weight:800;cursor:pointer}'+
+ '#vpMetaPanel .vpIgHelp{font-size:12px;line-height:1.65;padding-top:12px;color:#4d6078}'+
+ '#vpMetaPanel .vpIgHelp code{display:block;font-size:11px;overflow-wrap:anywhere;white-space:normal;margin:10px 0}'+
    '#vpMetaPanel .vpMetaManual{margin:22px 0 6px;border:1px solid #e0e5ed;border-radius:11px;padding:0 15px 16px}'+
  '#vpMetaPanel .vpMetaManual>summary{cursor:pointer;font-size:13px;font-weight:750;padding:15px 0}'+
  '#vpMetaPanel .vpMetaAdvanced{border:1px solid #e3e9ef;border-radius:9px;padding:12px;margin:15px 0}'+
@@ -166,6 +180,7 @@ async function schedule(){
   if(!$('#vpMetaApproved').checked)throw Error('게시 내용을 검토하고 승인 항목에 체크해 주세요.');
   if(platform==='instagram'&&!base.length&&!files.length)throw Error('Instagram은 최소 1장 이상 이미지를 선택해 주세요.');
   if(base.length+files.length>10)throw Error('이미지는 최대 10장입니다.');
+  if(platform==='instagram'&&files.some(f=>f.type!=='image/jpeg'))throw Error('Instagram 직접 업로드 사진은 JPG/JPEG만 가능합니다. PNG/WebP를 JPEG로 변환해 주세요.');
   if(files.length){note('예약 사진 '+files.length+'장 업로드 중…');base.push(...await uploadImages(files))}
   const product=''; // Manual text entry is not automatically associated with the selected product.
   note('Meta 서버 예약을 등록하는 중…');
@@ -184,13 +199,18 @@ async function refresh(announce=false){
    for(const p of Object.keys(labels)){
     const c=state.connected[p]||{},el=$('#vpMetaState-'+p);
     if(el)el.textContent=c.connected?
-     '연결됨 · @'+(c.username||'계정')+(p==='threads'?(c.replyReady?' · 2단 답글 권한 확인됨':' · 2단 답글 권한 필요 · 다시 연결'):''):
+     '연결됨 · @'+(c.username||'계정')+(p==='threads'?(c.replyReady?' · 2단 답글 권한 확인됨':' · 2단 답글 권한 필요 · 다시 연결'):
+      p==='instagram'?(c.professional?' · 프로페셔널 계정 확인됨':' · 계정 유형 확인 필요 · 다시 연결'):''):
      (status.configured?.[p]?'계정 연결 필요':'Meta 앱 설정 필요');
     const disconnect=document.querySelector('[data-meta-disconnect="'+p+'"]');
     if(disconnect)disconnect.hidden=!c.connected;
     const connect=document.querySelector('[data-meta-connect="'+p+'"]');
-    if(connect)connect.textContent=c.connected?'다시 연결':'계정 연결';
+    if(connect){connect.textContent=c.connected?'다시 연결':'계정 연결';connect.disabled=!status.configured?.[p];connect.title=connect.disabled?'Vercel에 Meta 앱 ID·Secret 등록 필요':'Meta 계정 인증 열기'}
    }
+   const igStatus=$('#vpIgSetupStatus'),ig=status.platforms?.instagram||{};
+   if(igStatus)igStatus.textContent=!status.configured?.instagram?'Vercel Production에 Instagram 앱 ID와 Secret을 등록하면 연결 버튼이 활성화됩니다.':
+      ig.connected?(ig.professional?'인증된 프로페셔널 계정 @'+(ig.username||'계정')+' · 예약 발행 준비됨':'계정 유형 확인이 필요합니다. Instagram을 다시 연결하세요.'):
+      'Instagram 앱 설정 확인됨 · 계정 연결 버튼을 눌러 인증하세요.';
    if(!status.schedulerConfigured)note('예약 실행용 서버 설정이 필요합니다.');
    else if(announce)note('최신 예약 상태를 불러왔습니다.');
    showJobs(jobs.posts||[]);
@@ -364,9 +384,11 @@ async function realReservation(){
   show('Meta 계정과 이미지 저장소 확인 중…');
   const status=await get('op=status');
   if(!status.platforms?.[platform]?.connected)throw Error(labels[platform]+' 계정 연결이 필요합니다.');
+  if(platform==='instagram'&&!status.platforms.instagram.professional)throw Error('Instagram 프로페셔널 계정이 확인되지 않았습니다. 비즈니스/크리에이터 계정으로 다시 연결하세요.');
   if(!status.blobConfigured)throw Error('Vercel Blob 이미지 저장소가 연결되지 않았습니다. 이미지 없이 예약하지 않습니다.');
   const multi=typeof isMultiMode==='function'&&isMultiMode(platform==='threads'?'Threads':'Instagram');
-  const count=platform==='instagram'?(multi?Math.min(10,multiSlideCount()):5):
+  const count=platform==='instagram'?
+   (typeof window.vpInstagramPrepareForReservation==='function'?await window.vpInstagramPrepareForReservation():0):
    multi?Math.min(10,multiSlideCount()):
    typeof window.vpThreadPairPrepareForReservation==='function'?
    await window.vpThreadPairPrepareForReservation():1;
