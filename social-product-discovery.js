@@ -176,7 +176,8 @@
    if(msg)msg.textContent='현재 검색을 중단합니다. 완료된 검색 결과는 그대로 표시됩니다.';
    return;
   }
-  const planned=core.searchPlans(category,requested);
+  const searchCategory=category,searchTarget=requested;
+  const planned=core.searchPlans(searchCategory,searchTarget);
   if(!planned.length){if(msg)msg.textContent='선택한 카테고리에 해당하는 검색어가 없습니다.';return}
   busy=true;searchCancelled=false;currentPage=1;
   if(button)button.textContent='검색 중단';
@@ -193,7 +194,7 @@
   try{
    // Search is explicitly user-triggered and bounded; max 4 partner queries
    // concurrently. Never fabricate products to meet a chosen count.
-   for(let i=0;i<planned.length&&!searchCancelled&&unique.size<requested;i+=4){
+   for(let i=0;i<planned.length&&!searchCancelled&&unique.size<searchTarget;i+=4){
     const batch=planned.slice(i,i+4);
     const responses=await Promise.allSettled(batch.map(async item=>{
      const result=await window.backendRequest('/api/products?q='+encodeURIComponent(item.query)+'&limit=10');
@@ -205,16 +206,18 @@
      const {scenarioId,products:rows}=result.value;
      for(const p of rows)add(scenarioId,p);
     }
-    if(msg)msg.textContent='실제 상품 '+Math.min(unique.size,requested)+' / '+requested+
+    if(msg)msg.textContent='실제 상품 '+Math.min(unique.size,searchTarget)+' / '+searchTarget+
       '개 발견 · 검색 '+scanned+'/'+planned.length+' · 실패한 검색 '+errors+'건';
+    if(errors>=8&&unique.size===0){if(msg)msg.textContent='쿠팡 검색 API 오류가 반복되어 요청을 중단했습니다. 연결 상태를 확인해 주세요.';break;}
    }
-   recommendations=[...unique.values()].sort((a,b)=>b.fit-a.fit).slice(0,requested);
+   if(searchCategory!==category||searchTarget!==requested)return;
+   recommendations=[...unique.values()].sort((a,b)=>b.fit-a.fit).slice(0,searchTarget);
    currentPage=1;
-   if(!searchCancelled)write(RECO_KEY,{at:Date.now(),category,requested,rows:recommendations});
+   if(!searchCancelled)write(RECO_KEY,{at:Date.now(),category:searchCategory,requested:searchTarget,rows:recommendations});
    if(msg){
-    const availability=recommendations.length<requested?' · 적합 상품 부족으로 요청 수량 미달':' · 요청한 수량 확보';
+    const availability=recommendations.length<searchTarget?' · 적합 상품 부족으로 요청 수량 미달':' · 요청한 수량 확보';
     msg.textContent=(searchCancelled?'검색 중단 · ':'검색 완료 · ')+
-     '실제 상품 '+recommendations.length+'/'+requested+'개'+availability+
+     '실제 상품 '+recommendations.length+'/'+searchTarget+'개'+availability+
      (errors?' · API 검색 오류 '+errors+'건':'')+' · 콘텐츠 적합도 추정, 판매 실적 아님';
    }
    renderRecommendations();
@@ -243,9 +246,9 @@
   const search=$('#vpHistoryQuery');search.oninput=()=>{query=search.value.trim().slice(0,80);renderHistory()};
   const select=$('#vpSocialRecoCategory');
   for(const [id,label] of Object.entries(core.labels)){const option=document.createElement('option');option.value=id;option.textContent=label;select.append(option)}
-  select.onchange=()=>{category=select.value;currentPage=1;recommendations=[];renderRecommendations();const msg=$('#vpSocialRecoStatus');if(msg)msg.textContent='검색 조건이 변경됐습니다. SNS 맞춤 상품 찾기를 눌러 주세요.'};
+  select.onchange=()=>{if(busy)searchCancelled=true;category=select.value;currentPage=1;recommendations=[];renderRecommendations();const msg=$('#vpSocialRecoStatus');if(msg)msg.textContent='검색 조건이 변경됐습니다. SNS 맞춤 상품 찾기를 눌러 주세요.'};
   const limitSelect=$('#vpSocialRecoLimit');limitSelect.value=String(requested);
-  limitSelect.onchange=()=>{requested=Number(limitSelect.value)||20;currentPage=1;recommendations=[];renderRecommendations();const msg=$('#vpSocialRecoStatus');if(msg)msg.textContent=requested+'개 검색을 준비했습니다. SNS 맞춤 상품 찾기를 눌러 주세요.'};
+  limitSelect.onchange=()=>{if(busy)searchCancelled=true;requested=Number(limitSelect.value)||20;currentPage=1;recommendations=[];renderRecommendations();const msg=$('#vpSocialRecoStatus');if(msg)msg.textContent=requested+'개 검색을 준비했습니다. SNS 맞춤 상품 찾기를 눌러 주세요.'};
   $('#vpSocialRecoRun').onclick=()=>void findRecommendations();
   const style=document.createElement('style');style.textContent=
    '.vpDiscoveryPanel{margin:16px 0}.vpDiscoveryPanel .pad{padding:18px}.vpDiscoveryHelp{font-size:12px;color:#637187;line-height:1.55;margin:0 0 12px}'+

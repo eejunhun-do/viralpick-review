@@ -10,8 +10,8 @@ const html=readFileSync(new URL('../v05.html',import.meta.url),'utf8');
 test('social-problem discovery scripts load after existing workspace and parse',()=>{
  assert.doesNotThrow(()=>new Script(core));
  assert.doesNotThrow(()=>new Script(ui));
- assert.match(html,/social-discovery-core\.js\?v=1/);
- assert.match(html,/social-product-discovery\.js\?v=1/);
+ assert.match(html,/social-discovery-core\.js\?v=2/);
+ assert.match(html,/social-product-discovery\.js\?v=2/);
  assert.match(html,/일상의 불편을 해결하는 SNS 상품 찾기/);
 });
 function contextWith(options={}){
@@ -79,4 +79,29 @@ test('API query is never triggered merely by opening product discovery',()=>{
  assert.doesNotThrow(()=>contextWith());
  assert.match(ui,/window\.backendRequest\('\/api\/products\?q='/);
  assert.match(ui,/vpSocialRecoRun'\)\.onclick=\(\)=>void findRecommendations\(\)/);
+});
+
+test('200-item searches are bounded, category relevant and use real API query plans',()=>{
+ const scope=createContext({window:{}});runInContext(core,scope);
+ const engine=scope.window.vpSocialDiscoveryCore;
+ assert.ok(engine.searchPlans('all',20).length>0);
+ assert.ok(engine.searchPlans('all',200).length>engine.searchPlans('all',20).length);
+ assert.ok(engine.searchPlans('all',200).length<=160);
+ const pet=engine.searchPlans('pets',200);
+ assert.ok(pet.length>8);
+ assert.ok(pet.every(x=>engine.scenarios.find(s=>s.id===x.scenarioId)?.category==='pets'));
+ const unique=new Set(pet.map(p=>p.query+'|'+p.scenarioId));
+ assert.equal(unique.size,pet.length);
+});
+test('SNS recommendation amounts and 50-item pagination are available',()=>{
+ for(const count of [20,50,100,200])assert.match(ui,new RegExp('<option value="'+count+'">'+count+'개<\\/option>'));
+ assert.match(ui,/const MAX_HISTORY=35,MAX_NOTES=24,PAGE_SIZE=50/);
+ assert.match(ui,/recommendations\.slice\(start,start\+PAGE_SIZE\)/);
+ assert.match(ui,/function renderRecommendationPages/);
+ assert.match(ui,/vpSocialRecoPages/);
+ assert.match(ui,/이전/);
+ assert.match(ui,/다음/);
+ assert.match(ui,/&limit=10/);
+ assert.match(ui,/상품.*검색 오류/);
+ assert.match(ui,/중복|dedup|const unique=new Map/);
 });

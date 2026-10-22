@@ -24,7 +24,7 @@ test('Cron denies unconfigured or missing authorization',async()=>{
 test('ViralPick has dedicated real Meta integration while legacy draft remains separate',()=>{
  const html=readFileSync(new URL('../v05.html',import.meta.url),'utf8');
  const social=readFileSync(new URL('../social-publishing-ui.js',import.meta.url),'utf8');
- assert.match(html,/social-publishing-ui\.js\?v=2/);
+ assert.match(html,/social-publishing-ui\.js\?v=3/);
  assert.match(social,/vpMetaPanel/);
  assert.match(social,/vpMetaApproved/);
  assert.match(social,/실제 서버 예약/);
@@ -63,4 +63,21 @@ test('Media reservation does not silently fall back to text-only after a Blob fa
  assert.match(ui,/이미지.*업로드 실패/);
  assert.match(backend,/Threads 1단·2단 각각 500자/);
  assert.match(backend,/await waitMedia\(container\.id\)/);
+});
+
+test('Pending reservations can be cancelled or removed, safely serialized with Meta worker',()=>{
+ const ui=readFileSync(new URL('../social-publishing-ui.js',import.meta.url),'utf8');
+ const api=readFileSync(new URL('../lib/social-publishing.js',import.meta.url),'utf8');
+ assert.match(ui,/예약 삭제/);
+ assert.match(ui,/내역 삭제/);
+ assert.match(ui,/예약 취소/);
+ assert.match(ui,/action:'delete'/);
+ assert.match(ui,/action:'cancel'/);
+ assert.match(api,/d\.action==='cancel'\|\|d\.action==='delete'/);
+ assert.match(api,/lock,'user-remove','NX','EX'/);
+ assert.match(api,/j\.status==='processing'/);
+ assert.match(api,/redis\('ZREM',queue,j\.id\)/);
+ assert.match(api,/redis\('ZREM',userJobs\(u\),j\.id\)/);
+ assert.match(api,/redis\('DEL',jobKey\(j\.id\)\)/);
+ assert.match(api,/metaPostUnaffected:true/);
 });
