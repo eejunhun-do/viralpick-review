@@ -254,7 +254,8 @@
    saveTimer=setTimeout(()=>{if(selected?.source!=='sample'){capture(selected.id);remember(selected)}},700);
   })}
   if(selected?.source!=='sample'){
-   if(!notes[String(selected.id)])capture(selected.id);
+   if(notes[String(selected.id)])restoreNotes(selected.id);
+   else capture(selected.id);
    remember(selected);
   }else renderHistory();
   renderRecommendations();
