@@ -19,7 +19,7 @@ test('Editing Meta reservation updates same ID safely and blocks stale, unauthor
  const q='vp:social:v1:queue',record='vp:social:v1:job:'+id;
  kv.set(record,JSON.stringify(job));
  kv.set('vp:social:v1:connection:'+user+':threads',encrypt({
-  accessToken:'example-test-token',id:'123',username:'example',expiresAt:now+60*86400000,connectedAt:now
+  accessToken:'example-test-token',id:'123',username:'example',expiresAt:now+60*86400000,connectedAt:now,scopes:['threads_basic','threads_content_publish','threads_manage_replies','threads_read_replies']
  }));
  sorted.set(q,new Map([[id,base]]));
  globalThis.fetch=async(url,options)=>{
