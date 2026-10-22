@@ -29,7 +29,7 @@ test('Publishing queue waits on image readiness before issuing Meta publish',asy
  assert.match(code,/j\.mediaStage/);
 });
 
-test('Threads carousel status GET 100 is isolated from publish errors and stage errors show details',()=>{
+test('Threads carousel status GET 100 is isolated from publish errors and stage errors show details',async()=>{
  const code=(await import('node:fs')).readFileSync(new URL('../lib/social-publishing.js',import.meta.url),'utf8');
  const start=code.indexOf("if(j.imageUrls.length>1){",code.indexOf('async function published('));
  const end=code.indexOf('container=await graph(p,me',start);
