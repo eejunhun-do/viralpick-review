@@ -138,8 +138,9 @@
     text,replyText,imageUrls:urls,scheduledAt:iso,approved:true
    })});
    if(!changed.ok||changed.id!==editing.id)throw Error('서버 수정 확인에 실패했습니다. 목록을 확인해 주세요.');
+   const savedId=editing.id;
    submitting=false;button.disabled=false;close();
-   window.vpActivityLog?.('소셜 예약','예약 내용 수정 완료 · '+editing?.id);
+   window.vpActivityLog?.('소셜 예약','예약 내용 수정 완료 · '+savedId);
    if(typeof window.vpMetaRefresh==='function')await window.vpMetaRefresh(true);
    const notice=$('#vpSocialNotice');if(notice)notice.textContent='예약 콘텐츠 변경 완료 · 기존 예약 ID 유지 · 이미지 '+urls.length+'장';
   }catch(e){notify('수정 실패: '+String(e?.message||e),true)}

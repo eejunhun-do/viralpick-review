@@ -24,7 +24,7 @@ test('Cron denies unconfigured or missing authorization',async()=>{
 test('ViralPick has dedicated real Meta integration while legacy draft remains separate',()=>{
  const html=readFileSync(new URL('../v05.html',import.meta.url),'utf8');
  const social=readFileSync(new URL('../social-publishing-ui.js',import.meta.url),'utf8');
- assert.match(html,/social-publishing-ui\.js\?v=3/);
+ assert.match(html,/social-publishing-ui\.js\?v=4/);
  assert.match(social,/vpMetaPanel/);
  assert.match(social,/vpMetaApproved/);
  assert.match(social,/실제 서버 예약/);
@@ -90,4 +90,25 @@ test('Image carousel status GET errors no longer block image child container cre
  assert.match(api,/Meta 상태 조회 제한\(100\)/);
  assert.match(cron,/maxDuration:120/);
  assert.match(api,/j\.status='needs_review'/);
+});
+
+test('Only scheduled entries show the inline edit button while an editable future window remains',()=>{
+ const html=readFileSync(new URL('../v05.html',import.meta.url),'utf8');
+ const ui=readFileSync(new URL('../social-publishing-ui.js',import.meta.url),'utf8');
+ const editor=readFileSync(new URL('../social-reservation-editor.js',import.meta.url),'utf8');
+ const server=readFileSync(new URL('../lib/social-publishing.js',import.meta.url),'utf8');
+ assert.match(html,/social-reservation-editor\.js\?v=1/);
+ assert.match(ui,/j\.status==='scheduled'&&!overdue&&Number\(j\.scheduledAt\)>Date\.now\(\)\+120000/);
+ assert.match(ui,/vpMetaEditReservation/);
+ assert.match(ui,/vpMetaUploadImages=uploadImages/);
+ assert.match(editor,/기존 이미지는 체크된 상태로 유지/);
+ assert.match(editor,/기존 예약 ID 유지/);
+ assert.match(editor,/expectedUpdatedAt:editing\.updatedAt/);
+ assert.match(editor,/action:'update'/);
+ assert.match(server,/d\.action==='update'/);
+ assert.match(server,/Number\(j\.scheduledAt\)<now\+lead/);
+ assert.match(server,/j\.status!=='scheduled'/);
+ assert.match(server,/d\.expectedUpdatedAt/);
+ assert.match(server,/redis\('ZADD',queue,at,j\.id\)/);
+ assert.match(server,/redis\('SET',jobKey\(j\.id\),JSON\.stringify\(updated\)\)/);
 });
