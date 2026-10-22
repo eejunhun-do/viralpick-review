@@ -209,8 +209,9 @@ async function refresh(announce=false){
    }
    const igStatus=$('#vpIgSetupStatus'),ig=status.platforms?.instagram||{};
    if(igStatus)igStatus.textContent=!status.configured?.instagram?'Vercel Production에 Instagram 앱 ID와 Secret을 등록하면 연결 버튼이 활성화됩니다.':
-      ig.connected?(ig.professional?'인증된 프로페셔널 계정 @'+(ig.username||'계정')+' · 예약 발행 준비됨':'계정 유형 확인이 필요합니다. Instagram을 다시 연결하세요.'):
+      ig.connected?(ig.professional?'프로페셔널 계정 @'+(ig.username||'계정')+' · 실제 게시 권한은 첫 발행 테스트로 확인':'계정 유형 확인이 필요합니다. Instagram을 다시 연결하세요.'):
       'Instagram 앱 설정 확인됨 · 계정 연결 버튼을 눌러 인증하세요.';
+   const setup=$('.vpIgSetup');if(setup&&!status.configured?.instagram)setup.open=true;
    if(!status.schedulerConfigured)note('예약 실행용 서버 설정이 필요합니다.');
    else if(announce)note('최신 예약 상태를 불러왔습니다.');
    showJobs(jobs.posts||[]);

@@ -24,7 +24,7 @@ test('Cron denies unconfigured or missing authorization',async()=>{
 test('ViralPick has dedicated real Meta integration while legacy draft remains separate',()=>{
  const html=readFileSync(new URL('../v05.html',import.meta.url),'utf8');
  const social=readFileSync(new URL('../social-publishing-ui.js',import.meta.url),'utf8');
- assert.match(html,/social-publishing-ui\.js\?v=5/);
+ assert.match(html,/social-publishing-ui\.js\?v=6/);
  assert.match(social,/vpMetaPanel/);
  assert.match(social,/vpMetaApproved/);
  assert.match(social,/실제 서버 예약/);
