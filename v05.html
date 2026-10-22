@@ -1010,6 +1010,7 @@ button:focus-visible,.product:focus-visible,.visual:focus-visible,.blogTitle:foc
           <button type="button" class="btn" id="carouselSingleBtn" onclick="generateCarouselImage(instaCardIndex+1)">현재 카드 사진 다시 생성</button>
         </div>
         <p id="carouselArtStatus" aria-live="polite">1~2번은 제품 없는 상황, 3~5번은 실제 상품 이미지 기반 상황을 생성합니다. AI 요금이 발생합니다.</p>
+         <p class="queueHint">Instagram 자동 예약은 실제 생성된 5장 이미지가 모두 준비돼야 진행됩니다. 미완성 카드나 템플릿 이미지는 게시하지 않습니다.</p>
       </div>
       <div class="instagramCarouselViewer">
     <div class="instaSwipeFrame" id="instaSwipeFrame" role="region" tabindex="0"
@@ -1369,6 +1370,33 @@ async function saveCarouselArtwork(productId,slide,data){
   return false;
  }
 }
+/* Real Instagram scheduling must never use template/placeholder slides.
+ * This waits for the saved AI artwork after reload before Blob/JPEG export. */
+async function prepareInstagramCarouselForReservation(){
+ if(typeof selected==='undefined'||selected?.source==='sample')
+  throw new Error('시연용 상품으로 Instagram에 발행할 수 없습니다. 실제 상품을 선택해 주세요.');
+ if(typeof isMultiMode==='function'&&isMultiMode('Instagram')){
+  const count=multiSlideCount();
+  if(!Number.isInteger(count)||count<1||count>10)throw Error('Instagram 게시 이미지는 1~10장이어야 합니다.');
+  return count;
+ }
+ if(carouselGenerationBusy||sceneGenerationBusy)
+  throw new Error('Instagram AI 이미지를 생성하고 있습니다. 완료 후 예약해 주세요.');
+ const id=selected.id;
+ const missing=[1,2,3,4,5].filter(n=>!carouselImageForSlide(n,id)?.image?.naturalWidth);
+ if(missing.length){
+  const record=getPhotoHistory(id)||await readPhotoRecord(id).catch(()=>null);
+  if(record?.carouselSlides)await restoreCarouselArtwork(id,record);
+ }
+ const unready=[1,2,3,4,5].filter(n=>{
+  const p=carouselImageForSlide(n,id);
+  return !p?.data||!p?.image?.complete||!p?.image?.naturalWidth;
+ });
+ if(unready.length)throw new Error('Instagram '+unready.join('·')+
+  '번 카드의 실제 제작 사진이 없습니다. 캐러셀 이미지 생성에서 빠진 카드만 완성한 뒤 예약해 주세요. 빈 템플릿은 업로드하지 않습니다.');
+ return 5;
+}
+window.vpInstagramPrepareForReservation=prepareInstagramCarouselForReservation;
 function carouselSceneForSlide(p,slide){
  const planned=window.vpInstagramSingleStoryForSlide?.(slide-1);
  if(planned?.scene)return ('Photorealistic Korean Instagram product-story slide '+slide+' of 5. '+planned.scene+' Product category: '+p.name+'. No overlay text, logos, fake claims or watermarks. Natural empty upper region for Korean app typography.').slice(0,500);
