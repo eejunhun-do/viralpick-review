@@ -81,3 +81,13 @@ test('Pending reservations can be cancelled or removed, safely serialized with M
  assert.match(api,/redis\('DEL',jobKey\(j\.id\)\)/);
  assert.match(api,/metaPostUnaffected:true/);
 });
+
+test('Image carousel status GET errors no longer block image child container creation',()=>{
+ const api=readFileSync(new URL('../lib/social-publishing.js',import.meta.url),'utf8');
+ const cron=readFileSync(new URL('../api/social-cron.js',import.meta.url),'utf8');
+ assert.match(api,/Threads 이미지 캐러셀 결합 중/);
+ assert.match(api,/if\(e\.httpStatus!==400\|\|e\.metaCode!==100\)throw e/);
+ assert.match(api,/Meta 상태 조회 제한\(100\)/);
+ assert.match(cron,/maxDuration:120/);
+ assert.match(api,/j\.status='needs_review'/);
+});
